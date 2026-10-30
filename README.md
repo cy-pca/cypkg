@@ -9,9 +9,9 @@ orgs and the registry. The same documents run natively in a terminal and in
 the browser on xterm.js.
 
 > **Status: M0 in progress.** Search and package pages work in both terminal
-> backends. They need an `ari` with transfix/libcvc#888 (network flags,
-> merged) and #883 (JSON, not yet merged). The browser path is still to do.
-> See [docs/ROADMAP.md](docs/ROADMAP.md).
+> backends and in the browser. They need an `ari` built with open libcvc PRs
+> (`.github/workflows/test.yml` lists them), and no registry serves
+> `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -41,9 +41,37 @@ Running in `arigl` (ImGui) is a possible later extra, not a goal; see M6 in
 the roadmap.
 
 **In the browser**, the same documents run in ari's xterm.js page, the FTXUI
-backend built for wasm. A registry serves both at
+backend built for wasm (transfix/libcvc#887). A registry serves both at
 `https://<registry>/apps/cypkg/`. Because that is the registry's own origin,
 it needs no CORS.
+
+- `tools/site.sh ARI_WEB OUT` assembles that directory from ari's page files
+  and `share/cypkg/`.
+- `web/ariadne.config.json` pins the document to `main.ari` and turns the
+  network on for the page's own origin only (`--net`).
+- The config also passes `--server {origin}`, so cypkg browses the registry
+  that serves it.
+- Host flags come only from that file, never from the URL.
+- The page runs under a strict Content-Security-Policy: no inline code or
+  style, no eval, nothing from another origin.
+
+**GitHub Pages, for now.** Until a registry serves it, CI publishes the page
+from `main` to https://cy-pca.github.io/cypkg/.
+- That build uses `web/ariadne.config.pages.json`, which browses
+  https://cvcpkg.org: `--net-allow https://cvcpkg.org` and
+  `--server https://cvcpkg.org`.
+- That's another origin, so cvcpkg.org must allow `https://cy-pca.github.io`
+  with CORS (`CVCPKG_CORS_ORIGINS`). Until it does, the page loads and says
+  "search failed: ... (network or CORS)". Checked locally from a plain static
+  server: CORS is the only thing in the way.
+
+To try it, serve a site with the fixture registry and open
+`http://127.0.0.1:8766/apps/cypkg/`:
+
+```bash
+tools/site.sh /path/to/ari-web site
+python3 tests/registry/fixture_registry.py --port 8766 --site site
+```
 
 ## What it talks to
 
@@ -106,6 +134,7 @@ the `ari` to run.
 | 2c. modules | `tests/modules.sh` | 17 `ari test` tests in `tests/modules/`, each document mounting one module alone against the fixture registry through the holes `main.ari` grants (9 search, 8 package). Each test sets the module's state the way its view does, waits for its `seq` counter to count a finished request, and asserts on what its view reads |
 | 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
 | 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, Ctrl-C |
+| 3c. browser | `tests/browser.mjs` | The wasm page in headless Chrome, served with the fixture API from one origin under a strict CSP. Real keys over DevTools, through the same steps as 3b; it reads the terminal's text. Runs when `ARI_WEB` and `CHROME` are set |
 | 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
 
 The fixture registry (`tests/registry/fixture_registry.py`, Python stdlib
@@ -152,6 +181,12 @@ How the pieces fit:
 - libcvc's dependencies come from cvcpkg, as in libcvc's own CI.
 - The built `ari` is cached by its libcvc source tree, so an unchanged libcvc
   isn't rebuilt.
+- A second job builds ari's single-threaded wasm page the same way (with
+  #887 too, from cvcpkg's emsdk and wasm deps), assembles the site and runs
+  `tests/browser.mjs` in the runner's Chrome.
+- `tools/libcvc.sh` does the fetching and merging for both jobs. When two of
+  the PRs conflict in a way `tools/libcvc-resolve.py` knows (today, #887 and
+  #896 in `src/ari/main.cpp`), it resolves it; any other conflict fails.
 - A daily job runs the contract check against cvcpkg.org.
 - `workflow_dispatch` takes another libcvc ref or list of PRs.
 
