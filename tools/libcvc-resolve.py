@@ -4,7 +4,9 @@ Run by tools/libcvc.sh in a libcvc checkout mid-merge. Each conflict block must 
 file's rules (RULES) or a rule for any file (ANY_FILE), or nothing is written and it exits 1. Temporary: delete a rule once the PRs it reconciles have merged or been rebased onto each
 other.
 
-In any file, a conflict where both sides only add #include lines keeps them all (sorted).
+In any file, a conflict where both sides only add #include lines keeps them all (sorted). In docs/
+and test files, any other conflict keeps both sides, ours first: there two open PRs adding a
+paragraph or a test each is the usual clash, and the build doesn't depend on them.
 
 Known today (2026-10-30):
   src/cvc/tests/state_exec_builtins_test.cpp, master (#889's <cstdlib>) vs #883 (<cmath>):
@@ -48,6 +50,16 @@ def includes_only(ours, theirs):
     return None
 
 
+def keep_both(ours, theirs):
+    """Both sides added text at the same place: keep ours, then theirs. Only for docs and tests
+    (see BOTH_OK), where two PRs adding a paragraph or a test each is the usual clash."""
+    return ours + theirs
+
+
+def both_ok(path):
+    return path.startswith("docs/") or "/tests/" in path
+
+
 RULES = {"src/ari/main.cpp": [ari_main_flags, ari_main_check]}
 # Rules tried in every file, after its own.
 ANY_FILE = [includes_only]
@@ -60,7 +72,7 @@ def main():
         return 1
     out = {}
     for f in files:
-        rules = RULES.get(f, []) + ANY_FILE
+        rules = RULES.get(f, []) + ANY_FILE + ([keep_both] if both_ok(f) else [])
         text = open(f).read()
 
         def fix(m):

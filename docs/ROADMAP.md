@@ -39,8 +39,8 @@ work on cvcpkg is tracked as C-items in
 | L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | transfix/libcvc#904 and #905 open; cypkg's views and request loops are modules on them | M1 |
 | L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | transfix/libcvc#902 open | none (worked around) |
 | L16 | (agenda, not planned) file descriptors as state channels or streams | agenda | |
-| L17 | `(sha256-hex x)` and `(random-token n)` (OS CSPRNG) builtins, for device pairing's verifier | asked of the libcvc session | M2 (pairing) |
-| L18 | `has?` inside a `load:`ed module (today a NameError), so a module can guard an optional host function itself. cypkg asks in `main.ari` and passes the answers through an `auth` hole | asked of the libcvc session | none (worked around) |
+| L17 | `(sha256-hex x)` and `(random-token n)` (OS CSPRNG) builtins, for device pairing's verifier | transfix/libcvc#911 open; cypkg pairs with it | M2 (pairing) |
+| L18 | `has?` inside a `load:`ed module (today a NameError), so a module can guard an optional host function itself. cypkg asks in `main.ari` and passes the answers through an `auth` hole | transfix/libcvc#912 open | none (worked around) |
 | L19 | Requests in the single-threaded browser `ari` that never resume (about 1 run in 3, before and after #914) | reported to the L4 session | M0 (browser) |
 
 `ari` itself is already packaged. The xterm.js page has been live since
@@ -79,8 +79,12 @@ transfix/libcvc#710.
     (`--credential-env` from transfix/libcvc#895). The Account window shows
     whoami, and Sign out drops the token. Every request sends it, so private
     orgs show in search.
-  - **Waiting:** pairing needs `sha256-hex` and `random-token` in the DSL
-    (L17).
+  - **Pairing works:** Sign in with a browser shows the code and URL, polls,
+    and captures the session's access and refresh tokens into the host; the
+    launcher remembers it between runs (`--no-remember` to not). Sign out
+    revokes the session. It's in cypkg#6 and needs transfix/libcvc#911.
+  - **Still to do:** refreshing an expired session with the stored refresh
+    token, and a QR code for the URL (L11).
 - **M3, act:** publisher actions on builds: cancel, pause and resume. Mint
   and revoke tokens, list and revoke sessions, and manage org members. Browse
   a recipe's files and show the downloads chart.

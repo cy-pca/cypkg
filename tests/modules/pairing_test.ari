@@ -1,0 +1,116 @@
+# Signing in with a browser: the account module's device pairing, against the fixture registry.
+# The fixture plays cvcpkg's /v1/auth/device and /v1/auth/device/token, and GET /_approve?code=...
+# stands in for a person signing in at /link and approving the code. tests/modules.sh starts ari
+# with a test token; this document drops it first, so each test starts signed out. It stands in
+# for main.ari: it asks the host (has?) and answers the account window's sign-in and sign-out.
+# Needs sha256-hex and random-token (transfix/libcvc#911).
+
+meta:
+  name: cypkg-pairing-test
+  min_libcvc: 3.7.4
+
+requires: [net]
+
+import: ../../share/cypkg/lib.ari
+
+args:
+  server: {type: string, default: "@SERVER@"}
+
+init: |
+  (begin
+    (state-set "auth.signed_in" "0")
+    (state-set "auth.signout" "0")
+    (state-set "auth.recheck" "0")
+    (state-set "auth.can_pair" (if (if (has? "sha256-hex") (has? "random-token") #f) "1" "0"))
+    (state-set "tree.account.open" 1))
+
+on_tick: |
+  (begin
+    (if (= (state-get "auth.signout") "1")
+        (begin
+          (state-set "auth.signout" "0")
+          (if (has? "net-auth-forget")
+              (begin (net-auth-forget "cvcpkg") (net-auth-forget "cvcpkg.refresh")))
+          (state-set "auth.signed_in" "0")))
+    (if (= (state-get "auth.recheck") "1")
+        (begin
+          (state-set "auth.recheck" "0")
+          (state-set "auth.signed_in"
+            (if (has? "net-auth-has?") (if (net-auth-has? "cvcpkg") "1" "0") "0")))))
+
+windows:
+  - window: Account
+    id: account
+    children:
+      - load: ../../share/cypkg/account.ari
+        as: c
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.account.open, mode: ro }
+          auth: auth
+
+tests:
+  this ari can pair: |
+    (assert (= (state-get "auth.can_pair") "1") "no sha256-hex or random-token (transfix/libcvc#911)")
+
+  start signed out: |
+    (begin
+      (state-set "auth.signout" "1")
+      (set i 0)
+      (while (if (= (state-get "auth.signout") "1") (< i 30) #f) (sleep 0.1) (set i (+ i 1)))
+      (assert (= (state-get "auth.signed_in") "0")))
+
+  an approved code signs in as a session: |
+    (begin
+      (state-set "includes.c.req.pair" "1")
+      (set i 0)
+      (while (if (= (text (state-get "includes.c.account.code")) "") (< i 50) #f) (sleep 0.1) (set i (+ i 1)))
+      (set code (state-get "includes.c.account.code"))
+      (assert (string.starts-with code "CODE-") (str-concat "no code: " (text (state-get "includes.c.account.status"))))
+      (assert (string.contains (state-get "includes.c.account.url") (str-concat "/link?code=" code))
+              (state-get "includes.c.account.url"))
+      (assert (string.starts-with (state-get "includes.c.account.url") "http") "the URL is absolute")
+      (set a (http-get (str-concat (state-get "args.server") "/_approve") (dict "query" (dict "code" code))))
+      (assert (= (get-attr a "status") 200))
+      (set i 0)
+      (while (if (!= (state-get "includes.c.account.signed_in") "1") (< i 60) #f) (sleep 0.1) (set i (+ i 1)))
+      (assert (= (state-get "auth.signed_in") "1") (text (state-get "includes.c.account.status")))
+      (assert (= (state-get "includes.c.account.who.kind") "session"))
+      (assert (= (state-get "includes.c.account.code") "") "the code is cleared"))
+
+  signing out ends the session on the server: |
+    (begin
+      (state-set "includes.c.req.signout" "1")
+      (set i 0)
+      (while (if (!= (state-get "auth.signed_in") "0") (< i 60) #f) (sleep 0.1) (set i (+ i 1)))
+      (assert (= (state-get "auth.signed_in") "0"))
+      (set r (http-get (str-concat (state-get "args.server") "/_requests")))
+      (set revoked #f)
+      (for x (get-attr (json-parse (get-attr r "body")) "requests")
+        (if (= (get-attr x "path") "/v1/auth/revoke") (set revoked #t)))
+      (assert revoked "no POST /v1/auth/revoke"))
+
+  a denied code says so: |
+    (begin
+      (state-set "includes.c.req.pair" "1")
+      (set i 0)
+      (while (if (= (text (state-get "includes.c.account.code")) "") (< i 50) #f) (sleep 0.1) (set i (+ i 1)))
+      (set a (http-get (str-concat (state-get "args.server") "/_approve")
+               (dict "query" (dict "code" (state-get "includes.c.account.code") "deny" "1"))))
+      (set i 0)
+      (while (if (!= (text (state-get "includes.c.account.status")) "Signing in was denied.") (< i 60) #f)
+        (sleep 0.1) (set i (+ i 1)))
+      (assert (= (state-get "includes.c.account.status") "Signing in was denied."))
+      (assert (= (state-get "auth.signed_in") "0")))
+
+  Cancel stops waiting: |
+    (begin
+      (state-set "includes.c.req.pair" "1")
+      (set i 0)
+      (while (if (= (text (state-get "includes.c.account.code")) "") (< i 50) #f) (sleep 0.1) (set i (+ i 1)))
+      (state-set "includes.c.req.cancel" "1")
+      (set i 0)
+      (while (if (!= (text (state-get "includes.c.account.status")) "Signing in was cancelled.") (< i 30) #f)
+        (sleep 0.1) (set i (+ i 1)))
+      (assert (= (state-get "includes.c.account.status") "Signing in was cancelled."))
+      (assert (= (state-get "includes.c.account.code") "")))

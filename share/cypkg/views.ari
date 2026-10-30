@@ -368,7 +368,6 @@ units:
       - type: group
         visible_when: (!= (state-get "account.signed_in") "1")
         children:
-          - text: "With an API token: run cypkg --token-env VAR, where VAR holds a cvctok_ token."
           - text: ""
             bind: account.pairing_note
           - type: button
@@ -381,5 +380,10 @@ units:
           - text: "approve at"
             bind: account.url
             visible_when: (!= (state-get "account.url") "")
+          - type: button
+            label: "Cancel"
+            visible_when: (!= (state-get "account.code") "")
+            on: (state-set "req.cancel" "1")
+          - text: "Or with an API token: cypkg --token-env VAR, where VAR holds a cvctok_ token."
       - text: ""
         bind: account.bar

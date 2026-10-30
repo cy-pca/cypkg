@@ -18,6 +18,7 @@ init: |
     (state-set "account.status" "")
     (state-set "account.orgs" "")
     (state-set "account.code" "")
+    (state-set "req.cancel" "0")
     (state-set "account.url" "")
     (state-set "account.busy" 0)
     (state-set "account.bar" "")
@@ -35,15 +36,89 @@ on_tick: |
     (if (= (state-get "req.signout") "1")
         (begin
           (state-set "req.signout" "0")
+          ;; A paired session is ended on the server too; an API token stays valid there.
+          (if (= (text (state-get "account.who.kind")) "session")
+              (set rv (http-request "POST" (str-concat (state-get "args.server") "/v1/auth/revoke")
+                        (with-auth (dict "headers" (dict "Content-Type" "application/json")
+                                         "body" "{}")))))
           (state-set "auth.signout" "1")
           ;; main.ari's tick forgets the token; refresh once it has.
           (set k 0)
           (while (if (= (state-get "auth.signout") "1") (< k 50) #f) (sleep 0.02) (set k (+ k 1)))
           (state-set "req.refresh" "1")))
+    ;; Sign in with a browser: cvcpkg's device pairing, its OIDC route for a terminal. The
+    ;; verifier is a secret only this window knows; the server stores its SHA-256. Someone signs in
+    ;; at the approval URL and approves the code; then a poll with the verifier collects a session.
+    ;; capture_auth hands the access and refresh tokens to the host, so they never reach this
+    ;; document or its state.
     (if (= (state-get "req.pair") "1")
+      (begin
+       (state-set "req.pair" "0")
+       ;; Pairing needs sha256-hex and random-token (transfix/libcvc#911): checked with has? around
+       ;; the calls, so a host without them loads this with no warning.
+       (if (has? "sha256-hex") (if (has? "random-token")
         (begin
-          (state-set "req.pair" "0")
-          (state-set "account.status" "Signing in with a browser isn't available in this build yet.")))
+          (state-set "req.cancel" "0")
+          (set server (state-get "args.server"))
+          (set json (dict "Content-Type" "application/json"))
+          (set verifier (random-token 32))
+          (set r (http-request "POST" (str-concat server "/v1/auth/device")
+                   (dict "headers" json
+                         "body" (json-encode (dict "client_id" "cvcpkg-cli" "device_label" "cypkg"
+                                                   "platform" "ari" "client_version" "cypkg 0.1.0"
+                                                   "verifier_hash" (sha256-hex verifier)
+                                                   "requested_role" "reader")))))
+          (set d (reply-object r))
+          (if (= d nil)
+              (state-set "account.status" (str-concat "Couldn't start signing in: " (failure r)))
+              (begin
+                (set pid (field d "pairing_id"))
+                (set interval (int-or (field d "interval") 5))
+                (set left (int-or (field d "expires_in") 600))
+                (state-set "account.code" (text (field d "user_code")))
+                (state-set "account.url" (absolute-url server (field d "verification_uri_complete")))
+                (state-set "account.status" "Open the URL below, sign in, and approve the code.")
+                (set done #f)
+                (while (not done)
+                  (if (idle-wait interval (list "req.cancel"))
+                      (begin
+                        (set done #t)
+                        (state-set "req.cancel" "0")
+                        (state-set "account.status" "Signing in was cancelled."))
+                      (begin
+                        (set left (- left interval))
+                        (set poll (http-request "POST" (str-concat server "/v1/auth/device/token")
+                                 (dict "headers" json
+                                       "body" (json-encode (dict "pairing_id" pid "verifier" verifier))
+                                       "capture_auth" (list (dict "name" "cvcpkg" "field" "access_token")
+                                                            (dict "name" "cvcpkg.refresh"
+                                                                  "field" "refresh_token"
+                                                                  "optional" #t)))))
+                        (set e (text (field (reply-json poll) "error")))
+                        (if (get-attr poll "captured")
+                            (begin
+                              (set done #t)
+                              (state-set "account.status" "Signed in.")
+                              (state-set "auth.recheck" "1")
+                              (set k 0)
+                              (while (if (= (state-get "auth.recheck") "1") (< k 50) #f)
+                                (sleep 0.02) (set k (+ k 1)))
+                              (state-set "req.refresh" "1"))
+                            (if (= e "slow_down")
+                                (set interval (int-or (field (reply-json poll) "interval") (* 2 interval)))
+                                (if (if (= e "authorization_pending") (> left 0) #f)
+                                    nil
+                                    (begin
+                                      (set done #t)
+                                      (state-set "account.status"
+                                        (if (= e "access_denied") "Signing in was denied."
+                                            (if (if (= e "expired_token") #t (<= left 0))
+                                                "The code expired; try again."
+                                                (str-concat "Signing in failed: " (failure poll))))))))))))
+                (state-set "account.code" "")
+                (state-set "account.url" ""))))
+        (state-set "account.status" "This ari can't sign in with a browser: no random-token."))
+        (state-set "account.status" "This ari can't sign in with a browser: no sha256-hex."))))
     (if (= (state-get "req.refresh") "1")
         (begin
           (state-set "req.refresh" "0")

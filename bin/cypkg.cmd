@@ -25,5 +25,6 @@ shift
 goto rest
 
 :run
-"%ari%" run --backend %backend% --net-allow "%origin%" "%~dp0..\share\cypkg\main.ari" --server "%server%" %rest%
+rem A browser sign-in is kept for the next run in ari's credential store (%LOCALAPPDATA%\cvc\credentials).
+"%ari%" run --backend %backend% --net-allow "%origin%" --credential-store cypkg "%~dp0..\share\cypkg\main.ari" --server "%server%" %rest%
 exit /b %ERRORLEVEL%

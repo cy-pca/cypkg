@@ -147,8 +147,16 @@ their window is open, and toggle it. F10 opens the menu bar from the keyboard.
   - A token the registry refuses (401) is dropped, and the windows go back to
     anonymous requests.
 - **Signing in with a browser:** this is cvcpkg's OIDC route for a terminal,
-  device pairing. It needs `sha256-hex` and `random-token` in the DSL, which
-  aren't in libcvc yet; the Account window says so.
+  device pairing. Account > Sign in with a browser shows a code and a URL; open
+  the URL anywhere, sign in, and approve the code.
+  - The window polls `/v1/auth/device/token` and the host captures the
+    session's access and refresh tokens, so the documents never see them.
+  - It works over SSH, since the browser can be on another machine.
+  - `bin/cypkg` keeps the sign-in for the next run in ari's credential store
+    (`~/.config/cvc/credentials/cypkg`, 0600), as `cvcpkg login` keeps its
+    session; `--no-remember` keeps it for this run only.
+  - Sign out ends the session on the server too.
+  - Pairing needs `sha256-hex` and `random-token` (transfix/libcvc#911).
 
 ## Running from a checkout
 

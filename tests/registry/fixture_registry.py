@@ -10,7 +10,11 @@ the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
 - GET /v1/packages/{name}: every build of one package (none for an unknown name).
 - GET /v1/builders, /v1/builds (status, limit, offset), /v1/activity (limit): rows captured
   from cvcpkg.org (fleet.json).
-- GET /v1/auth/whoami: a reader named fixture-tester for "Bearer <TEST_TOKEN>", else 401.
+- GET /v1/auth/whoami: a reader named fixture-tester for "Bearer <TEST_TOKEN>" or a paired
+  session, else 401.
+- POST /v1/auth/device and /v1/auth/device/token: device pairing (client_id cvcpkg-cli); GET
+  /_approve?code=CODE[&deny] approves or denies a code, as a person would at /link.
+- POST /v1/auth/revoke: ends a paired session.
 - GET /healthz.
 
 For tests: GET /_requests lists the /v1 requests served so far (path, q, offset, facets), and
@@ -136,10 +140,77 @@ def activity(qs):
                  "max_id": max((e["id"] for e in FLEET["activity"]), default=0)}
 
 
-def whoami(authorization):
-    if authorization != "Bearer " + TEST_TOKEN:
+# Device pairing, as cvcpkg's /v1/auth/device does it: the client registers sha256(verifier),
+# someone approves the user code (here GET /_approve?code=..., where a person would sign in at
+# /link), and the client collects a session with the verifier.
+PAIRINGS = {}        # pairing_id -> {code, verifier_hash, approved, collected}
+SESSIONS = set()     # live session access tokens
+REFRESH = {}         # refresh token -> access token it renews
+COUNTER = [0]
+
+
+def device_start(body):
+    if body.get("client_id") != "cvcpkg-cli":
+        return 400, {"detail": "unknown client_id"}
+    COUNTER[0] += 1
+    n = COUNTER[0]
+    pid, code = f"pair-{n}", f"CODE-{n:04d}"
+    PAIRINGS[pid] = {"code": code, "verifier_hash": body.get("verifier_hash", ""),
+                     "approved": False, "collected": False}
+    return 200, {"pairing_id": pid, "user_code": code, "verification_uri": "/link",
+                 "verification_uri_complete": f"/link?code={code}", "expires_in": 60,
+                 "interval": 1}
+
+
+def device_token(body):
+    import hashlib
+    p = PAIRINGS.get(body.get("pairing_id", ""))
+    if p is None or p["collected"]:
+        return 400, {"error": "expired_token"}
+    if hashlib.sha256(body.get("verifier", "").encode()).hexdigest() != p["verifier_hash"]:
+        return 400, {"error": "access_denied"}
+    if p["approved"] == "denied":
+        return 400, {"error": "access_denied"}
+    if not p["approved"]:
+        return 400, {"error": "authorization_pending", "interval": 1}
+    p["collected"] = True
+    COUNTER[0] += 1
+    access = f"cvcses_fixture-session-{COUNTER[0]:04d}-abcdefghij"
+    refresh = f"cvcref_fixture-refresh-{COUNTER[0]:04d}-abcdefghij"
+    SESSIONS.add(access)
+    REFRESH[refresh] = access
+    return 200, {"access_token": access, "token_type": "Bearer", "expires_in": 43200,
+                 "refresh_token": refresh, "refresh_expires_in": 2592000,
+                 "principal": "fixture-tester", "role": "reader", "device": "cypkg"}
+
+
+def approve(qs):
+    code, deny = qs.get("code", [""])[0], "deny" in qs
+    for p in PAIRINGS.values():
+        if p["code"] == code:
+            p["approved"] = "denied" if deny else True
+            return 200, {"approved": not deny}
+    return 404, {"detail": "no such code"}
+
+
+def revoke(authorization):
+    tok = authorization[len("Bearer "):] if authorization.startswith("Bearer ") else ""
+    if tok not in SESSIONS:
         return 401, {"detail": "Not authenticated"}
-    return 200, {"name": "fixture-tester", "role": "reader", "kind": "token", "principal": "",
+    SESSIONS.discard(tok)
+    return 200, {"revoked": 1}
+
+
+def whoami(authorization):
+    tok = authorization[len("Bearer "):] if authorization.startswith("Bearer ") else ""
+    if tok == TEST_TOKEN:
+        kind = "token"
+    elif tok in SESSIONS:
+        kind = "session"
+    else:
+        return 401, {"detail": "Not authenticated"}
+    return 200, {"name": "fixture-tester", "role": "reader", "kind": kind,
+                 "principal": "fixture-tester" if kind == "session" else "",
                  "email": "tester@example.org", "issuer": "", "subject": "",
                  "device": "fixture-tester", "session_id": None, "expires_at": "",
                  "orgs": [{"slug": "cvc", "role": "member"}]}
@@ -205,6 +276,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             status, body = activity(urllib.parse.parse_qs(u.query))
         elif u.path == "/v1/auth/whoami":
             status, body = whoami(self.headers.get("Authorization", ""))
+        elif u.path == "/_approve":
+            status, body = approve(urllib.parse.parse_qs(u.query))
         elif u.path.startswith("/v1/packages/"):
             status, body = package(urllib.parse.unquote(u.path[len("/v1/packages/"):]))
         elif u.path == "/healthz":
@@ -212,6 +285,31 @@ class Handler(http.server.BaseHTTPRequestHandler):
         else:
             status, body = 404, {"detail": "Not Found"}
         data = (body if isinstance(body, str) else json.dumps(body, ensure_ascii=False)).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_POST(self):
+        u = urllib.parse.urlsplit(self.path)
+        n = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(n) if n else b""
+        try:
+            body = json.loads(raw) if raw else {}
+        except ValueError:
+            body = {}
+        with REQUESTS_LOCK:
+            REQUESTS.append({"path": u.path, "q": "", "offset": "", "facets": ""})
+        if u.path == "/v1/auth/device":
+            status, out = device_start(body)
+        elif u.path == "/v1/auth/device/token":
+            status, out = device_token(body)
+        elif u.path == "/v1/auth/revoke":
+            status, out = revoke(self.headers.get("Authorization", ""))
+        else:
+            status, out = 404, {"detail": "Not Found"}
+        data = json.dumps(out).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))

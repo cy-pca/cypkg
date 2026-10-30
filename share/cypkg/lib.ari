@@ -29,6 +29,18 @@ functions: |
           (catch (e) nil))
         nil))
 
+  ;; The JSON object in reply r whatever its status (an OAuth-style error comes as a 400 with
+  ;; {"error": ...}), or nil.
+  (defun reply-json (r)
+    (try (let ((d (json-parse (get-attr r "body")))) (if (= (type-of d) "dict") d nil))
+      (catch (e) nil)))
+
+  ;; url made absolute against server: a server may answer a path ("/link").
+  (defun absolute-url (server url)
+    (let ((u (text url)))
+      (if (if (string.starts-with u "http://") #t (string.starts-with u "https://")) u
+          (str-concat server (if (string.starts-with u "/") "" "/") u))))
+
   ;; d's "packages" if it is a list, else nil. d may be nil.
   (defun reply-rows (d)
     (if (= d nil) nil (let ((rows (field d "packages"))) (if (is-list rows) rows nil))))

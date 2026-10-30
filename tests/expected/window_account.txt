@@ -6,9 +6,9 @@
 ├───────────╭ Account [x]──────────────────────────────────────────────────────────────────╮───────┤
 │        nam│Not signed in.                                                                │       │
 │[ Open ]ari├──────────────────────────────────────────────────────────────────────────────┤       │
-│[ Open ]ari│With an API token: run cypkg --token-env VAR, where VAR holds a cvctok_ token.│       │
-│[ Open ]ari│A browser sign-in needs a newer ari (sha256-hex, random-token).               │       │
+│[ Open ]ari│                                                                              │       │
 │[ Open ]ari│[ Sign in with a browser ]                                                    │       │
+│[ Open ]ari│Or with an API token: cypkg --token-env VAR, where VAR holds a cvctok_ token. │       │
 │[ Open ]ari│                                                                              │       │
 │[ Open ]ari│                                                                              │       │
 │[ Open ]ari│                                                                              │       │
