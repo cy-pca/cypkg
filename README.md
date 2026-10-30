@@ -76,9 +76,22 @@ share/cypkg/      the documents:
                     views.ari    the two views, as units the modules include
 bin/              the launchers: cypkg (sh) and cypkg.cmd
 tests/            snapshot tests and a fixture registry
-recipe/           the cvcpkg recipe (M5)
+recipes/cypkg/    the cvcpkg recipe: documents and launchers, one noarch build
 docs/ROADMAP.md   milestones and the libcvc and cvcpkg features each one needs
 ```
+
+## Packaging
+
+`recipes/cypkg/` is the cvcpkg recipe. cypkg is documents and launchers, so
+one `platform: any` build serves every platform. It depends on `ari` at run
+time, and the launcher runs the `ari` beside it in the prefix. From the repo
+root:
+
+```bash
+cvcpkg build cypkg --local --platform any --prefix ./prefix
+```
+
+It isn't published yet: no released `ari` has the libcvc PRs cypkg needs.
 
 ## Running from a checkout
 

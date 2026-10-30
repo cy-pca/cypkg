@@ -183,3 +183,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 -I tests/contract.py
+
+  recipe:
+    name: package with the recipe
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cvcpkg
+        run: |
+          curl -fsSL https://cvcpkg.org/install.sh | sh
+          echo "$HOME/.local/bin" >>"$GITHUB_PATH"
+      - name: cvcpkg build cypkg
+        run: |
+          set -euo pipefail
+          cvcpkg build cypkg --local --platform any --prefix "$RUNNER_TEMP/prefix"
+          cd "$RUNNER_TEMP/prefix"
+          for f in bin/cypkg bin/cypkg.cmd share/cypkg/main.ari share/cypkg/search.ari \
+                   share/cypkg/package.ari share/cypkg/lib.ari share/cypkg/views.ari \
+                   share/doc/cypkg/LICENSE; do
+            test -f "$f" || { echo "::error::the package has no $f"; exit 1; }
+          done
+          bin/cypkg --help
