@@ -45,10 +45,11 @@ transfix/libcvc#710.
 | C1 | The registry serves the documents and ari's xterm.js page at `/apps/cypkg/`, with a config that passes `--net-allow {origin}` | M0 (browser) |
 | C2 | Check that every action the web pages do through cookie forms also has a Bearer JSON endpoint. Tokens, org members and admin stats do (`/v1/tokens`, `/v1/orgs/{slug}/members`, `/v1/admin/*`). Add the ones that don't | M3 |
 | C3 | Add the `cypkg` recipe to the shared recipe set | M5 |
+| C4 | One package's dependencies and dependents. `/v1/deps` returns the whole catalog's graph (1.75 MB on cvcpkg.org), which is too much to fetch for one package page. For now the package page shows nothing for dependencies | M1 |
 
 ## Milestones
 
-- **M0, browse:** anonymous and read-only. Search with the web page's
+- **M0, browse** (in progress; see M0 status below): anonymous and read-only. Search with the web page's
   filters; a package page with versions, variants, dependencies and the
   `cvcpkg install` lines. Works in FTXUI, tvision and the browser. Ship the
   `bin/cypkg` launcher with `--server` and `--tvision`. Add `ari snapshot`
@@ -70,3 +71,30 @@ transfix/libcvc#710.
   smoke test against a local registry.
 - **M6, maybe:** the same documents in `arigl`, if they need nothing
   terminal-only.
+
+## M0 status
+
+Done, and checked with an `ari` built from libcvc master plus #888 and #883:
+
+- `share/cypkg/main.ari`. **Search:** a query and the platform, arch and link
+  filters, paged 10 rows at a time, sent with `facets=true` so that the
+  package count covers every match. **Package page:** description, latest
+  version, license, homepage, tags, the `cvcpkg install` line, and its builds
+  a page at a time. Results are build rows, as on the web page.
+- `bin/cypkg` and `bin/cypkg.cmd`. Each allows only the registry's origin
+  (`--net-allow`). `cypkg.cmd` has not been run on Windows.
+- `tests/snapshot.sh`: 7 cases against the fixture registry, all passing.
+- Checked by hand:
+  - FTXUI and tvision in a 100x30 tmux pane: typing a query, Enter to search,
+    Tab to a row's Open, and Back;
+  - both views against https://cvcpkg.org.
+
+To do for M0:
+
+- **CI.** It waits for an `ari` package with #888 and #883. Until then the
+  tests run locally.
+- **The browser path**: #887's xterm.js page with `"flags": ["--net"]`, served
+  by C1. Untested: see L4.
+- **Wrapped text (L5).** Until it lands, long descriptions are cut at 89
+  characters.
+- Measure the wasm page's size and time to first frame.

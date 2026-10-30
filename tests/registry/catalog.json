@@ -1,0 +1,5638 @@
+[
+ {
+  "name": "ari",
+  "version": "3.7.0+cvc.1",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 36130,
+  "published_at": "2026-10-20T01:50:00.869758Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.0+cvc.1-linux-arm64-release-shared.tar.zst",
+  "sha256": "2a8340f2b77fd6591edec882b7cbf458b9bf6a1b0c92a307001f44432f7d13cf"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.0+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35416,
+  "published_at": "2026-10-20T02:01:17.606089Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.0+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "066fe00ca8253119228c2364eb8ec94a19d530ca2f9d1d929410e47472c7976b"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.0+cvc.2",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 38550,
+  "published_at": "2026-10-21T00:38:32.551403Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.0+cvc.2-linux-arm64-release-shared.tar.zst",
+  "sha256": "65d963d4eb2f91c04eb9f967d00bc272a0daabc91fcdf92be7ce40edf7a20efe"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.0+cvc.2",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 19781,
+  "published_at": "2026-10-21T00:44:45.560153Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.0+cvc.2-macos-x86_64-release-shared.tar.zst",
+  "sha256": "b7e16f7eed3741714849fa735cde9580b4ad63f953694d1964188d5ea39fe5ff"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.0+cvc.2",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 38071,
+  "published_at": "2026-10-21T00:46:16.039849Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.0+cvc.2-linux-x86_64-release-shared.tar.zst",
+  "sha256": "de14973d0dda95ac9490a89cbfb3d41bf4b3720817339b5a98eba6f805073df6"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.0+cvc.2",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 26139,
+  "published_at": "2026-10-21T01:31:39.096270Z",
+  "description": "ari â€” run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.0+cvc.2-windows-x86_64-release-shared.tar.zst",
+  "sha256": "bcf024b47cec9d2ba39a41ede473010d4c992461a00170ed739b7b2db33f3a28"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.0+cvc.2",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 19981,
+  "published_at": "2026-10-21T02:53:15.682770Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.0+cvc.2-macos-arm64-release-shared.tar.zst",
+  "sha256": "f8d6b15b93434e20a7c3e2004e220b555bed5aa58e238219d8ff06c1cf26a633"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.1",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41845,
+  "published_at": "2026-10-27T08:02:14.932842Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.1-linux-arm64-release-shared.tar.zst",
+  "sha256": "82e160cfe0828990dab04ebe7434ba8b342425e37d8dd4bfa568ff6e1607974a"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 29676,
+  "published_at": "2026-10-27T08:03:45.323189Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "a859606d15a33b585dfc1e10b97ad7c0a5fcb17c2aa688023ab80188b2c8e864"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41661,
+  "published_at": "2026-10-27T08:14:56.913180Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "ec188c08cf05b8487833e31fb586f72bf2dc7d78bdcaa1e6db57dfeef5bb3aa1"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.1",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22780,
+  "published_at": "2026-10-27T08:31:42.403088Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.1-macos-arm64-release-shared.tar.zst",
+  "sha256": "c8b772f2c691d723728251bc1a00ee22bc9e2dac03967fbf2c06731f3285eeb4"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.2",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41659,
+  "published_at": "2026-10-27T15:39:27.289901Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.2-linux-x86_64-release-shared.tar.zst",
+  "sha256": "c8596ecfeab2f046399f67d70ffd35068668fb6d55c38d72ce43465e1c3513b6"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.2",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41846,
+  "published_at": "2026-10-27T15:40:14.216596Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.2-linux-arm64-release-shared.tar.zst",
+  "sha256": "9663f44847caf737a7ae115b91856d133818152e48c4fe447657f8f750e39efc"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.2",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 29676,
+  "published_at": "2026-10-27T16:03:59.697220Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.2-windows-x86_64-release-shared.tar.zst",
+  "sha256": "cb10048378000f2bafa46408e0ee11036a05a124f7e4b6058711ebd981cddf30"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.1+cvc.2",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22779,
+  "published_at": "2026-10-27T16:47:16.377086Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.1+cvc.2-macos-arm64-release-shared.tar.zst",
+  "sha256": "c10b5892c789bddfa07cb162f5683fa3d57b0a4e861a5bf1f7c37daffa18bd7b"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.2+cvc.1",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22776,
+  "published_at": "2026-10-28T23:23:23.205709Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.2+cvc.1-macos-arm64-release-shared.tar.zst",
+  "sha256": "bdcbf17fbcc81f09b272cb9ed5cd27e7bb87cb2edc59e1cce57ee091010b7621"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.2+cvc.1",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41848,
+  "published_at": "2026-10-28T23:24:02.268632Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.2+cvc.1-linux-arm64-release-shared.tar.zst",
+  "sha256": "fbe9084a361a474873dd6e0b7aed4877db6056e74c4ac318b049188a99b74d3d"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.2+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41652,
+  "published_at": "2026-10-28T23:32:36.010724Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.2+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "6c4c615d9309be933a0e3e7f0b8fe4d421e0785166bc2a716b5d54c96caa6f79"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.2+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 29673,
+  "published_at": "2026-10-28T23:40:47.491847Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.2+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "5e2628e37029c444fb4c51b52a4f1f1f35fe711acfbdd7c791ba68e732ca4c7d"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.3+cvc.1",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41851,
+  "published_at": "2026-10-29T15:45:24.824723Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.3+cvc.1-linux-arm64-release-shared.tar.zst",
+  "sha256": "cf51cd780e1b0cbe8071d5c0c667ccee76f1bc5433f619e34076abb57a4ae205"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.3+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41657,
+  "published_at": "2026-10-29T15:50:19.737043Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.3+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "ba2325462f1511891cfdb0a26a85b8c94355db56841275e4dfd7f04c2f15c6a9"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.3+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 29668,
+  "published_at": "2026-10-29T16:07:23.548071Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.3+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "12e9bbbcc1beb69c978510525d742274fb5b2d8f0854df0fdb48ec56d261f1ab"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.3+cvc.1",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22779,
+  "published_at": "2026-10-29T17:08:26.514422Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.3+cvc.1-macos-arm64-release-shared.tar.zst",
+  "sha256": "06e658788fee094b5cbb86cff73194e47aecc904c83d7e968fa762734ef50f13"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.4+cvc.1",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41849,
+  "published_at": "2026-10-29T23:59:54.987195Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.4+cvc.1-linux-arm64-release-shared.tar.zst",
+  "sha256": "fbce2eacf65a8f6616c8ca93cd1f5cb87a916cbee15330b1f51fb9b211572b05"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.4+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 41652,
+  "published_at": "2026-10-30T00:11:50.539403Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.4+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "1a5f502cebbeb9300e69c977bef7d1ff4ee2d7797a3a89f498cabaf123c226e0"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.4+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 29669,
+  "published_at": "2026-10-30T00:16:36.792198Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.4+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "99268de933ea1b7c216c5161ecf6d1e93bb0d10b56ced655c95bd5efe1b13341"
+ },
+ {
+  "name": "ari",
+  "version": "3.7.4+cvc.1",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22780,
+  "published_at": "2026-10-30T00:33:13.911114Z",
+  "description": "ari — run an Ariadne (.ari) UI document in the terminal. `ari run doc.ari` takes over the terminal through libcvc's FTXUI backend (keyboard, mouse, floating windows, menus, text entry, half-block images); `ari snapshot` prints a frame as text for CI and docs; `ari check` loads a document and reports its warnings. GL-free: no window, VTK or ImGui.",
+  "homepage": "https://github.com/transfix/libcvc",
+  "license": "LGPL-2.1-only",
+  "tags": "ui,terminal,tui,cli,tools",
+  "org": "cvc",
+  "required_deps": [
+   {
+    "name": "libcvc"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/ari-3.7.4+cvc.1-macos-arm64-release-shared.tar.zst",
+  "sha256": "1109779d631dab94bdb0644d5dd6794534197237d18f47791f0afc6a2592b2a3"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.2",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4236261,
+  "published_at": "2026-07-26T23:59:00.511985Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.2-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "68246cf920f88a6eeaf98832b92c58d8a9233edec5161c3e6f965b70683f3cb6"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.2",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4204855,
+  "published_at": "2026-07-27T00:04:17.720721Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.2-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "9b20965628a775cce109112f6a0af5e7aa39fdad6648824ba52c5af5acac14b3"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.2",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2749805,
+  "published_at": "2026-08-12T05:20:52.228523Z",
+  "description": "Open Asset Import Library (assimp) â€” a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.2-windows-x86_64-release-shared.tar.zst",
+  "sha256": "33947e7149d17daf968f18c883056c024e110b162c491ca32ab1bc085b7c9adc"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.2",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 33524834,
+  "published_at": "2026-08-16T20:05:03.648723Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.2-linux-x86_64-debug-shared.tar.zst",
+  "sha256": "c6344bec2cd833f92e905f6dfad339c237b90c8c4c1e0839799af00311aac7e3"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.2",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 59182271,
+  "published_at": "2026-08-16T20:09:18.682846Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.2-linux-x86_64-debug-static.tar.zst",
+  "sha256": "dab4725c090d8297b699e4a7e9f3874bd23eb64c015bb465876add7db642c7d6"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "wasm",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 4737854,
+  "published_at": "2026-08-28T16:27:51.047646Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-wasm-x86_64-release-static.tar.zst",
+  "sha256": "16e207006acf10ae1551f76633e8601630bfadc425a1632419a1f6f861a07c79"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 4737835,
+  "published_at": "2026-09-05T02:38:43.616767Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-wasm-wasm32-release-static.tar.zst",
+  "sha256": "83925909bf51f36b5a90dae0a25a2f642cfdd6db56c5cef30d6ec28d5507302c"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 4741219,
+  "published_at": "2026-09-05T02:45:55.336710Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "4c717608702e9312455bf2b453f572ea50cc5bd5ee8eb9bc142b10acf63de11c"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4155029,
+  "published_at": "2026-09-22T07:58:18.407992Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "cb66cb462fe878def6f90fd47d451c754a993498bf23c2b23bb094243c6fdecc"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4820416,
+  "published_at": "2026-09-26T03:32:35.344982Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-linux-x86_64-release-shared.tar.zst",
+  "sha256": "11acd194ee26eb69a94bda3c10b149d455f4e26e33ee8136460d9884199c47ba"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4596146,
+  "published_at": "2026-10-15T20:52:02.370464Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-linux-arm64-release-shared.tar.zst",
+  "sha256": "26112a30e880d403cf8e39a2316e59f71b5e1e01d0c9ef98e8ee10e279b46c73"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 3398170,
+  "published_at": "2026-10-15T23:40:29.904240Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-macos-x86_64-release-shared.tar.zst",
+  "sha256": "45de593cde9935d89bc2547a550c6c2b51a5840b74802319e55e62705128355b"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 3200304,
+  "published_at": "2026-10-16T02:43:19.205590Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-macos-arm64-release-shared.tar.zst",
+  "sha256": "c789772b6e8d6306ba69ecef7f1d141a120b733db50a3d4d369963cd49980792"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2750488,
+  "published_at": "2026-10-19T03:51:22.932005Z",
+  "description": "Open Asset Import Library (assimp) â€” a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-windows-x86_64-release-shared.tar.zst",
+  "sha256": "18ba65693224d66f4a48994715be6a9aacc0a9f981247b05b9be693205a138f0"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4205593,
+  "published_at": "2026-10-19T03:52:30.132030Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "e8d7d169ec9107a878a13fcbeb9d764f6e02489b9945476225b152bdc5a6f4f3"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.6",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4236958,
+  "published_at": "2026-10-19T04:02:03.139540Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.6-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "88b6514e6b07fee419c06671321e376e847f26ce37a618b2cde97258be4622cf"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4596293,
+  "published_at": "2026-10-19T07:04:01.720069Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-linux-arm64-release-shared.tar.zst",
+  "sha256": "880d2dc40925e1d709e3a8ef60ce6889bcf1e36da06993acea6e611f7219dc4b"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 3398312,
+  "published_at": "2026-10-19T07:52:15.031931Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-macos-x86_64-release-shared.tar.zst",
+  "sha256": "6c9224348ded495b86d981f99d4c5fe37232a57adaeebd59bc1078faf6e14514"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4820658,
+  "published_at": "2026-10-19T08:12:18.498886Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-linux-x86_64-release-shared.tar.zst",
+  "sha256": "84c36f79ff1cd140ccfae67608dd11ce2c6c3a3cf810ad2decbc02c507637f4e"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4237099,
+  "published_at": "2026-10-19T08:21:36.145824Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "6caf228355c86c8d89e0bb279a33c8cfbeda6c101e0a1319bc98a2e2ec56ee47"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4205737,
+  "published_at": "2026-10-19T08:40:48.623640Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "2b888607ad9c193faa5b7daa0ae566fb350af8bb115532b836e28212d94015c5"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 4738067,
+  "published_at": "2026-10-19T09:44:42.104700Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-wasm-wasm32-release-static.tar.zst",
+  "sha256": "e19b42e6ae1ae5bbef510f0d1f496c5b7d7031fc1e0080a23c7dbcb7d07c62f0"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 4741449,
+  "published_at": "2026-10-19T09:44:43.732285Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "99b6bc4ffe68fad3731956cbbdf9ff8b7e3cc0c6d0e304755595f45ad1f707fd"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 3200436,
+  "published_at": "2026-10-19T13:31:32.055915Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-macos-arm64-release-shared.tar.zst",
+  "sha256": "e6a253b0acaee796014f6d652dc004610775936b26356fcf6b6aca02757707d1"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2750552,
+  "published_at": "2026-10-19T14:34:44.178530Z",
+  "description": "Open Asset Import Library (assimp) â€” a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-windows-x86_64-release-shared.tar.zst",
+  "sha256": "064e000dd09a2cd246712a90074b7dc9621f57f5c8488fab1952c3046da61826"
+ },
+ {
+  "name": "assimp",
+  "version": "6.0.5+cvc.7",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 4154949,
+  "published_at": "2026-10-19T14:34:49.379426Z",
+  "description": "Open Asset Import Library (assimp) — a portable library to import and export a wide variety of 3D model/scene/mesh file formats through a single uniform data structure.  Provides geometry and mesh I/O.  Uses the cvcpkg zlib; other contrib dependencies (rapidjson, utf8cpp, minizip, poly2tri, etc.) remain vendored/bundled.",
+  "homepage": "https://github.com/assimp/assimp",
+  "license": "BSD-3-Clause",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/assimp-6.0.5+cvc.7-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "893902c3bc47de390bd2b57ed4aa1bb71b779427a01d0ff442bc221b9221984a"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.4.0+cvc.1",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 20172806,
+  "published_at": "2026-10-11T03:11:55.419198Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "macholib-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "openssl"
+   },
+   {
+    "name": "zlib"
+   },
+   {
+    "name": "libffi"
+   },
+   {
+    "name": "bzip2"
+   },
+   {
+    "name": "xz"
+   },
+   {
+    "name": "readline"
+   },
+   {
+    "name": "sqlite"
+   },
+   {
+    "name": "ncurses"
+   },
+   {
+    "name": "altgraph-cp312"
+   },
+   {
+    "name": "packaging-cp312"
+   },
+   {
+    "name": "pyinstaller-hooks-contrib-cp312"
+   },
+   {
+    "name": "setuptools-cp312"
+   },
+   {
+    "name": "cffi-cp312"
+   },
+   {
+    "name": "pycparser-cp312"
+   },
+   {
+    "name": "typing-extensions-cp312"
+   },
+   {
+    "name": "yaml"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.4.0+cvc.1-macos-arm64-release-shared.tar.zst",
+  "sha256": "b9313f1a6f895f42651ed4706f62e17f941321df3afcae53f350ee0a49650da3"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.4.0+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 36422313,
+  "published_at": "2026-10-12T21:46:39.673855Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.4.0+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "5dda1d8449be08895c70e2cea147e5ac9d977f56e81da876e066bf7a9fe6c803"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.0+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 37485327,
+  "published_at": "2026-10-13T05:11:50.423135Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.0+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "29a7f766a6d69206274a58857fb754d1028e1ffb339cf9c9bce12ffa6b01efa4"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.0+cvc.1",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 21202849,
+  "published_at": "2026-10-13T05:14:00.627611Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "macholib-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "openssl"
+   },
+   {
+    "name": "zlib"
+   },
+   {
+    "name": "libffi"
+   },
+   {
+    "name": "bzip2"
+   },
+   {
+    "name": "xz"
+   },
+   {
+    "name": "readline"
+   },
+   {
+    "name": "sqlite"
+   },
+   {
+    "name": "ncurses"
+   },
+   {
+    "name": "altgraph-cp312"
+   },
+   {
+    "name": "packaging-cp312"
+   },
+   {
+    "name": "pyinstaller-hooks-contrib-cp312"
+   },
+   {
+    "name": "setuptools-cp312"
+   },
+   {
+    "name": "cffi-cp312"
+   },
+   {
+    "name": "pycparser-cp312"
+   },
+   {
+    "name": "typing-extensions-cp312"
+   },
+   {
+    "name": "yaml"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.0+cvc.1-macos-arm64-release-shared.tar.zst",
+  "sha256": "d20c6a21d3403697ae819b109c455038d60fdbfc76e107d07c2741bb8ee4f519"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.0+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 23831998,
+  "published_at": "2026-10-15T00:36:59.793365Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.0+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "6f29882fd9abde4e97e1da64b6cd081a847d5a3a5be54f7c6454b9b64bacfe4a"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.0+cvc.1",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35345380,
+  "published_at": "2026-10-15T21:24:38.535172Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.0+cvc.1-linux-arm64-release-shared.tar.zst",
+  "sha256": "14d4068e4449691f1f5bf2e8c56d59d6a789b95ab17269b5556f69a635ed10c6"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.0+cvc.1",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22696436,
+  "published_at": "2026-10-16T01:50:24.331512Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "macholib-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   },
+   {
+    "name": "openssl"
+   },
+   {
+    "name": "zlib"
+   },
+   {
+    "name": "libffi"
+   },
+   {
+    "name": "bzip2"
+   },
+   {
+    "name": "xz"
+   },
+   {
+    "name": "readline"
+   },
+   {
+    "name": "sqlite"
+   },
+   {
+    "name": "ncurses"
+   },
+   {
+    "name": "altgraph-cp312"
+   },
+   {
+    "name": "packaging-cp312"
+   },
+   {
+    "name": "pyinstaller-hooks-contrib-cp312"
+   },
+   {
+    "name": "setuptools-cp312"
+   },
+   {
+    "name": "cffi-cp312"
+   },
+   {
+    "name": "pycparser-cp312"
+   },
+   {
+    "name": "typing-extensions-cp312"
+   },
+   {
+    "name": "yaml"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.0+cvc.1-macos-x86_64-release-shared.tar.zst",
+  "sha256": "7c0b4bdcab9b11a37eb7f5156db3312916b0fc77ea82d9766f96a13445cd3055"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35137986,
+  "published_at": "2026-10-17T20:11:52.869363Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "f9d1eadd4bc01a27f1bc269b1b806f6e6eb6f98cd1f631981fca04f5e88a786a"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 24111516,
+  "published_at": "2026-10-17T20:21:29.910061Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "2d7b5a97dd04be03f4eb070156259e6a08642e8d25dee9a304442dfd7a42a25a"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.3",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 24112586,
+  "published_at": "2026-10-17T22:58:56.257879Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.3-windows-x86_64-release-shared.tar.zst",
+  "sha256": "7f26e48e527838ec56b91abed19eb3b7bf0759952233cce3fd03447e49948bba"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.3",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35574298,
+  "published_at": "2026-10-18T23:19:53.007235Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.3-linux-arm64-release-shared.tar.zst",
+  "sha256": "e8a38430ba28e05c677225c563629ecd22320f8dbdd4cf2a4102a07dd56abcee"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.3",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22887708,
+  "published_at": "2026-10-18T23:40:51.218545Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "macholib-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   },
+   {
+    "name": "openssl"
+   },
+   {
+    "name": "zlib"
+   },
+   {
+    "name": "libffi"
+   },
+   {
+    "name": "bzip2"
+   },
+   {
+    "name": "xz"
+   },
+   {
+    "name": "readline"
+   },
+   {
+    "name": "sqlite"
+   },
+   {
+    "name": "ncurses"
+   },
+   {
+    "name": "altgraph-cp312"
+   },
+   {
+    "name": "packaging-cp312"
+   },
+   {
+    "name": "pyinstaller-hooks-contrib-cp312"
+   },
+   {
+    "name": "setuptools-cp312"
+   },
+   {
+    "name": "cffi-cp312"
+   },
+   {
+    "name": "pycparser-cp312"
+   },
+   {
+    "name": "typing-extensions-cp312"
+   },
+   {
+    "name": "yaml"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.3-macos-arm64-release-shared.tar.zst",
+  "sha256": "ce29083e81d0ab35ee620a606cfb006222724dae3e95cd1eec958610e1e62055"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.3",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22976299,
+  "published_at": "2026-10-19T00:37:10.530644Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "macholib-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   },
+   {
+    "name": "openssl"
+   },
+   {
+    "name": "zlib"
+   },
+   {
+    "name": "libffi"
+   },
+   {
+    "name": "bzip2"
+   },
+   {
+    "name": "xz"
+   },
+   {
+    "name": "readline"
+   },
+   {
+    "name": "sqlite"
+   },
+   {
+    "name": "ncurses"
+   },
+   {
+    "name": "altgraph-cp312"
+   },
+   {
+    "name": "packaging-cp312"
+   },
+   {
+    "name": "pyinstaller-hooks-contrib-cp312"
+   },
+   {
+    "name": "setuptools-cp312"
+   },
+   {
+    "name": "cffi-cp312"
+   },
+   {
+    "name": "pycparser-cp312"
+   },
+   {
+    "name": "typing-extensions-cp312"
+   },
+   {
+    "name": "yaml"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.3-macos-x86_64-release-shared.tar.zst",
+  "sha256": "638a9ccc48395256bec31c1055fdec8ebd17c87be3eb073e91813c9b755cc137"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35138562,
+  "published_at": "2026-10-19T01:02:08.719100Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.3-linux-x86_64-release-shared.tar.zst",
+  "sha256": "5f46f1c4365cfffb1583ce10ca98b86ac1cb8fd399d300e2842342f05abc7f68"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.1+cvc.3",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 30332426,
+  "published_at": "2026-10-19T08:04:16.036738Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.1+cvc.3-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "44f64176e3c4223fc142bbb06c57130bec2f0350714a8256e2c7ff735adb0ee0"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.2+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35618874,
+  "published_at": "2026-10-19T22:06:43.429138Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.2+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "26329967cbec563e2cb01f60b2766ecd629d178b84d859c1cfe0f1fc45a32e74"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.2+cvc.1",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 30809312,
+  "published_at": "2026-10-19T22:25:23.844571Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.2+cvc.1-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "f03e20da8345f56021def5e55bd5f3e2d09b5987c1cbaa7084b9fcab3d0608c1"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.3+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35840151,
+  "published_at": "2026-10-21T16:32:17.309767Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.3+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "88e0eb4a9d315a89aab0e7b144538196a518a5e71d197ee47d95e42e1958d757"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.3+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 24772094,
+  "published_at": "2026-10-21T16:32:56.509096Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.3+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "224edf64f1354837b877a6796f6e5cbd5bf8c7168918233cd38e030a9a49576f"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.4+cvc.1",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 31080224,
+  "published_at": "2026-10-25T00:40:26.535076Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.4+cvc.1-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "24d990fc555389c9b92038dc3d0898430087630206e1f9e0635305d80a60f939"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.4+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35897127,
+  "published_at": "2026-10-25T00:41:11.248022Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.4+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "7b39596bdb99cacbd7e62c30c914f593e12aee9f3b01b270597a15cd5bc690bf"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.4+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 24828452,
+  "published_at": "2026-10-25T05:07:06.605260Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.4+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "5e8e7e1f6c208372f263c73be2319d13e1f09a419ee1a923bd0e23482fb29839"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.5+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 35913355,
+  "published_at": "2026-10-26T23:27:54.321629Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.5+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "cc49102febcc222b3b010320842314c35fd939061e4fb6bb535812a1c65ecf45"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.5+cvc.1",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 31104289,
+  "published_at": "2026-10-26T23:28:12.038079Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.5+cvc.1-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "bb74edb79c29032f2e2a14a6daa4955fc33ce3e63f13d4d6b79df471c4978c15"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.5+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 22497982,
+  "published_at": "2026-10-27T00:58:16.005844Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.5+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "761d868165878784890457f201f6bbe58eb2584e380fd640405a300e08f40be7"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.6+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 36827802,
+  "published_at": "2026-10-27T08:32:00.011085Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.6+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "5475deedf36d7da6996c372b45d00fe3ba59d99eecb386c0664a04c218a30ab0"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.6+cvc.1",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 32019001,
+  "published_at": "2026-10-27T08:32:23.943850Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.6+cvc.1-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "1fe55022a62eb3c33212af34016f22789c0bab7375ecf32590445c3525cda4aa"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.6+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 23412868,
+  "published_at": "2026-10-27T11:34:24.809520Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.6+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "82825ecba81043fdb371919495f01066d20b94e5c67170030f61db39e15a64fb"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.7+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 36854921,
+  "published_at": "2026-10-27T18:17:47.991874Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.7+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "04e56920767c2c4564a66d08997e2cf7b9013c55c4b84cc04a42c87b2879cd7a"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.7+cvc.1",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 32046409,
+  "published_at": "2026-10-27T18:18:11.885688Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.7+cvc.1-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "122ca35992298f1f60799a0bf6a4cbdedae637b9c0789d49cbe77145ed335818"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.7+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 23440310,
+  "published_at": "2026-10-27T18:23:56.086949Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.7+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "743f2af571b77047328972864aac4542f2178d5845863f749355e40a9d441740"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.8+cvc.1",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 36854964,
+  "published_at": "2026-10-27T22:00:42.291438Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.8+cvc.1-linux-x86_64-release-shared.tar.zst",
+  "sha256": "658312cdd85e352b2c578081a7d76c7a134abe01212ed90fc232dbc2761473c9"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.8+cvc.1",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 32048997,
+  "published_at": "2026-10-27T22:01:03.375082Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.8+cvc.1-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "717e1a248b5d357535d58e713b08369dccb724c22ffe4804a746630193e0367d"
+ },
+ {
+  "name": "cvcpkg",
+  "version": "2.5.8+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 23442925,
+  "published_at": "2026-10-27T22:06:49.136844Z",
+  "description": "The cvcpkg CLI as one self-contained executable, bin/cvcpkg: PyInstaller freezes CPython 3.12, cvcpkg, its client extras (remote, builder, signing, validate) and the standard recipe set into a single file that needs no Python on the host.  This is the package the one-line installers (/install.sh, /install.ps1) install, so a registry serves its own build of cvcpkg rather than the GitHub release's.",
+  "homepage": "https://cvcpkg.org/",
+  "license": "MIT",
+  "tags": "tools,packaging",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "python312"
+   },
+   {
+    "name": "poetry-core-cp312"
+   },
+   {
+    "name": "pyinstaller-cp312"
+   },
+   {
+    "name": "click-cp312"
+   },
+   {
+    "name": "pyyaml-cp312"
+   },
+   {
+    "name": "httpx-cp312"
+   },
+   {
+    "name": "websockets-cp312"
+   },
+   {
+    "name": "cryptography-cp312"
+   },
+   {
+    "name": "jsonschema-cp312"
+   },
+   {
+    "name": "attrs-cp312"
+   },
+   {
+    "name": "pyrsistent-cp312"
+   },
+   {
+    "name": "pefile-cp312"
+   },
+   {
+    "name": "pywin32-ctypes-cp312"
+   },
+   {
+    "name": "colorama-cp312"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/cvcpkg-2.5.8+cvc.1-windows-x86_64-release-shared.tar.zst",
+  "sha256": "44fa9f95ec31c9407320af65a9ee5e939ec936f4a35caf93d97f2105a7e60b5c"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.2",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 966290,
+  "published_at": "2026-07-07T01:21:02.418341Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.2-netbsd-x86_64-release-static.tar.zst",
+  "sha256": "a28c6157ae0a6ab9ba08b3f61f517111fc4cf794c442a0803eebd9416b4c89b4"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.2",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 979512,
+  "published_at": "2026-07-07T01:21:19.163747Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.2-freebsd-x86_64-release-static.tar.zst",
+  "sha256": "ecafda1d7beb82a3f8ad2761a45b02fe1f31c56fbc657199b8389d7ad8eb3195"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.2",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 966286,
+  "published_at": "2026-07-07T01:23:03.033968Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.2-netbsd-x86_64-debug-shared.tar.zst",
+  "sha256": "9149c0acfda46ea4bc3ac19763adf824878ab7772f2b5ad8f86b025f17c18b08"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.2",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 979511,
+  "published_at": "2026-07-07T01:23:36.300398Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.2-freebsd-x86_64-debug-static.tar.zst",
+  "sha256": "d8392a2024b206187b5f42f7c8d64e9d9976680723276fe601fa227daa834470"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.2",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 966287,
+  "published_at": "2026-07-07T01:25:37.897059Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.2-netbsd-x86_64-debug-static.tar.zst",
+  "sha256": "a35a9f5d43ff879375abc5f94406c5f4467b207e767475537c56b80458a5eb90"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 453754,
+  "published_at": "2026-08-09T08:24:07.860872Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "3f734a4fceb37b86f2510d1f3bf0098467c9feffdc677043b6910d80254c4514"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 448707,
+  "published_at": "2026-08-09T08:38:43.983230Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "dcbd7f3b5eacbcd638176e3bc7ba6fcd49eebaed38888beab5b15979c6a3ab7f"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 1163231,
+  "published_at": "2026-08-16T19:57:46.441293Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-linux-x86_64-debug-static.tar.zst",
+  "sha256": "e85233170dd151418292eae934249825695059562f914b9c3bf51034482dada3"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 1163228,
+  "published_at": "2026-08-16T19:58:30.282688Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-linux-x86_64-debug-shared.tar.zst",
+  "sha256": "857a4450f06b6b5a92d520d649a6e028d1d1ad6dadd8ef8906700c875f436686"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 481719,
+  "published_at": "2026-08-19T21:12:05.141524Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-linux-x86_64-release-static.tar.zst",
+  "sha256": "316fc4b577409ba819515278182bd6adda8f09710a64686966acd17489565d49"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 828004,
+  "published_at": "2026-08-21T05:05:50.884457Z",
+  "description": "libpng â€” the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-windows-x86_64-debug-static.tar.zst",
+  "sha256": "91e7f72946c6b058542164787683352e37f79e61370fdfd65f37b534484cdad5"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "wasm",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 280402,
+  "published_at": "2026-08-28T01:07:20.922764Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-wasm-x86_64-release-static.tar.zst",
+  "sha256": "f3367fc544d8aaab7b4d5de33913a21d8f5a7da294a210355955e6c68bd47194"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 2367828,
+  "published_at": "2026-09-04T19:59:57.033334Z",
+  "description": "",
+  "homepage": "",
+  "license": "",
+  "tags": "",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-macos-arm64-debug-shared.tar.zst",
+  "sha256": "45c6fba8c7c058c9457e419ada2857c1d25db5f7cb9678e57cb03358cf2cebd8"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "wasm-mt",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 280684,
+  "published_at": "2026-09-04T23:05:25.035511Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-wasm-mt-x86_64-release-static.tar.zst",
+  "sha256": "0b21bd0c342563dd8c6d08d2d0c13d8574716182dc832d0635b6da95f8071dc3"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 280602,
+  "published_at": "2026-09-05T02:26:19.390689Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-wasm-wasm32-release-static.tar.zst",
+  "sha256": "a34c59d69644a46bc3ac6d77fe15849fd052524cc09a9e2044d324aba35587e5"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 280631,
+  "published_at": "2026-09-05T02:32:38.965529Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "704a51317402a86b8921cdd5b1db365d37194da394c6e8cf537378408dd20d69"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.3",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 482130,
+  "published_at": "2026-09-22T00:34:02.683731Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.3-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "8e11b0801e18f439ec7183e7ff1bbbcb841186bc0b3714f61f8fbb7502c4017d"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.4",
+  "platform": "haiku",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 478885,
+  "published_at": "2026-09-24T06:44:30.271872Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.4-haiku-x86_64-release-shared.tar.zst",
+  "sha256": "51608f30b7c1d84ae42c5067882cc2d1af1e22a5fa8acad38d417c481ade029e"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 482209,
+  "published_at": "2026-10-14T00:58:19.244978Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-linux-x86_64-release-shared.tar.zst",
+  "sha256": "20b82039469bcbf2e5034d22073623e86569943b99f61a01c6a028e954bf3110"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 469097,
+  "published_at": "2026-10-15T20:23:21.449180Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-linux-arm64-release-shared.tar.zst",
+  "sha256": "471a0f1670dffa0bc652b176b6617f6ad3c91ff0e5b9f880af212627a91b0671"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 599518,
+  "published_at": "2026-10-15T21:54:02.097773Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-macos-x86_64-release-shared.tar.zst",
+  "sha256": "56aebb184ee57fecdb3840aa2e798e6012facdc8909bcd3ac624cd4742b69574"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 588122,
+  "published_at": "2026-10-16T01:21:17.466789Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-macos-arm64-release-shared.tar.zst",
+  "sha256": "229cf360f64815746a9a766d7a4d36b0979a0451bdeb25b9b74102ec78ab0a07"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 540862,
+  "published_at": "2026-10-17T03:14:08.722658Z",
+  "description": "libpng â€” the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-windows-x86_64-release-shared.tar.zst",
+  "sha256": "8b7bb6ea90e318f929e30ebcd7db0958a9e4ca72fc404b8981431f1234d0b436"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 449920,
+  "published_at": "2026-10-19T04:29:08.560377Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "bbfc0c9bfab037c1bbcfeb0f3f5f3c17c00b8a1f3f40037ddda35c3e39d28e86"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 454927,
+  "published_at": "2026-10-19T04:56:16.517318Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "8a443b87cff6d6cbbb18370e4bd89f8af2ca3fbe31b8bbb6c9a2731688cb4819"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 482978,
+  "published_at": "2026-10-19T05:05:58.556468Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "2cde2286bb115b115dcb681d6e35ba9717d6f085978356c2447385f6c5e2c87f"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 281536,
+  "published_at": "2026-10-30T04:22:18.677749Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-wasm-wasm32-release-static.tar.zst",
+  "sha256": "9d940a08843112b6e3030efe7d4afcb29c23704d5ce2f992f339025133a67c96"
+ },
+ {
+  "name": "libpng",
+  "version": "1.6.44+cvc.5",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 281570,
+  "published_at": "2026-10-30T04:22:18.750209Z",
+  "description": "libpng — the official reference library for reading, creating, and manipulating PNG image files.  Required by FreeType, Cairo, and GDK-Pixbuf.",
+  "homepage": "http://www.libpng.org/pub/png/libpng.html",
+  "license": "Libpng",
+  "tags": "libraries,wasm,wasi",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "zlib",
+    "version": "^1.3"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/libpng-1.6.44+cvc.5-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "ec991e96b1eebac7b33ee13e29ea0da0472c609320c040fb0db1ffa4bdd1f17b"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.2",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 3440366,
+  "published_at": "2026-07-15T02:10:53.384955Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.2-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "99fcb56c44e1ad1c19420e20bfe751494d95d9ab5564827df0608ef25a3816d9"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.3",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2265626,
+  "published_at": "2026-08-12T06:25:22.095015Z",
+  "description": "SQLite â€” a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.3-windows-x86_64-release-shared.tar.zst",
+  "sha256": "f0df52b70749f21985887724c46a20d4cdda9446829789d23386ff1dda4bab96"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 1957993,
+  "published_at": "2026-08-16T19:58:42.303853Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.3-linux-x86_64-debug-shared.tar.zst",
+  "sha256": "9bce222c1a5aaf7dbcc5d4f247536c2a06ba1c30cb5fb8aa93b0a0dadbbf3b1b"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 1972939,
+  "published_at": "2026-08-16T20:01:51.570864Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.3-linux-x86_64-debug-static.tar.zst",
+  "sha256": "ff1302dce876e79f85d62d2a1498441e5fc754d4b4343c5d870a4c8de0653d3e"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.3",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 4038639,
+  "published_at": "2026-09-04T18:56:37.601339Z",
+  "description": "",
+  "homepage": "",
+  "license": "",
+  "tags": "",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.3-macos-arm64-debug-shared.tar.zst",
+  "sha256": "81a19e517d40445e239cbf0c1632fed220c8a30173d11453ca259aa477c4247c"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 1972954,
+  "published_at": "2026-09-05T00:58:04.644390Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.3-linux-x86_64-release-static.tar.zst",
+  "sha256": "97b6768a4993709231eca5a3bca57c655645e727e3ab62e556800288226c162e"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.3",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 1028869,
+  "published_at": "2026-09-05T02:29:40.979799Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.3-wasm-wasm32-release-static.tar.zst",
+  "sha256": "1692baf63ea6459b3e6d3e85565c8434e2cf8e6ea5ceac4e2d2cd5abe307cdf2"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.3",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 1028957,
+  "published_at": "2026-09-23T13:43:01.963846Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.3-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "bfdc2fcdebfdad9ebebd8066591cb2b15ccb1ef46be25cc648c27b5783fef266"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.4",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1958218,
+  "published_at": "2026-10-13T23:51:17.345810Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.4-linux-x86_64-release-shared.tar.zst",
+  "sha256": "e242fc8ad2c5066cb43d2ca75f8272d407ef5a2548d85f8fb97af0994c328040"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.4",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2269117,
+  "published_at": "2026-10-14T06:48:14.838397Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.4-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "dd55da6dd953a68fcc03c7a18aca1b1cbc5b343e2b9aafdbda33f2a29057b0ba"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.4",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2193172,
+  "published_at": "2026-10-14T06:48:16.018885Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.4-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "9be4e5af1842e7703add56a5372561aec4d662215f45e63600e2f39f6a78caeb"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.4",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1947109,
+  "published_at": "2026-10-14T10:57:27.276271Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.4-linux-arm64-release-shared.tar.zst",
+  "sha256": "422bee8c2e49df693ddf5d298ac1ec6b4a16e26ae8c1cc9063dde66e1e23618d"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.4",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2166356,
+  "published_at": "2026-10-15T22:12:10.961916Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.4-macos-x86_64-release-shared.tar.zst",
+  "sha256": "1868eadb4e428583361b3b647583913ec23d00957966837a1f80e1af0d02b720"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.4",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2026024,
+  "published_at": "2026-10-16T06:18:07.237485Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.4-macos-arm64-release-shared.tar.zst",
+  "sha256": "76fa27b4f27402c570e77806946e53f7ce8863312e403ce31ce345df46fca9d5"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.4",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1859202,
+  "published_at": "2026-10-17T23:03:34.283681Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.4-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "82b07279266691c6835791a4e7c201cc04d9a4fba57894fbf31cc2eaa3f76875"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1947415,
+  "published_at": "2026-10-18T22:24:01.114627Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-linux-arm64-release-shared.tar.zst",
+  "sha256": "a43d5638f494832794ecba296b64da76127ec786372de14f6467cdb7810af5d7"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2026329,
+  "published_at": "2026-10-18T22:26:12.863370Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-macos-arm64-release-shared.tar.zst",
+  "sha256": "a184dc0bdd3727df840949b59f73c6313a5a57c0f0102ff4d6034e615343ddd9"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1958482,
+  "published_at": "2026-10-19T00:58:19.456273Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-linux-x86_64-release-shared.tar.zst",
+  "sha256": "974794d43bd28331e067ea12399e9a7be1ae47cd1bf71a1674c1f5d88270062e"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2166701,
+  "published_at": "2026-10-19T02:17:24.384865Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-macos-x86_64-release-shared.tar.zst",
+  "sha256": "23c955ad8c077320681155567a6fbb0c823261efcaec0d3a7427a065ca32a418"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1859473,
+  "published_at": "2026-10-19T06:23:11.572387Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "ce6bf3176381ed05f5d67faf70b8a0033a6fcf4e64ef9378f84428d4bd7297e9"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2266382,
+  "published_at": "2026-10-19T07:48:46.131636Z",
+  "description": "SQLite â€” a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-windows-x86_64-release-shared.tar.zst",
+  "sha256": "d74ff7a30572c01c599c5cb34ae89e57373d1af8735d6327cdfe43907ec2cc6e"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2193407,
+  "published_at": "2026-10-19T07:54:16.790877Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "2b3017f8d5c3821d505767d3a1f4a07a32154924adf91dc772fc13557b537302"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.5",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2269354,
+  "published_at": "2026-10-19T08:46:46.431038Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.5-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "65313ad445a3902060b074fee84ecd8f9939151ac57d60ab0794b547701256d3"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.6",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1958794,
+  "published_at": "2026-10-19T21:24:03.661826Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.6-linux-x86_64-release-shared.tar.zst",
+  "sha256": "798e34b2bdf7cfee7c5a43f4d2de393cb9525cced6b9ef6943a2eabcb0ee990b"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.6",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2193797,
+  "published_at": "2026-10-19T21:27:07.881420Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.6-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "00de584db021cfaff19b10d435e89a916ce4ebc8c4a0e1d0dc129e3f8d912ea7"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.6",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2269695,
+  "published_at": "2026-10-19T21:55:45.850542Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.6-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "e994e6ec02ee1f1c15cc9433bbaf5ce8397577839941d09c4849071048c8cc1a"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.6",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 2033408,
+  "published_at": "2026-10-20T01:02:15.828952Z",
+  "description": "SQLite â€” a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.6-windows-x86_64-release-shared.tar.zst",
+  "sha256": "a5a949bed90f198980d7c9c0de0a7952664d1dd21160380d6214717d28017ec7"
+ },
+ {
+  "name": "sqlite",
+  "version": "3.49.1+cvc.6",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 1859868,
+  "published_at": "2026-10-20T02:27:13.592206Z",
+  "description": "SQLite — a self-contained, serverless, zero-configuration SQL database engine.  Ships libsqlite3 and the sqlite3 CLI tool.  Required by CPython's sqlite3 standard-library module.",
+  "homepage": "https://www.sqlite.org/",
+  "license": "blessing",
+  "tags": "database,libraries",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/sqlite-3.49.1+cvc.6-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "cb57d070ca6e903aec6d1037b2c81977e2dabd1c6f896111b7f5f6f8bbbcebc5"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 243874,
+  "published_at": "2026-07-02T06:16:35.588931Z",
+  "description": "zlib â€” a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.1-windows-x86_64-release-static.tar.zst",
+  "sha256": "1910e45bc422d206e46c1934d245e8a77f5173c8eaf1cd6f3571027d5933450c"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "wasi",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 117821,
+  "published_at": "2026-07-07T05:42:35.657166Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-wasi-wasm32-release-static.tar.zst",
+  "sha256": "2e07ce3e10989b400137ddbc831128a7b5df5e99bdcb063821528daa48e22c51"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "cosmo",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 105711,
+  "published_at": "2026-07-07T18:31:12.641358Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-cosmo-x86_64-release-static.tar.zst",
+  "sha256": "ea86944997bda8006eb0b41bf7af719602fa2903b09dc53ef7cc286bb919df26"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "cosmo",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 105713,
+  "published_at": "2026-07-07T19:54:19.789388Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-cosmo-x86_64-debug-static.tar.zst",
+  "sha256": "c654d71db67ccaf7219ceaff05a951f0cd317504a3259ba63e33c361916ec707"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 162506,
+  "published_at": "2026-07-08T21:30:23.364437Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-linux-x86_64-debug-static.tar.zst",
+  "sha256": "fa0495af379d7369b8ea55baa778f2fb6ed2cdb8177f590c86a257571d236927"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "wasi",
+  "arch": "wasm32",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 117801,
+  "published_at": "2026-07-09T03:48:05.999318Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-wasi-wasm32-debug-static.tar.zst",
+  "sha256": "896d483ea9c28ab3ecf5f44248da6bd0d4b4b280d819fe0591a9a1503a47f875"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 378627,
+  "published_at": "2026-08-16T19:57:21.042710Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-linux-x86_64-debug-shared.tar.zst",
+  "sha256": "bfaeb8b74f3859df64c7a4d8c050da886f8a9ae24952bc58b9d42e052eb87c41"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 163732,
+  "published_at": "2026-08-19T21:10:42.804597Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-linux-x86_64-release-static.tar.zst",
+  "sha256": "b8b34f78fb052fbeca7cd1c1a113a406f03c69f3dcb0728fc3c98ca84b2131ca"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 490478,
+  "published_at": "2026-08-21T04:55:09.213699Z",
+  "description": "zlib â€” a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-windows-x86_64-debug-static.tar.zst",
+  "sha256": "0c847681220e00b4e1924768d996412d1f586f6c07143665834f799f0679bdff"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "wasm",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 78910,
+  "published_at": "2026-08-28T01:07:31.833448Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-wasm-x86_64-release-static.tar.zst",
+  "sha256": "073f5bcc28a11831647b6757a58f975b3969fd6cf00f693cebe9993e8cef72b7"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.3",
+  "platform": "wasm-mt",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 79160,
+  "published_at": "2026-09-04T23:05:26.409857Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.3-wasm-mt-x86_64-release-static.tar.zst",
+  "sha256": "f053c2dc638177d7e1f3a4d3c74cab184f2004581ea0b4cc967974e533a85e86"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.4",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 329317,
+  "published_at": "2026-09-08T03:42:01.532861Z",
+  "description": "",
+  "homepage": "",
+  "license": "",
+  "tags": "",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.4-macos-arm64-debug-shared.tar.zst",
+  "sha256": "1adbe69fdb2ef9200a4779fea01f83c24ed680c2fd1dc420bf31d7a0f5432505"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "haiku",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 165070,
+  "published_at": "2026-09-23T04:34:41.211802Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-haiku-x86_64-release-shared.tar.zst",
+  "sha256": "93f96947497fd221a1cb1c5ba39cefdfca100080e6ac92d2b67c42e68f4ebdc6"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 79307,
+  "published_at": "2026-09-23T05:16:47.727476Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-wasm-wasm32-release-static.tar.zst",
+  "sha256": "538f608b3ab522deb4cc7c49e1b06fe840fccd04564dd9593f306815015af52f"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 79332,
+  "published_at": "2026-09-23T13:42:40.173230Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "d946e7e83c334629206c0dd22d7acb20493ba8de361490ab3636b14e07fc5996"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 164219,
+  "published_at": "2026-09-26T03:21:28.276567Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-linux-x86_64-release-shared.tar.zst",
+  "sha256": "57749392cb55609df2888dfa4cd6f44ffaaff670c2b564b247b9483100b84674"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 156112,
+  "published_at": "2026-10-12T06:18:08.509432Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "2b0065a063e2a4c0dad2404926344774b97416d64fc9d2b635896cfbac409c85"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 154417,
+  "published_at": "2026-10-12T06:18:52.770002Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "ac3b150e6532686983f54216fbd5ee57ef560cb08895ce4c699bce5f8311b3b6"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 163230,
+  "published_at": "2026-10-14T06:48:11.792795Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "1339d05a82c046dc992da7c9e4f3a188eb8c90ad7852ed5e0f36ed2f77287628"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 125820,
+  "published_at": "2026-10-14T09:15:52.663735Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-macos-arm64-release-shared.tar.zst",
+  "sha256": "3f5fbbb2f9008d67760d6ec0236e67c8b7b13401f6c1407f125c966522b08c62"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 164590,
+  "published_at": "2026-10-15T19:43:39.633464Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-linux-arm64-release-shared.tar.zst",
+  "sha256": "abcf94d19bbba2c08ba6131bf6d942e338e8e7b537c0fcd94bce3da736aafe6f"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 145492,
+  "published_at": "2026-10-15T20:54:20.417856Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-macos-x86_64-release-shared.tar.zst",
+  "sha256": "3541324402859cac88ec9d6950c83696bdaaa804a7028b8c577ef99f14b0f760"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 182719,
+  "published_at": "2026-10-17T03:13:31.262673Z",
+  "description": "zlib â€” a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-windows-x86_64-release-shared.tar.zst",
+  "sha256": "5f0fd667a1849859c80306884a1263e7870bc0b5a12b0808c15a1d0baa237c63"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 329290,
+  "published_at": "2026-10-17T20:51:52.734397Z",
+  "description": "zlib â€” a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-windows-x86_64-release-static.tar.zst",
+  "sha256": "011c422f326004e39ec96f4890b5b6573ccb53c7c785431858f9e1f49f0ad67c"
+ },
+ {
+  "name": "zlib",
+  "version": "1.3.1+cvc.5",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 126194,
+  "published_at": "2026-10-17T23:34:20.061493Z",
+  "description": "zlib — a general-purpose lossless data compression library.",
+  "homepage": "https://zlib.net/",
+  "license": "Zlib",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zlib-1.3.1+cvc.5-macos-arm64-release-static.tar.zst",
+  "sha256": "fd5b4cd254fb89bbcb608a12df0330a57375a55c83004b904fe6f8bd6871cd7e"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.1",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 751839,
+  "published_at": "2026-07-02T07:13:54.023948Z",
+  "description": "Zstandard â€” a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.1-windows-x86_64-release-static.tar.zst",
+  "sha256": "c27ec7c016a283102f20ab2e2d944e93efb08efded760c50111a349346228a01"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.2",
+  "platform": "wasi",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 308975,
+  "published_at": "2026-07-07T02:41:27.304392Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.2-wasi-wasm32-release-static.tar.zst",
+  "sha256": "6c102ba89f4148a68ed753ec71dfbd916f38c370fc08069d27de17cf401dd7ec"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.2",
+  "platform": "wasi",
+  "arch": "wasm32",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 308977,
+  "published_at": "2026-07-09T03:49:17.436297Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.2-wasi-wasm32-debug-static.tar.zst",
+  "sha256": "e5d82f78f474339226b8a24339c8e66cf3c1cd8d4a3e70c925ca8c92d1076652"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 3077305,
+  "published_at": "2026-08-16T19:57:20.792782Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.3-linux-x86_64-debug-shared.tar.zst",
+  "sha256": "20b7c63ef6f9e165103978913ccb6332f3dd982ce1976a1bf7291f4ec6634db0"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 3715967,
+  "published_at": "2026-08-19T19:45:19.085488Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.3-linux-x86_64-debug-static.tar.zst",
+  "sha256": "3081187f33fb1da9a6ec0829c784e1c338983885825061e1e68715f1e4b1abe5"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.3",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 441632,
+  "published_at": "2026-08-19T20:23:14.718792Z",
+  "description": "Zstandard â€” a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.3-windows-x86_64-debug-shared.tar.zst",
+  "sha256": "3f84216dd71a0a47a348e150e5b14b8d68a38b29541a5d78087be6ae7f825ab5"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.3",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 589159,
+  "published_at": "2026-08-19T21:09:29.584544Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.3-linux-x86_64-release-static.tar.zst",
+  "sha256": "6786dd7812294a11d2c6b2adc7790943669ff225de7c69ee11d914e523864a3f"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.3",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "debug",
+  "link": "static",
+  "size_bytes": 1177146,
+  "published_at": "2026-08-21T04:55:25.494762Z",
+  "description": "Zstandard â€” a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.3-windows-x86_64-debug-static.tar.zst",
+  "sha256": "7d74f25cc0e96b9b77b67afb90867e64ff460c43d49298be965e80db9b857c3a"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.3",
+  "platform": "wasm",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 302346,
+  "published_at": "2026-08-28T01:07:33.884438Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.3-wasm-x86_64-release-static.tar.zst",
+  "sha256": "7fb85ebe4296af513489b0773b36868f8152ec8c118491d6741d749e7d61eb25"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.3",
+  "platform": "wasm-mt",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 302515,
+  "published_at": "2026-09-04T23:05:27.001517Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [
+   {
+    "name": "cmake"
+   },
+   {
+    "name": "ninja"
+   }
+  ],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.3-wasm-mt-x86_64-release-static.tar.zst",
+  "sha256": "a14fcab08ad205ba2583f55ed772813803addc08233c395ab47fd2e89623a5c8"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.4",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 302469,
+  "published_at": "2026-09-05T09:23:47.606549Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.4-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "af2bf5408c28d007cf0cfdacc6ca849202920570fbd286c8a473a8ea37601da4"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.4",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 302576,
+  "published_at": "2026-09-07T18:11:11.765104Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.4-wasm-wasm32-release-static.tar.zst",
+  "sha256": "d98867d444db1fb71574f055caad6840edca1e1c38b8bf307730f84c93717e34"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.4",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "debug",
+  "link": "shared",
+  "size_bytes": 1334464,
+  "published_at": "2026-09-08T07:52:17.665081Z",
+  "description": "",
+  "homepage": "",
+  "license": "",
+  "tags": "",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.4-macos-arm64-debug-shared.tar.zst",
+  "sha256": "dc279c81294986ec5054266f58dbf864d3bb19c9013330436c1842dcd0a4c7ee"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.4",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 536629,
+  "published_at": "2026-09-22T08:35:55.244761Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.4-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "9ef958886ff5065002a8acc40a415e3650168f7dd3008003f6f0ec022c31c219"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "haiku",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 554278,
+  "published_at": "2026-09-24T06:42:08.861674Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-haiku-x86_64-release-shared.tar.zst",
+  "sha256": "ce72d9d66eae308950e8d1d5a3039cdb6febdd1d571a8f4213dd3166c8012bbb"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "linux",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 542335,
+  "published_at": "2026-09-26T03:30:43.469008Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-linux-x86_64-release-shared.tar.zst",
+  "sha256": "daa891ab21ff7b8d501e89dfdde94ef71e6093098e6ffc7da9f4c49f44137a76"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "freebsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 477463,
+  "published_at": "2026-10-12T06:18:50.472540Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-freebsd-x86_64-release-shared.tar.zst",
+  "sha256": "b0e99ade96d329cc49491aa0f7287b55d824e32fd7f3e0e6741450a5ff13472f"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "netbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 471906,
+  "published_at": "2026-10-12T06:19:34.665480Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-netbsd-x86_64-release-shared.tar.zst",
+  "sha256": "f9a7b97035449fa7b360c496abd65b205b594001eb78c5b361d2e56eed274e5c"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "windows",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 329817,
+  "published_at": "2026-10-14T07:11:49.676740Z",
+  "description": "Zstandard â€” a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-windows-x86_64-release-shared.tar.zst",
+  "sha256": "ef64d67fc57f6338025be59e1a9f76eb3ec2a357765ee2b9d6bdb591a98b2c02"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "linux",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 511876,
+  "published_at": "2026-10-15T21:45:43.860179Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-linux-arm64-release-shared.tar.zst",
+  "sha256": "178137db9fd5832808b1805a386831c966c4afad685444e6248f523d462bdf3c"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "macos",
+  "arch": "arm64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 372745,
+  "published_at": "2026-10-16T13:18:39.726473Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-macos-arm64-release-shared.tar.zst",
+  "sha256": "5a2cf1f28f1c2a7be40deeabe3cadd232484301016ac911b205d8c42542ebc8a"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "macos",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 456026,
+  "published_at": "2026-10-16T15:17:36.978771Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-macos-x86_64-release-shared.tar.zst",
+  "sha256": "2a66aaf0b5ba1ce2faf3554318164801bffe7ebe9794be8533b2e5ec822b9c56"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "openbsd",
+  "arch": "x86_64",
+  "build_type": "release",
+  "link": "shared",
+  "size_bytes": 536749,
+  "published_at": "2026-10-19T17:19:05.497635Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-openbsd-x86_64-release-shared.tar.zst",
+  "sha256": "0905f2ada5fa9299ed5c0ccbfec0caaf2353add8bbdacd7166e08992a29c6e87"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "wasm-mt",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 302473,
+  "published_at": "2026-10-30T01:37:47.496237Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-wasm-mt-wasm32-release-static.tar.zst",
+  "sha256": "b96251aa56fe0117edc7aecfdc2710305625ad10a63e0f908a259f838d41108b"
+ },
+ {
+  "name": "zstd",
+  "version": "1.5.7+cvc.5",
+  "platform": "wasm",
+  "arch": "wasm32",
+  "build_type": "release",
+  "link": "static",
+  "size_bytes": 302582,
+  "published_at": "2026-10-30T01:37:47.990208Z",
+  "description": "Zstandard — a fast, lossless compression algorithm targeting real-time compression scenarios.",
+  "homepage": "https://facebook.github.io/zstd/",
+  "license": "BSD-3-Clause AND GPL-2.0-only",
+  "tags": "wasi,utils,io,wasm",
+  "org": "",
+  "required_deps": [],
+  "yanked": false,
+  "archive_url": "/v1/download/zstd-1.5.7+cvc.5-wasm-wasm32-release-static.tar.zst",
+  "sha256": "d81529673faa11a48b9cd2b858f68ad0ed70359256c7ae75df7f806bdfb52a2f"
+ }
+]

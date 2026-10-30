@@ -1,0 +1,30 @@
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│Search: [zlib]                       Platform: < all >     Arch: < all >      Link: < all >       │
+│builds 1-10 of 51, 2 packages                                                                     │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│        name                         version           platform          link    size             │
+│[ Open ]assimp                       6.0.5+cvc.7       openbsd/x86_64    shared  4057 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       windows/x86_64    shared  2686 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       macos/arm64       shared  3125 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       wasm-mt/wasm32    static  4630 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       wasm/wasm32       static  4627 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       freebsd/x86_64    shared  4107 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       netbsd/x86_64     shared  4137 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       linux/x86_64      shared  4707 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       macos/x86_64      shared  3318 KB          │
+│[ Open ]assimp                       6.0.5+cvc.7       linux/arm64       shared  4488 KB          │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│[ < Prev ][ Next > ]                                                                              │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+

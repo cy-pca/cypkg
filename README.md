@@ -8,10 +8,10 @@ packages, read recipes, watch builders and build logs live, and manage tokens,
 orgs and the registry. The same documents run natively in a terminal and in
 the browser on xterm.js.
 
-> **Status: pre-M0.** Nothing runs yet. The first milestone is waiting on
-> generic host features in libcvc that it shares with
-> [nicotina](https://github.com/cy-pca/nicotina); see
-> [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status: M0 in progress.** Search and package pages work in both terminal
+> backends, but only in an `ari` built with two unmerged libcvc PRs,
+> transfix/libcvc#888 (network flags) and #883 (JSON). The browser path is
+> still to do. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -68,10 +68,39 @@ shows the same `cvcpkg install` lines to copy.
 ## Layout
 
 ```
-share/cypkg/      the .ari documents and components (from M0)
-bin/              launcher scripts (from M0)
+share/cypkg/      the .ari documents (main.ari)
+bin/              the launchers: cypkg (sh) and cypkg.cmd
+tests/            snapshot tests and a fixture registry
 recipe/           the cvcpkg recipe (M5)
 docs/ROADMAP.md   milestones and the libcvc and cvcpkg features each one needs
+```
+
+## Running from a checkout
+
+`CYPKG_ARI` names the `ari` to run. Until #888 and #883 merge, that is an `ari`
+built from libcvc master with both PRs merged in.
+
+```bash
+CYPKG_ARI=/path/to/ari bin/cypkg --q zlib
+CYPKG_ARI=/path/to/ari bin/cypkg --tvision --package zstd
+```
+
+Document flags: `--q`, `--platform`, `--arch`, `--link`, `--offset`,
+`--package`, `--pkg-offset` and `--page`. `bin/cypkg --help` lists them.
+
+## Tests
+
+`tests/snapshot.sh` starts a fixture registry
+(`tests/registry/fixture_registry.py`, Python stdlib only). The fixture serves
+193 real builds of 7 packages, captured from cvcpkg.org with
+`tests/registry/capture.py`. The script renders each case with
+`ari snapshot` and compares the frame with `tests/expected/`. Any warning from
+the document fails the run.
+
+```bash
+ARI=/path/to/ari tests/snapshot.sh            # check
+ARI=/path/to/ari tests/snapshot.sh --update   # rewrite the expected frames
+ARI=/path/to/ari tests/snapshot.sh --show package_zlib
 ```
 
 ## License

@@ -1,0 +1,328 @@
+# cypkg — a terminal client for cvcpkg registries.
+#
+# M0: anonymous, read-only browsing. Search the catalog with the web page's filters, and open a
+# package to see its builds and its install line. The launcher (bin/cypkg) runs this in stock ari
+# with the network allowed to the registry and nothing else:
+#
+#   ari run --net-allow https://cvcpkg.org share/cypkg/main.ari --server https://cvcpkg.org
+#
+# Requests run in on_tick, the action lane. Widgets only set a request flag (req.search) or name a
+# package to open (pkg.want); on_tick sends the request and writes the parsed reply into the state
+# tree with state-set-tree, where the rows bind to it.
+
+meta:
+  name: cypkg
+  version: 0.1.0
+  description: Browse a cvcpkg registry in the terminal
+  min_libcvc: 3.7.4
+
+requires:
+  - net
+  - json-parse
+  - state-set-tree
+
+args:
+  server: {type: string, default: "https://cvcpkg.org", help: The registry to browse}
+  q: {type: string, default: "", help: Search for this at start}
+  package: {type: string, default: "", help: Open this package at start}
+  platform: {type: string, default: all, help: "Only builds for this platform (all, linux, macos, windows, ...)"}
+  arch: {type: string, default: all, help: "Only builds for this architecture (all, x86_64, arm64, ...)"}
+  link: {type: string, default: all, help: "Only shared or static builds (all, shared, static)"}
+  offset: {type: int, default: 0, help: The first search row to show}
+  pkg-offset: {type: int, default: 0, help: The first build of the opened package to show}
+  page: {type: int, default: 10, help: Rows per page}
+
+init: |
+  (begin
+    (state-set "view" "search")
+    (state-set "app.started" "")
+    (state-set "search.q" (state-get "args.q"))
+    (state-set "search.platform" (state-get "args.platform"))
+    (state-set "search.arch" (state-get "args.arch"))
+    (state-set "search.link" (state-get "args.link"))
+    (state-set "search.offset" (int (state-get "args.offset")))
+    (state-set "search.count" 0)
+    (state-set "search.total" 0)
+    (state-set "search.status" "")
+    (state-set "req.search" "0")
+    (state-set "pkg.want" "")
+    (state-set "pkg.name" "")
+    (state-set "pkg.offset" 0)
+    (state-set "pkg.start" 0)
+    (state-set "pkg.count" 0)
+    (state-set "pkg.total" 0)
+    (state-set "pkg.status" ""))
+
+on_tick: |
+  (begin
+    (if (= (state-get "app.started") "")
+        (begin
+          (state-set "app.started" "1")
+          (state-set "req.search" "1")
+          (if (!= (state-get "args.package") "")
+              (begin
+                (state-set "pkg.start" (int (state-get "args.pkg-offset")))
+                (state-set "pkg.want" (state-get "args.package"))))))
+
+    ;; A search: the filters as the web page sends them, one page of rows.
+    (if (= (state-get "req.search") "1")
+        (begin
+          (state-set "req.search" "0")
+          (state-set "search.status" "searching...")
+          (set any (lambda (k) (if (= (state-get k) "all") "" (state-get k))))
+          (set r (http-get (str-concat (state-get "args.server") "/v1/search")
+                   (dict "query" (dict "q" (state-get "search.q")
+                                       "platform" (any "search.platform")
+                                       "arch" (any "search.arch")
+                                       "link" (any "search.link")
+                                       "limit" (state-get "args.page")
+                                       "offset" (state-get "search.offset")
+                                       "facets" "true"))))
+          (if (= (get-attr r "status") 200)
+              (begin
+                (set d (json-parse (get-attr r "body")))
+                (state-set-tree "search.res" d)
+                (set n (length (get-attr d "packages")))
+                (set off (int (state-get "search.offset")))
+                (state-set "search.count" n)
+                (state-set "search.total" (get-attr d "total"))
+                (state-set "search.status"
+                  (if (= n 0)
+                      "no builds match"
+                      (str-concat "builds " (+ off 1) "-" (+ off n) " of " (get-attr d "total")
+                                  ", " (get-attr d "package_count")
+                                  (if (= (get-attr d "package_count") 1) " package" " packages")))))
+              (begin
+                (state-set "search.count" 0)
+                (state-set "search.status"
+                  (str-concat "search failed: "
+                              (if (= (get-attr r "status") 0)
+                                  (get-attr r "error")
+                                  (str-concat "HTTP " (get-attr r "status")))))))))
+
+    ;; Open a package: every build of it, shown a page at a time.
+    (if (!= (state-get "pkg.want") "")
+        (begin
+          (set name (state-get "pkg.want"))
+          (state-set "pkg.want" "")
+          (state-set "pkg.name" name)
+          (state-set "pkg.offset" (state-get "pkg.start"))
+          (state-set "pkg.start" 0)
+          (state-set "pkg.count" 0)
+          (state-set "pkg.status" "loading...")
+          (state-set "view" "package")
+          (set r (http-get (str-concat (state-get "args.server") "/v1/packages/"
+                                       (url-encode name))))
+          (if (= (get-attr r "status") 200)
+              (begin
+                (set d (json-parse (get-attr r "body")))
+                (set rows (get-attr d "packages"))
+                (state-set-tree "pkg.all" rows)
+                (set p (nth rows 0))
+                (set desc (get-attr p "description"))
+                (state-set "pkg.desc"
+                  (if (> (string.length desc) 92) (str-concat (string.substring desc 0 89) "...") desc))
+                (state-set "pkg.version" (get-attr p "version"))
+                (state-set "pkg.license" (get-attr p "license"))
+                (state-set "pkg.homepage" (get-attr p "homepage"))
+                (state-set "pkg.tags" (get-attr p "tags"))
+                (state-set "pkg.install" (str-concat "cvcpkg install " name))
+                (state-set "pkg.total" (length rows))
+                (state-set "req.pkgpage" "1"))
+              (state-set "pkg.status"
+                (if (= (get-attr r "status") 404)
+                    (str-concat "no package named " name)
+                    (str-concat "failed: "
+                                (if (= (get-attr r "status") 0)
+                                    (get-attr r "error")
+                                    (str-concat "HTTP " (get-attr r "status")))))))))
+
+    ;; One page of the open package's builds, from the reply already held.
+    (if (= (state-get "req.pkgpage") "1")
+        (begin
+          (state-set "req.pkgpage" "0")
+          (set off (int (state-get "pkg.offset")))
+          (set total (int (state-get "pkg.total")))
+          (set end (+ off (int (state-get "args.page"))))
+          (if (> end total) (set end total))
+          (set rows (list))
+          (set i off)
+          (while (< i end)
+            (set rows (append rows (dict
+              "version" (state-get (str-concat "pkg.all." i ".version"))
+              "where" (str-concat (state-get (str-concat "pkg.all." i ".platform")) "/"
+                                  (state-get (str-concat "pkg.all." i ".arch")))
+              "kind" (str-concat (state-get (str-concat "pkg.all." i ".build_type")) " "
+                                 (state-get (str-concat "pkg.all." i ".link")))
+              "size" (str-concat (int (/ (int (state-get (str-concat "pkg.all." i ".size_bytes"))) 1024)) " KB")
+              "date" (string.substring (state-get (str-concat "pkg.all." i ".published_at")) 0 10))))
+            (set i (+ i 1)))
+          (state-set-tree "pkg.page" rows)
+          (state-set "pkg.count" (- end off))
+          (state-set "pkg.status" (str-concat "builds " (+ off 1) "-" end " of " total)))))
+
+windows:
+  - window: cypkg
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - text: "registry"
+        bind: args.server
+
+      # ── Search ──
+      - type: group
+        visible_when: (= (state-get "view") "search")
+        children:
+          - type: group
+            layout: { kind: grid, col_widths: [296, 176, 152, 160] }
+            children:
+              - type: input_text
+                label: "Search"
+                bind: search.q
+                on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
+              - type: combo
+                label: "Platform"
+                bind: search.platform
+                options: [all, linux, macos, windows, freebsd, openbsd, netbsd, haiku, wasm, wasm-mt, wasi, cosmo, any]
+                on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
+              - type: combo
+                label: "Arch"
+                bind: search.arch
+                options: [all, x86_64, arm64, wasm32, noarch]
+                on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
+              - type: combo
+                label: "Link"
+                bind: search.link
+                options: [all, shared, static]
+                on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
+          - text: ""
+            bind: search.status
+          - separator
+          - type: group
+            layout: { kind: grid, col_widths: [64, 232, 144, 144, 64, 80] }
+            visible_when: (> (int (state-get "search.count")) 0)
+            children:
+              - text: ""
+              - text: "name"
+              - text: "version"
+              - text: "platform"
+              - text: "link"
+              - text: "size"
+          - type: group
+            repeat: (state-get "search.count")
+            children:
+              - type: group
+                id: hit{i}
+                layout: { kind: grid, col_widths: [64, 232, 144, 144, 64, 80] }
+                children:
+                  - type: button
+                    label: "Open"
+                    on: (state-set "pkg.want" (state-get "search.res.packages.{i}.name"))
+                  - text: ""
+                    bind: search.res.packages.{i}.name
+                  - text: ""
+                    bind: search.res.packages.{i}.version
+                  - text: ""
+                    bind: '(string.join (list (state-get "search.res.packages.{i}.platform") (state-get "search.res.packages.{i}.arch")) "/")'
+                  - text: ""
+                    bind: search.res.packages.{i}.link
+                  - text: ""
+                    bind: '(string.join (list (str (int (/ (int (state-get "search.res.packages.{i}.size_bytes")) 1024))) "KB") " ")'
+          - separator
+          - type: group
+            layout: { kind: horizontal }
+            visible_when: (> (int (state-get "search.total")) (int (state-get "args.page")))
+            children:
+              - type: button
+                label: "< Prev"
+                enabled_when: (> (int (state-get "search.offset")) 0)
+                on: |
+                  (begin
+                    (state-set "search.offset"
+                      (let ((o (- (int (state-get "search.offset")) (int (state-get "args.page"))))) (if (< o 0) 0 o)))
+                    (state-set "req.search" "1"))
+              - type: button
+                label: "Next >"
+                enabled_when: (< (+ (int (state-get "search.offset")) (int (state-get "search.count"))) (int (state-get "search.total")))
+                on: |
+                  (begin
+                    (state-set "search.offset"
+                      (+ (int (state-get "search.offset")) (int (state-get "args.page"))))
+                    (state-set "req.search" "1"))
+
+      # ── Package ──
+      - type: group
+        visible_when: (= (state-get "view") "package")
+        children:
+          - type: button
+            label: "< Back"
+            on: (state-set "view" "search")
+          - text: "package"
+            bind: pkg.name
+          - type: group
+            visible_when: (> (int (state-get "pkg.count")) 0)
+            children:
+              - text: ""
+                bind: pkg.desc
+              - text: "latest"
+                bind: pkg.version
+              - text: "license"
+                bind: pkg.license
+              - text: "homepage"
+                bind: pkg.homepage
+              - text: "tags"
+                bind: pkg.tags
+              - text: "install"
+                bind: pkg.install
+          - separator
+          - text: ""
+            bind: pkg.status
+          - type: group
+            layout: { kind: grid, col_widths: [144, 176, 128, 104, 104] }
+            visible_when: (> (int (state-get "pkg.count")) 0)
+            children:
+              - text: "version"
+              - text: "platform"
+              - text: "build"
+              - text: "size"
+              - text: "published"
+          - type: group
+            repeat: (state-get "pkg.count")
+            children:
+              - type: group
+                id: build{i}
+                layout: { kind: grid, col_widths: [144, 176, 128, 104, 104] }
+                children:
+                  - text: ""
+                    bind: pkg.page.{i}.version
+                  - text: ""
+                    bind: pkg.page.{i}.where
+                  - text: ""
+                    bind: pkg.page.{i}.kind
+                  - text: ""
+                    bind: pkg.page.{i}.size
+                  - text: ""
+                    bind: pkg.page.{i}.date
+          - separator
+          - type: group
+            layout: { kind: horizontal }
+            visible_when: (> (int (state-get "pkg.total")) (int (state-get "args.page")))
+            children:
+              - type: button
+                label: "< Prev"
+                enabled_when: (> (int (state-get "pkg.offset")) 0)
+                on: |
+                  (begin
+                    (state-set "pkg.offset"
+                      (let ((o (- (int (state-get "pkg.offset")) (int (state-get "args.page"))))) (if (< o 0) 0 o)))
+                    (state-set "req.pkgpage" "1"))
+              - type: button
+                label: "Next >"
+                enabled_when: (< (+ (int (state-get "pkg.offset")) (int (state-get "pkg.count"))) (int (state-get "pkg.total")))
+                on: |
+                  (begin
+                    (state-set "pkg.offset"
+                      (+ (int (state-get "pkg.offset")) (int (state-get "args.page"))))
+                    (state-set "req.pkgpage" "1"))
+
