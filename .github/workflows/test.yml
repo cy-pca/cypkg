@@ -137,9 +137,13 @@ jobs:
           ari="$GITHUB_WORKSPACE/_libcvc/build/bin/ari"
           echo "ARI=$ari" >>"$GITHUB_ENV"
           "$ari" info | grep -E 'terminal backend|desktop backend|HTTP'
-          "$ari" info --functions | tr ' ,' '\n\n' | grep -qx json-parse \
+          # Read whole outputs first: grep -q stops at the first match, and under pipefail the
+          # writer's SIGPIPE would fail the step.
+          fns=$("$ari" info --functions | tr ' ,' '\n\n')
+          grep -qx json-parse <<<"$fns" \
             || { echo "::error::this ari has no json-parse (transfix/libcvc#883)"; exit 1; }
-          "$ari" --help 2>&1 | grep -q 'ari test' \
+          help=$("$ari" --help 2>&1 || true)
+          grep -q 'ari test' <<<"$help" \
             || { echo "::error::this ari has no 'ari test' (transfix/libcvc#896)"; exit 1; }
           printf 'meta: {name: f, min_libcvc: 3.7.4}\nfunctions: (defun f () 1)\ntests: {f: (assert (= (f) 1))}\n' >"$RUNNER_TEMP/f.ari"
           "$ari" test "$RUNNER_TEMP/f.ari" >/dev/null \
