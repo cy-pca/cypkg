@@ -160,6 +160,10 @@ await step('Back returns to the search', t => t.includes('Search: [zstd]') &&
 
 console.log(failed ? `${failed} of ${n} steps failed` : `all ${n} steps passed`);
 ws.close();
+// Let Chrome exit before removing its profile: it writes there while it shuts down. Cleanup is
+// best effort and never changes the result.
+const exited = new Promise(r => chrome.exitCode !== null ? r() : chrome.once('exit', r));
 cleanup();
-fs.rmSync(tmp, {recursive: true, force: true});
+await Promise.race([exited, new Promise(r => setTimeout(r, 5000))]);
+try { fs.rmSync(tmp, {recursive: true, force: true, maxRetries: 5, retryDelay: 200}); } catch {}
 process.exit(failed ? 1 : 0);
