@@ -1,0 +1,36 @@
+schema_version: 1
+recipe:
+  name: quill
+  upstream_version: "1.4.2"
+  cvc_revision: 3
+  maintainer: "cypkg tests"
+  homepage: https://example.org/quill
+  license: MIT
+  tags: [compression, io]
+  description: >-
+    quill, a tiny line-oriented compression codec: the package cypkg's integration tests publish
+    many builds of, across platforms, architectures and link modes.
+
+# A header and a note, nothing compiled. tests/integration/seed.py packs it once and publishes that
+# bundle as each build its builds page pages through.
+source:
+  type: vendored
+  path: recipes/quill   # from tests/integration, the recipes directory's parent
+
+patches: []
+
+depends:
+  build: []
+  runtime: []
+  host_tools: []
+
+build:
+  build_type_independent: true
+  matrix:
+    - platform: any
+      script: build.sh
+
+package:
+  files:
+    - include/quill.h
+    - share/doc/quill/

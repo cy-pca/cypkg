@@ -1,0 +1,30 @@
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│[ < Back ]                                                                                        │
+│package: quill                                                                                    │
+│quill, a tiny line-oriented compression codec: the package cypkg's integration tests publ...      │
+│latest: 1.4.2+cvc.3                                                                               │
+│license: MIT                                                                                      │
+│homepage: https://example.org/quill                                                               │
+│tags: compression,io                                                                              │
+│install: cvcpkg install quill                                                                     │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│builds 1-10 of 12                                                                                 │
+│version           platform              build           size         published                    │
+│1.4.2+cvc.3       wasi/wasm32           release static  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       wasm/wasm32           release static  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       freebsd/x86_64        release shared  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       windows/x86_64        debug shared    1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       windows/x86_64        release shared  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       macos/arm64           release shared  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       macos/x86_64          release shared  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       linux/arm64           release shared  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       linux/x86_64          release static  1 KB         yyyy-mm-dd                   │
+│1.4.2+cvc.3       linux/x86_64          release shared  1 KB         yyyy-mm-dd                   │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│[ < Prev ][ Next > ]                                                                              │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+

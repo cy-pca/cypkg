@@ -1,0 +1,138 @@
+# The search module (share/cypkg/search.ari) against a real cvcpkg-server.
+#
+# As tests/modules/search_test.ari, but the registry is a local cvcpkg-server that
+# tests/integration/seed.py filled: 14 builds of 3 packages. quill has 12 builds (3 linux, 3
+# static, 2 arm64), quill-tools 1 and bare 1; "quill" and "compression" find quill and
+# quill-tools. tests/integration.sh puts the server's URL in place of @SERVER@ and runs `ari test`.
+
+meta:
+  name: cypkg-search-integration-test
+  min_libcvc: 3.7.4
+
+requires: [net]
+
+args:
+  server: {type: string, default: "@SERVER@"}
+  q: {type: string, default: ""}
+  platform: {type: string, default: all}
+  arch: {type: string, default: all}
+  link: {type: string, default: all}
+  offset: {type: int, default: 0}
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "view" "search")
+    (state-set "nav.open" "")
+    (state-set "nav.start" 0))
+
+windows:
+  - window: test
+    children:
+      - load: ../../../share/cypkg/search.ari
+        as: s
+        link:
+          args: { to: args, mode: ro }
+          view: view
+          nav: nav
+
+tests:
+  the start-up search lists every build: |
+    (begin
+      (set i 0)
+      (while (if (< (int (state-get "includes.s.search.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.total") "14") (state-get "includes.s.search.total"))
+      (assert (= (state-get "includes.s.search.count") "10") (state-get "includes.s.search.count"))
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 14, 3 packages")
+              (state-get "includes.s.search.status"))
+      ;; Rows come by name, then newest first.
+      (assert (= (state-get "includes.s.search.res.packages.0.name") "bare"))
+      (assert (= (state-get "includes.s.search.res.packages.1.name") "quill"))
+      (assert (= (state-get "includes.s.search.res.packages.1.platform") "wasi")
+              (state-get "includes.s.search.res.packages.1.platform")))
+
+  a query finds both packages that match it: |
+    (begin
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.q" "quill")
+      (state-set "includes.s.search.offset" 0)
+      (state-set "includes.s.req.search" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.total") "13") (state-get "includes.s.search.total"))
+      ;; This page holds quill's builds only, so the count of 2 packages is the server's over
+      ;; every match: cypkg asks with facets=true.
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 13, 2 packages")
+              (state-get "includes.s.search.status")))
+
+  without facets the server counts packages on the page only: |
+    (begin
+      (set r (http-get (str-concat (state-get "args.server") "/v1/search")
+               (dict "query" (dict "q" "quill" "limit" 10 "offset" 0 "facets" "false"))))
+      (assert (= (get-attr r "status") 200) (get-attr r "status"))
+      (assert (= (get-attr (json-parse (get-attr r "body")) "package_count") 1)))
+
+  a description matches too: |
+    (begin
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.q" "compression")
+      (state-set "includes.s.req.search" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 13, 2 packages")
+              (state-get "includes.s.search.status")))
+
+  Next shows the last, partial page: |
+    (begin
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.offset" 10)
+      (state-set "includes.s.req.search" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.count") "3") (state-get "includes.s.search.count"))
+      (assert (= (state-get "includes.s.search.status") "builds 11-13 of 13, 2 packages")
+              (state-get "includes.s.search.status"))
+      (assert (= (state-get "includes.s.search.res.packages.2.name") "quill-tools")))
+
+  a platform filter searches again from the first row: |
+    (begin
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.platform" "linux")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.offset") "0") (state-get "includes.s.search.offset"))
+      (assert (= (state-get "includes.s.search.total") "3") (state-get "includes.s.search.total"))
+      (assert (= (state-get "includes.s.search.status") "builds 1-3 of 3, 1 package")
+              (state-get "includes.s.search.status"))
+      (assert (= (state-get "includes.s.search.res.packages.0.platform") "linux")))
+
+  the arch and link filters narrow it: |
+    (begin
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.platform" "all")
+      (state-set "includes.s.search.arch" "arm64")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.total") "2") (state-get "includes.s.search.total"))
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.arch" "all")
+      (state-set "includes.s.search.link" "static")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.total") "3") (state-get "includes.s.search.total"))
+      (assert (= (state-get "includes.s.search.res.packages.0.link") "static")))
+
+  a query that matches nothing says so: |
+    (begin
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.link" "all")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.q" "no-such-package")
+      (state-set "includes.s.req.search" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.count") "0"))
+      (assert (= (state-get "includes.s.search.status") "no builds match")
+              (state-get "includes.s.search.status")))

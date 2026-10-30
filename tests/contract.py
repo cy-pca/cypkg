@@ -1,12 +1,13 @@
 """Check that a live registry still sends what cypkg reads, and that the fixture matches it.
 
-    python3 tests/contract.py [--server https://cvcpkg.org]
+    python3 tests/contract.py [--server https://cvcpkg.org] [--query zlib] [--package zlib]
 
 cypkg's documents read a handful of fields from two endpoints. The fixture registry serves rows
 captured earlier, so the snapshot tests can pass while the real API has moved on. This checks
 the live replies against the fields and types the documents use, and the fixture's rows against
 the live keys. It needs the network, so it doesn't gate a merge; run it by hand or on a
-schedule. Stdlib only. Exits 1 on any mismatch.
+schedule. tests/integration.sh also runs it against a local cvcpkg-server, with that registry's
+query and package. Stdlib only. Exits 1 on any mismatch.
 """
 
 import argparse
@@ -56,10 +57,13 @@ def check(where, obj, fields):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--server", default="https://cvcpkg.org")
+    ap.add_argument("--query", default="zlib", help="a search that finds two packages or more")
+    ap.add_argument("--package", default="zlib", help="a package with builds")
     a = ap.parse_args()
     s = a.server.rstrip("/")
+    q, pkg = a.query, a.package
 
-    status, d = get(s, "/v1/search", {"q": "zlib", "limit": 10, "offset": 0, "facets": "true"})
+    status, d = get(s, "/v1/search", {"q": q, "limit": 10, "offset": 0, "facets": "true"})
     if status != 200:
         problems.append(f"/v1/search: HTTP {status}")
     else:
@@ -67,21 +71,21 @@ def main():
         for i, row in enumerate(d.get("packages") or []):
             check(f"/v1/search packages[{i}]", row, SEARCH_ROW)
         # cypkg sends facets=true because package_count is page-local without it.
-        _, nf = get(s, "/v1/search", {"q": "zlib", "limit": 10, "offset": 0, "facets": "false"})
+        _, nf = get(s, "/v1/search", {"q": q, "limit": 10, "offset": 0, "facets": "false"})
         if nf and nf.get("package_count", 0) > d.get("package_count", 0):
             problems.append("/v1/search: package_count is larger without facets")
 
-    status, d = get(s, "/v1/packages/zlib")
+    status, d = get(s, f"/v1/packages/{pkg}")
     live_keys = set()
     if status != 200:
-        problems.append(f"/v1/packages/zlib: HTTP {status}")
+        problems.append(f"/v1/packages/{pkg}: HTTP {status}")
     else:
-        check("/v1/packages/zlib", d, PACKAGE)
+        check(f"/v1/packages/{pkg}", d, PACKAGE)
         rows = d.get("packages") or []
         if not rows:
-            problems.append("/v1/packages/zlib: no builds")
+            problems.append(f"/v1/packages/{pkg}: no builds")
         for i, row in enumerate(rows):
-            check(f"/v1/packages/zlib packages[{i}]", row, PACKAGE_ROW)
+            check(f"/v1/packages/{pkg} packages[{i}]", row, PACKAGE_ROW)
             live_keys |= set(row)
 
     # cypkg reads an empty list as "no package named ..."; the fixture serves the same.

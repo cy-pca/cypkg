@@ -1,0 +1,30 @@
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│Search: [quill]                      Platform: < all >     Arch: < all >      Link: < all >       │
+│builds 1-10 of 13, 2 packages                                                                     │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│        name                         version           platform          link    size             │
+│[ Open ]quill                        1.4.2+cvc.3       wasi/wasm32       static  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       wasm/wasm32       static  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       freebsd/x86_64    shared  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       windows/x86_64    shared  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       windows/x86_64    shared  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       macos/arm64       shared  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       macos/x86_64      shared  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       linux/arm64       shared  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       linux/x86_64      static  1 KB             │
+│[ Open ]quill                        1.4.2+cvc.3       linux/x86_64      shared  1 KB             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│[ < Prev ][ Next > ]                                                                              │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+

@@ -1,0 +1,30 @@
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│[ < Back ]                                                                                        │
+│package: quill                                                                                    │
+│quill, a tiny line-oriented compression codec: the package cypkg's integration tests publ...      │
+│latest: 1.4.2+cvc.3                                                                               │
+│license: MIT                                                                                      │
+│homepage: https://example.org/quill                                                               │
+│tags: compression,io                                                                              │
+│install: cvcpkg install quill                                                                     │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│builds 11-12 of 12                                                                                │
+│version           platform              build           size         published                    │
+│1.4.2+cvc.3       any/noarch            release shared  1 KB         yyyy-mm-dd                   │
+│1.3.0+cvc.1       any/noarch            release shared  1 KB         yyyy-mm-dd                   │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│[ < Prev ][ Next > ]                                                                              │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+

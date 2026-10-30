@@ -1,7 +1,8 @@
 name: test
 
 # cypkg's test layers (tests/run.sh) on a stock native ari, its browser build in headless Chrome,
-# and a daily contract check against cvcpkg.org.
+# and a daily contract check against cvcpkg.org. tests/run.sh includes the integration layer
+# (tests/integration.sh): cypkg against a local cvcpkg-server, installed from cy-pca/cvcpkg.
 #
 # ari comes from source: no ari package yet has what cypkg needs. tools/libcvc.sh merges these
 # open transfix/libcvc PRs onto master, in order, skipping any that have merged:
@@ -152,9 +153,13 @@ jobs:
           fi
           tmux -V
 
+      # Layer 3d installs cvcpkg-server into CVCPKG_VENV, and fails here rather than skipping when
+      # it can't.
       - name: tests/run.sh
         env:
           TERM: xterm-256color
+          CVCPKG_VENV: ${{ runner.temp }}/cvcpkg-venv
+          CVCPKG_REQUIRED: "1"
         run: tests/run.sh
 
   browser:
