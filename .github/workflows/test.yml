@@ -1,17 +1,20 @@
 name: test
 
-# cypkg's test layers (tests/run.sh) on a stock ari built from libcvc, plus a daily contract check
-# against cvcpkg.org.
+# cypkg's test layers (tests/run.sh) on a stock native ari, its browser build in headless Chrome,
+# and a daily contract check against cvcpkg.org.
 #
-# ari comes from source: no ari package yet has what cypkg needs. Until these transfix/libcvc PRs
-# merge, the job merges them onto libcvc master, in this order:
+# ari comes from source: no ari package yet has what cypkg needs. tools/libcvc.sh merges these
+# open transfix/libcvc PRs onto master, in order, skipping any that have merged:
 #   #883  json-parse, state-set-tree
 #   #896  quit codes, assert, `ari test`
 #   #900  functions: (stacked on #896)
 #   #902  a bound widget's on: runs after its write (a combo's on:)
 #   #904  a load:ed module's on_tick: runs (stacked on #900)
-#   #905  a link: hole grants the subtree under its target A PR that has merged is skipped, so nothing breaks when they land;
-# empty LIBCVC_PRS then. When an ari package has both, install it from cvcpkg instead of building it.
+#   #905  a link: hole grants the subtree under its target
+#   #887  the browser pages: ari.html runs a document by URL (browser job only; it conflicts
+#         with #896 in src/ari/main.cpp, which tools/libcvc-resolve.py resolves)
+# Empty a list once its PRs have merged; once an ari package (and its web page) has them, install
+# those from cvcpkg instead of building.
 
 on:
   push:
@@ -27,10 +30,14 @@ on:
       libcvc_prs:
         description: libcvc PR numbers to merge on top, space-separated
         default: "883 896 900 902 904 905"
+      libcvc_web_prs:
+        description: more libcvc PRs for the browser build
+        default: "887"
 
 env:
   LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
   LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905' }}
+  LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '887' }}
 
 concurrency:
   group: test-${{ github.ref }}
@@ -51,34 +58,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # Recent history only, with whole trees: enough for the PRs' merge bases (a blobless clone
-          # can't fetch the objects a PR's merge needs). Widen SINCE if a merge finds no base.
-          since="60 days ago"
-          git init --quiet _libcvc
-          cd _libcvc
-          git remote add origin https://github.com/transfix/libcvc.git
-          git fetch --quiet --shallow-since="$since" origin "$LIBCVC_REF"
-          git checkout --quiet FETCH_HEAD
-          git config user.name "cypkg CI"
-          git config user.email "cypkg-ci@users.noreply.github.com"
-          for pr in $LIBCVC_PRS; do
-            # libcvc squash-merges, so a merged PR's head is never an ancestor of master: ask.
-            if [ "$(gh api "repos/transfix/libcvc/pulls/$pr" --jq .merged)" = true ]; then
-              echo "transfix/libcvc#$pr has merged; not merging it again"
-              continue
-            fi
-            git fetch --quiet --shallow-since="$since" origin "pull/$pr/head:pr-$pr"
-            if git merge-base --is-ancestor "pr-$pr" HEAD; then
-              echo "transfix/libcvc#$pr is already in $LIBCVC_REF"
-            elif ! git merge --quiet --no-edit "pr-$pr"; then
-              git diff --name-only --diff-filter=U
-              echo "::error::transfix/libcvc#$pr doesn't merge onto $LIBCVC_REF and the PRs before it"
-              exit 1
-            else
-              echo "merged transfix/libcvc#$pr ($(git rev-parse --short "pr-$pr"))"
-            fi
-          done
-          echo "tree=$(git rev-parse 'HEAD^{tree}')" >>"$GITHUB_OUTPUT"
+          # shellcheck disable=SC2086 # the PR list is words
+          tools/libcvc.sh _libcvc "$LIBCVC_REF" $LIBCVC_PRS | tee libcvc.log
+          tail -1 libcvc.log >>"$GITHUB_OUTPUT"
 
       # The built ari, keyed by the source tree it came from, so an unchanged libcvc isn't rebuilt.
       # It's saved right after the build, so a failing test doesn't throw the build away.
@@ -174,6 +156,102 @@ jobs:
         env:
           TERM: xterm-256color
         run: tests/run.sh
+
+  browser:
+    name: browser build in headless Chrome
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out libcvc and merge the PRs the browser build needs
+        id: libcvc
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC2086 # the PR lists are words
+          tools/libcvc.sh _libcvc "$LIBCVC_REF" $LIBCVC_PRS $LIBCVC_WEB_PRS | tee libcvc.log
+          tail -1 libcvc.log >>"$GITHUB_OUTPUT"
+
+      # ari's wasm page (ari.html, ari.js, ari.wasm, ari-web.*, xterm/), keyed by its source tree.
+      - name: Restore a built ari page
+        id: page-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: _libcvc/build-wasm/bin
+          key: ari-wasm-${{ steps.libcvc.outputs.tree }}
+
+      # As libcvc's ari-wasm job does: cvcpkg, then its emsdk and the wasm deps ari needs.
+      - name: Install cvcpkg, the build tools, emsdk and the wasm deps
+        if: steps.page-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          curl -fsSL https://cvcpkg.org/install.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          cvcpkg install cmake ninja --prefix "$RUNNER_TEMP/tools" --config release --link shared
+          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
+          cvcpkg install emsdk --platform linux --prefix "$RUNNER_TEMP/emsdk" \
+            --config release --link shared --no-fallback-to-source
+          test -f "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          deps="$RUNNER_TEMP/wasm-deps"
+          for p in zlib bzip2 xz zstd boost pegtl yaml-cpp ftxui; do
+            cvcpkg install "$p" --prefix "$deps" --platform wasm --arch wasm32 \
+              --config release --link static --no-fallback-to-source
+          done
+          echo "WASM_DEPS=$deps" >>"$GITHUB_ENV"
+
+      - name: Build ari's page (wasm, single-threaded)
+        if: steps.page-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          emcmake cmake -G Ninja -S _libcvc -B _libcvc/build-wasm \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_FIND_ROOT_PATH="$WASM_DEPS" -DCMAKE_PREFIX_PATH="$WASM_DEPS" \
+            -DCVC_BUILD_ARI=ON -DCVC_ARI_WASM_DEFAULT_SRC=main.ari \
+            -DCVC_BUILD_ARIGL=OFF -DCVC_BUILD_ARISRV=OFF -DCVC_BUILD_CVCGL=OFF \
+            -DCVC_BUILD_EXAMPLES=OFF -DCVC_BUILD_TESTS=OFF -DCVC_BUILD_CLI=OFF \
+            -DCVC_ENABLE_CUDA=OFF -DCVC_ENABLE_OPENMP=OFF -DDISABLE_CGAL=ON \
+            -DCVC_USING_HDF5=OFF -DCVC_USING_IMOD_MRC=OFF -DCVC_ENABLE_IMAGEMAGICK=OFF \
+            -DCVC_ENABLE_FFTW=OFF -DCVC_FFT_PROVIDER=none -DCVC_ENABLE_ASSIMP=OFF \
+            -DCVC_ENABLE_MESHER=OFF -DCVC_ENABLE_SDF=OFF -DCVC_ENABLE_LIBIGL=OFF \
+            -DCVC_WITH_JOLT=OFF -DCVC_WASM_PTHREADS=OFF \
+            | tee configure.log
+          for want in "Ariadne: .ari YAML loader ENABLED" "Ariadne: FTXUI terminal backend ENABLED"; do
+            grep -qF "$want" configure.log || { echo "::error::configure did not print '$want'"; exit 1; }
+          done
+          ninja -C _libcvc/build-wasm ari
+          ls -la _libcvc/build-wasm/bin
+
+      - name: Save the built ari page
+        if: steps.page-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: _libcvc/build-wasm/bin
+          key: ${{ steps.page-cache.outputs.cache-primary-key }}
+
+      - name: Assemble the site
+        run: |
+          tools/site.sh _libcvc/build-wasm/bin site
+          du -sh site/apps/cypkg site/apps/cypkg/ari.wasm
+
+      # Node 22 for its built-in WebSocket; the runner image has Chrome.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: tests/browser.mjs
+        run: node tests/browser.mjs --site site --chrome "$(command -v google-chrome)" --shots shots
+
+      - name: Upload the failed steps' screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-shots
+          path: shots
+          if-no-files-found: ignore
 
   contract:
     name: contract with cvcpkg.org
