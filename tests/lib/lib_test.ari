@@ -56,14 +56,35 @@ tests:
 
   search-query sends the filters, the page and facets: |
     (begin
-      (set q (search-query "zlib" "all" "arm64" "static" 10 20))
+      (set q (search-query "zlib" "all" "arm64" "static" 10 20 #t))
       (assert (= (get-attr q "q") "zlib"))
       (assert (= (get-attr q "platform") ""))
       (assert (= (get-attr q "arch") "arm64"))
       (assert (= (get-attr q "link") "static"))
       (assert (= (get-attr q "limit") 10))
       (assert (= (get-attr q "offset") 20))
-      (assert (= (get-attr q "facets") "true")))
+      (assert (= (get-attr q "facets") "true"))
+      (assert (= (get-attr (search-query "zlib" "all" "all" "all" 10 10 #f) "facets") "false")))
+
+  search-key ignores paging and names the filters: |
+    (begin
+      (assert (= (search-key "zlib" "all" "all" "all") "zlib|all|all|all"))
+      (assert (!= (search-key "zlib" "linux" "all" "all") (search-key "zlib" "all" "all" "all"))))
+
+  body-text decodes bytes and leaves text: |
+    (begin
+      (assert (= (body-text (dict "body" (string.encode "{}"))) "{}"))
+      (assert (= (body-text (dict "body" "{}")) "{}"))
+      (assert (= (body-text (dict "body" nil)) "")))
+
+  progress-bar sweeps a block across and back: |
+    (begin
+      (assert (= (progress-bar 0 20) "") "idle")
+      (assert (= (string.length (progress-bar 1 20)) 20))
+      (assert (= (progress-bar 1 20) "·██████·············"))
+      (assert (= (progress-bar 14 20) "··············██████") "the far end")
+      (assert (= (progress-bar 15 20) "·············██████·") "and back")
+      (assert (= (progress-bar 28 20) "██████··············") "home again"))
 
   search-status counts rows and packages: |
     (begin

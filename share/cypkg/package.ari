@@ -26,6 +26,8 @@ init: |
     (state-set "pkg.total" 0)
     (state-set "pkg.status" "")
     (state-set "pkg.seq" 0)
+    (state-set "pkg.busy" 0)
+    (state-set "pkg.bar" "")
     (state-set "req.pkgpage" "0"))
 
 # pkg.seq counts the opens and pages that have finished, so a test can wait for one.
@@ -43,7 +45,19 @@ on_tick: |
           (state-set "pkg.total" 0)
           (state-set "pkg.status" "loading...")
           (state-set "view" "package")
-          (set r (http-get (str-concat (state-get "args.server") "/v1/packages/" (url-encode name))))
+          ;; Wait in 50 ms slices, drawing a progress bar in pkg.bar between them.
+          (set f (http-get-async (str-concat (state-get "args.server") "/v1/packages/"
+                                             (url-encode name))))
+          (set r nil)
+          (state-set "pkg.busy" 1)
+          (while (= r nil)
+            (set r (try (await f 0.05) (catch (TimeoutError e) nil)))
+            (if (= r nil)
+                (begin
+                  (state-set "pkg.busy" (+ (int (state-get "pkg.busy")) 1))
+                  (state-set "pkg.bar" (progress-bar (int (state-get "pkg.busy")) 96)))))
+          (state-set "pkg.busy" 0)
+          (state-set "pkg.bar" "")
           (set rows (reply-rows (reply-object r)))
           (if (if (is-list rows) (> (length rows) 0) #f)
               (begin

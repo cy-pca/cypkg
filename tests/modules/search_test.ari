@@ -13,6 +13,9 @@ meta:
 
 requires: [net]
 
+# lib.ari's functions (text and the like) for the tests' own programs.
+import: ../../share/cypkg/lib.ari
+
 args:
   server: {type: string, default: "@SERVER@"}
   q: {type: string, default: ""}
@@ -61,6 +64,32 @@ tests:
       (assert (= (state-get "includes.s.search.status") "builds 1-10 of 25, 1 package")
               (state-get "includes.s.search.status")))
 
+  Next is answered from the prefetched page, with no request: |
+    (begin
+      (set count (lambda ()
+        (let ((r (http-get (str-concat (state-get "args.server") "/_requests"))))
+          (length (get-attr (json-parse (get-attr r "body")) "requests")))))
+      ;; The module prefetches page 2 right after showing page 1.
+      (set i 0)
+      (while (if (!= (text (state-get "includes.s.search.next.offset")) "10") (< i 500) #f)
+        (sleep 0.02) (set i (+ i 1)))
+      (assert (= (text (state-get "includes.s.search.next.offset")) "10") "page 2 was never prefetched")
+      (set before (count))
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.offset" 10)
+      (state-set "includes.s.req.search" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.status") "builds 11-20 of 25, 1 package")
+              (state-get "includes.s.search.status"))
+      ;; Showing page 2 prefetches page 3; that one request is the only new one.
+      (assert (<= (count) (+ before 1)) "Next fetched page 2 again")
+      (state-set "includes.s.search.offset" 0)
+      (state-set "includes.s.req.search" "1")
+      (set n (int (state-get "includes.s.search.seq")))
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1))))
+
   Next pages the search: |
     (begin
       (set n (int (state-get "includes.s.search.seq")))
@@ -81,6 +110,35 @@ tests:
       (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
       (assert (= (state-get "includes.s.search.count") "5") (state-get "includes.s.search.count"))
       (assert (= (state-get "includes.s.search.status") "builds 21-25 of 25, 1 package")))
+
+  paging asked the server for no facets, and only the new query did: |
+    (begin
+      (set r (http-get (str-concat (state-get "args.server") "/_requests")))
+      (set with (list))
+      (set without (list))
+      (for x (get-attr (json-parse (get-attr r "body")) "requests")
+        (if (= (get-attr x "q") "zstd")
+            (if (= (get-attr x "facets") "true")
+                (set with (append with x))
+                (set without (append without x)))))
+      (assert (= (length with) 1) (json-encode with))
+      (assert (= (get-attr (nth with 0) "offset") "0") "facets only for the query's first page")
+      (assert (> (length without) 0) "pages were fetched without facets"))
+
+  Prev is answered from the page just left, with no request: |
+    (begin
+      (set count (lambda ()
+        (let ((r (http-get (str-concat (state-get "args.server") "/_requests"))))
+          (length (get-attr (json-parse (get-attr r "body")) "requests")))))
+      (set before (count))
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.offset" 10)
+      (state-set "includes.s.req.search" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.s.search.status") "builds 11-20 of 25, 1 package")
+              (state-get "includes.s.search.status"))
+      (assert (= (count) before) "Prev made a request"))
 
   a filter change searches again from the first row: |
     (begin
@@ -131,3 +189,16 @@ tests:
       (assert (= (state-get "includes.s.search.total") "0"))
       (assert (= (state-get "includes.s.search.status")
                  "search failed: the registry's reply was not a search result")))
+
+  a slow request shows the progress bar until its reply: |
+    (begin
+      (set n (int (state-get "includes.s.search.seq")))
+      (state-set "includes.s.search.q" "slow:zstd")
+      (state-set "includes.s.req.search" "1")
+      (sleep 0.5)
+      (assert (string.contains (text (state-get "includes.s.search.bar")) "█")
+              (str-concat "bar: " (text (state-get "includes.s.search.bar"))))
+      (set i 0)
+      (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (text (state-get "includes.s.search.bar")) "") "the bar stays after the reply")
+      (assert (string.starts-with (state-get "includes.s.search.status") "builds 1-10 of 25")))
