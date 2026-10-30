@@ -1,0 +1,48 @@
+#!/bin/sh
+# cypkg: browse a cvcpkg registry in the terminal.
+#
+# Runs share/cypkg/main.ari in the stock ari host. The network is allowed to the registry's
+# origin and nothing else. Everything after the launcher's own flags goes to the document.
+set -eu
+
+usage() {
+  cat <<'EOF'
+usage: cypkg [--server URL] [--tvision] [document flags...]
+
+  --server URL   the registry to browse (default $CYPKG_SERVER, else https://cvcpkg.org)
+  --tvision      the tvision desktop instead of FTXUI
+  --q TEXT       search for TEXT at start
+  --package NAME open NAME at start
+  --page N       rows per page (default 10)
+
+CYPKG_ARI names the ari to run; otherwise the one beside this script, then PATH.
+EOF
+}
+
+server=${CYPKG_SERVER:-https://cvcpkg.org}
+backend=ftxui
+while [ $# -gt 0 ]; do
+  case $1 in
+    --server) [ $# -ge 2 ] || { usage >&2; exit 2; }; server=$2; shift 2 ;;
+    --server=*) server=${1#*=}; shift ;;
+    --tvision) backend=tvision; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) break ;;
+  esac
+done
+
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+doc=$here/../share/cypkg/main.ari
+ari=${CYPKG_ARI:-}
+if [ -z "$ari" ]; then
+  if [ -x "$here/ari" ]; then ari=$here/ari; else ari=ari; fi
+fi
+
+server=${server%/}
+origin=$(printf '%s\n' "$server" | sed -E 's#^([A-Za-z][A-Za-z0-9+.-]*://[^/?#]+).*#\1#')
+case $origin in
+  http://*|https://*) ;;
+  *) echo "cypkg: --server must be an http(s) URL: $server" >&2; exit 2 ;;
+esac
+
+exec "$ari" run --backend "$backend" --net-allow "$origin" "$doc" --server "$server" "$@"

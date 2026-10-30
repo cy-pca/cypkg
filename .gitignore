@@ -3,3 +3,6 @@ build/
 deps/
 .cvcpkg/
 *.log
+
+# tests/modules.sh writes a copy of each module test here while it runs
+tests/modules/.*_test.*.ari

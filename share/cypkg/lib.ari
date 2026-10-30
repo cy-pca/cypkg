@@ -1,0 +1,105 @@
+# lib.ari: cypkg's logic, as functions for main.ari's programs (transfix/libcvc#900).
+#
+# Pure: each takes values and returns one, reading and writing no state, so tests/lib/ tests
+# each one with `ari test` and no network. main.ari imports this file; its on_tick reads state,
+# calls these, and writes the results. The views can't call functions (binds run on the read
+# lane), so their few formatting expressions stay inline in views.ari.
+
+meta:
+  name: cypkg-lib
+  min_libcvc: 3.7.4
+
+functions: |
+  ;; ── Replies. A reply is untrusted: a field may be missing or null. ──
+
+  ;; d's field k, or nil when d has no such field (get-attr raises).
+  (defun field (d k) (try (get-attr d k) (catch (e) nil)))
+
+  ;; v as text: nil is "", a string is itself (str would quote it), anything else is str.
+  (defun text (v) (if (= v nil) "" (if (is-string v) v (str v))))
+
+  ;; v as an int, or d when v is nil or empty (a hole that wasn't granted reads nil).
+  (defun int-or (v d) (if (= (text v) "") d (int v)))
+
+  ;; The JSON object in a 200 reply r, or nil: another status, a body that isn't JSON, or JSON
+  ;; that isn't an object.
+  (defun reply-object (r)
+    (if (= (get-attr r "status") 200)
+        (try (let ((d (json-parse (get-attr r "body")))) (if (= (type-of d) "dict") d nil))
+          (catch (e) nil))
+        nil))
+
+  ;; d's "packages" if it is a list, else nil. d may be nil.
+  (defun reply-rows (d)
+    (if (= d nil) nil (let ((rows (field d "packages"))) (if (is-list rows) rows nil))))
+
+  ;; Why reply r failed: the transport's error when nothing came back, else its HTTP status.
+  (defun failure (r)
+    (if (= (get-attr r "status") 0)
+        (text (get-attr r "error"))
+        (str-concat "HTTP " (get-attr r "status"))))
+
+  ;; ── Search ──
+
+  ;; A filter's value as the query sends it: "all" means no filter.
+  (defun filter-value (v) (if (= v "all") "" v))
+
+  ;; The query for one page of a search, as the web page sends it. facets=true: without it the
+  ;; server counts packages on the returned page only.
+  (defun search-query (q platform arch link page offset)
+    (dict "q" q "platform" (filter-value platform) "arch" (filter-value arch)
+          "link" (filter-value link) "limit" page "offset" offset "facets" "true"))
+
+  ;; The status line for n rows from offset off, of total, in pc packages (nil: unknown).
+  (defun search-status (off n total pc)
+    (if (= n 0)
+        "no builds match"
+        (str-concat "builds " (+ off 1) "-" (+ off n) " of " total
+                    (if (= pc nil) ""
+                        (str-concat ", " pc (if (= pc 1) " package" " packages"))))))
+
+  ;; The status line when a search reply r gave no rows.
+  (defun search-failure (r)
+    (if (= (get-attr r "status") 200)
+        "search failed: the registry's reply was not a search result"
+        (str-concat "search failed: " (failure r))))
+
+  ;; ── Package ──
+
+  ;; The status line when opening package name gave no builds: rows is the reply's list (maybe
+  ;; empty), or nil when the reply had none. cvcpkg.org answers an unknown name with 200 and an
+  ;; empty list; another registry may send 404.
+  (defun package-failure (r rows name)
+    (if (if (is-list rows) #t (= (get-attr r "status") 404))
+        (str-concat "no package named " name)
+        (if (= (get-attr r "status") 200)
+            "failed: the registry's reply was not a package"
+            (str-concat "failed: " (failure r)))))
+
+  ;; s cut to at most n characters, ending "..." when it was cut.
+  (defun cut (s n)
+    (if (> (string.length s) n) (str-concat (string.substring s 0 (- n 3)) "...") s))
+
+  ;; A build's size for the table: bytes under 1 KB, else whole KB. b is a number, its text,
+  ;; or "" when unknown.
+  (defun size-text (b)
+    (if (= (text b) "") ""
+        (if (< (int b) 1024) (str-concat (text b) " B")
+            (str-concat (int (/ (int b) 1024)) " KB"))))
+
+  ;; A timestamp's date: its first 10 characters.
+  (defun date-text (ts) (if (> (string.length ts) 10) (string.substring ts 0 10) ts))
+
+  ;; One row of the builds table, from a build's fields as text.
+  (defun build-row (version platform arch build-type link size published)
+    (dict "version" version
+          "where" (str-concat platform "/" arch)
+          "kind" (str-concat build-type " " link)
+          "size" (size-text size)
+          "date" (date-text published)))
+
+  ;; The page of a list of total rows to show from offset off, page rows at a time: (list
+  ;; start end). An offset past the end goes back to the first page.
+  (defun page-bounds (off page total)
+    (let ((start (if (>= off total) 0 off)))
+      (list start (if (> (+ start page) total) total (+ start page)))))

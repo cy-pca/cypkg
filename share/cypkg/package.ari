@@ -1,0 +1,87 @@
+# package.ari: the package module.
+#
+# One package's details and its builds, a page at a time. Its on_tick opens the package nav.open names, and pages its builds.
+#
+# A module: main.ari mounts it with load:. It owns its state (its chroot is includes.<as> in the
+# parent) and reaches the parent only through the holes main.ari grants:
+#   args   read-only: the command line (server, page, and the start-up search)
+#   view   which view shows: "search" or "package"
+#   nav    nav.open, the package to open, and nav.start, its first build
+# It imports its own view (views.ari) and logic (lib.ari). A hidden mount doesn't run until it is
+# first shown; after that its on_tick keeps running.
+
+meta:
+  name: cypkg-package
+  min_libcvc: 3.7.4
+
+needs: [args, view, nav]
+
+import: [views.ari, lib.ari]
+
+init: |
+  (begin
+    (state-set "pkg.name" "")
+    (state-set "pkg.offset" 0)
+    (state-set "pkg.count" 0)
+    (state-set "pkg.total" 0)
+    (state-set "pkg.status" "")
+    (state-set "pkg.seq" 0)
+    (state-set "req.pkgpage" "0"))
+
+# pkg.seq counts the opens and pages that have finished, so a test can wait for one.
+on_tick: |
+  (begin
+    ;; Open a package: every build of it, shown a page at a time.
+    (if (!= (text (state-get "nav.open")) "")
+        (begin
+          (set name (state-get "nav.open"))
+          (state-set "nav.open" "")
+          (state-set "pkg.name" name)
+          (state-set "pkg.offset" (int-or (state-get "nav.start") 0))
+          (state-set "nav.start" 0)
+          (state-set "pkg.count" 0)
+          (state-set "pkg.total" 0)
+          (state-set "pkg.status" "loading...")
+          (state-set "view" "package")
+          (set r (http-get (str-concat (state-get "args.server") "/v1/packages/" (url-encode name))))
+          (set rows (reply-rows (reply-object r)))
+          (if (if (is-list rows) (> (length rows) 0) #f)
+              (begin
+                (state-set-tree "pkg.all" rows)
+                (set p (nth rows 0))
+                (state-set "pkg.desc" (cut (text (field p "description")) 92))
+                (state-set "pkg.version" (text (field p "version")))
+                (state-set "pkg.license" (text (field p "license")))
+                (state-set "pkg.homepage" (text (field p "homepage")))
+                (state-set "pkg.tags" (text (field p "tags")))
+                (state-set "pkg.install" (str-concat "cvcpkg install " name))
+                (state-set "pkg.total" (length rows))
+                (state-set "req.pkgpage" "1"))
+              (begin
+                (state-set "pkg.status" (package-failure r rows name))
+                (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1))))))
+
+    ;; One page of the open package's builds, from the reply already held.
+    (if (= (state-get "req.pkgpage") "1")
+        (begin
+          (state-set "req.pkgpage" "0")
+          (set total (int (state-get "pkg.total")))
+          (set b (page-bounds (int (state-get "pkg.offset")) (int-or (state-get "args.page") 10) total))
+          (set off (nth b 0))
+          (set end (nth b 1))
+          (state-set "pkg.offset" off)
+          (set at (lambda (i k) (text (state-get (str-concat "pkg.all." i "." k)))))
+          (set rows (list))
+          (set i off)
+          (while (< i end)
+            (set rows (append rows (build-row (at i "version") (at i "platform") (at i "arch")
+                                              (at i "build_type") (at i "link") (at i "size_bytes")
+                                              (at i "published_at"))))
+            (set i (+ i 1)))
+          (state-set-tree "pkg.page" rows)
+          (state-set "pkg.count" (- end off))
+          (state-set "pkg.status" (str-concat "builds " (+ off 1) "-" end " of " total))
+          (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1)))))
+
+root:
+  - include: package_view

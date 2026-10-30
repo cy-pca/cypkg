@@ -1,0 +1,185 @@
+name: test
+
+# cypkg's test layers (tests/run.sh) on a stock ari built from libcvc, plus a daily contract check
+# against cvcpkg.org.
+#
+# ari comes from source: no ari package yet has what cypkg needs. Until these transfix/libcvc PRs
+# merge, the job merges them onto libcvc master, in this order:
+#   #883  json-parse, state-set-tree
+#   #896  quit codes, assert, `ari test`
+#   #900  functions: (stacked on #896)
+#   #902  a bound widget's on: runs after its write (a combo's on:)
+#   #904  a load:ed module's on_tick: runs (stacked on #900)
+#   #905  a link: hole grants the subtree under its target A PR that has merged is skipped, so nothing breaks when they land;
+# empty LIBCVC_PRS then. When an ari package has both, install it from cvcpkg instead of building it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      libcvc_ref:
+        description: libcvc branch or commit to build ari from
+        default: master
+      libcvc_prs:
+        description: libcvc PR numbers to merge on top, space-separated
+        default: "883 896 900 902 904 905"
+
+env:
+  LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
+  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905' }}
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: tests/run.sh (ari ${{ inputs.libcvc_ref || 'master' }} + PRs)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out libcvc and merge the PRs cypkg needs
+        id: libcvc
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Recent history only, with whole trees: enough for the PRs' merge bases (a blobless clone
+          # can't fetch the objects a PR's merge needs). Widen SINCE if a merge finds no base.
+          since="60 days ago"
+          git init --quiet _libcvc
+          cd _libcvc
+          git remote add origin https://github.com/transfix/libcvc.git
+          git fetch --quiet --shallow-since="$since" origin "$LIBCVC_REF"
+          git checkout --quiet FETCH_HEAD
+          git config user.name "cypkg CI"
+          git config user.email "cypkg-ci@users.noreply.github.com"
+          for pr in $LIBCVC_PRS; do
+            # libcvc squash-merges, so a merged PR's head is never an ancestor of master: ask.
+            if [ "$(gh api "repos/transfix/libcvc/pulls/$pr" --jq .merged)" = true ]; then
+              echo "transfix/libcvc#$pr has merged; not merging it again"
+              continue
+            fi
+            git fetch --quiet --shallow-since="$since" origin "pull/$pr/head:pr-$pr"
+            if git merge-base --is-ancestor "pr-$pr" HEAD; then
+              echo "transfix/libcvc#$pr is already in $LIBCVC_REF"
+            elif ! git merge --quiet --no-edit "pr-$pr"; then
+              git diff --name-only --diff-filter=U
+              echo "::error::transfix/libcvc#$pr doesn't merge onto $LIBCVC_REF and the PRs before it"
+              exit 1
+            else
+              echo "merged transfix/libcvc#$pr ($(git rev-parse --short "pr-$pr"))"
+            fi
+          done
+          echo "tree=$(git rev-parse 'HEAD^{tree}')" >>"$GITHUB_OUTPUT"
+
+      # The built ari, keyed by the source tree it came from, so an unchanged libcvc isn't rebuilt.
+      # It's saved right after the build, so a failing test doesn't throw the build away.
+      - name: Restore a built ari
+        id: ari-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            _libcvc/build/bin/ari
+            _libcvc/build/lib/libcvc.so*
+          key: ari-${{ runner.os }}-${{ runner.arch }}-${{ steps.libcvc.outputs.tree }}
+
+      # libcvc's dependencies come from cvcpkg, as libcvc's own CI gets them: the closure its
+      # in-tree recipe declares. The action is pinned to the commit libcvc's CI pins.
+      - name: Install libcvc's dependencies (cvcpkg)
+        id: deps
+        uses: transfix/libcvc-deps/.github/actions/cvcpkg-install@c5091347c596fcf09c697bc74c585370fce08ad9
+        with:
+          repository: cy-pca/cvcpkg
+          libcvc_deps_ref: master
+          recipe: _libcvc/cvcpkg/recipes/libcvc
+          build_type: Release
+          link: shared
+
+      - name: Install the terminal backends and the build tools (cvcpkg)
+        run: |
+          set -euo pipefail
+          deps="${{ steps.deps.outputs.path }}"
+          [ -n "$deps" ] || { echo "::error::cvcpkg could not install libcvc's dependencies"; exit 1; }
+          echo "DEPS=$deps" >>"$GITHUB_ENV"
+          # ari needs the Ariadne libraries: yaml-cpp (the loader), ftxui and tvision (the
+          # terminal backends). libcvc's CI installs them the same way.
+          cvcpkg install yaml-cpp nlohmann-json json-schema-validator ftxui tvision \
+            --prefix "$deps" --config release --link shared
+          tools="$RUNNER_TEMP/tools"
+          cvcpkg install cmake ninja --prefix "$tools" --config release --link shared
+          echo "$tools/bin" >>"$GITHUB_PATH"
+
+      - name: Build ari
+        if: steps.ari-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          cmake -S _libcvc -B _libcvc/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$DEPS" \
+            -DCVC_BUILD_ARI=ON -DCVC_ARIADNE_TVISION=ON \
+            -DCVC_BUILD_ARIGL=OFF -DCVC_BUILD_ARISRV=OFF -DCVC_BUILD_CLI=OFF \
+            -DCVC_BUILD_CVCGL=OFF -DCVC_BUILD_EXAMPLES=OFF -DCVC_BUILD_TESTS=OFF \
+            -DCVC_BUILD_PYCVC=OFF -DCVC_BUILD_LSYS_TOOLS=OFF \
+            -DCVC_ENABLE_CUDA=OFF -DCVC_ENABLE_LIBIGL=OFF -DCVC_ENABLE_ASSIMP=OFF \
+            -DCVC_ENABLE_IMAGEMAGICK=OFF -DCVC_WITH_JOLT=OFF \
+            | tee configure.log
+          for want in "Ariadne: FTXUI terminal backend ENABLED" "Ariadne: tvision terminal backend ENABLED"; do
+            grep -qF "$want" configure.log || { echo "::error::configure did not print '$want'"; exit 1; }
+          done
+          ninja -C _libcvc/build ari
+
+      - name: Save the built ari
+        if: steps.ari-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            _libcvc/build/bin/ari
+            _libcvc/build/lib/libcvc.so*
+          key: ${{ steps.ari-cache.outputs.cache-primary-key }}
+
+      - name: Check the ari
+        run: |
+          set -euo pipefail
+          ari="$GITHUB_WORKSPACE/_libcvc/build/bin/ari"
+          echo "ARI=$ari" >>"$GITHUB_ENV"
+          "$ari" info | grep -E 'terminal backend|desktop backend|HTTP'
+          "$ari" info --functions | tr ' ,' '\n\n' | grep -qx json-parse \
+            || { echo "::error::this ari has no json-parse (transfix/libcvc#883)"; exit 1; }
+          "$ari" --help 2>&1 | grep -q 'ari test' \
+            || { echo "::error::this ari has no 'ari test' (transfix/libcvc#896)"; exit 1; }
+          printf 'meta: {name: f, min_libcvc: 3.7.4}\nfunctions: (defun f () 1)\ntests: {f: (assert (= (f) 1))}\n' >"$RUNNER_TEMP/f.ari"
+          "$ari" test "$RUNNER_TEMP/f.ari" >/dev/null \
+            || { echo "::error::this ari has no functions: (transfix/libcvc#900)"; exit 1; }
+
+      # tmux drives the interactive layer. cvcpkg packages it for arm64 only so far, so x86_64
+      # runners fall back to apt.
+      - name: Install tmux
+        run: |
+          if ! cvcpkg install tmux --prefix "$RUNNER_TEMP/tmux" --config release --link shared 2>/dev/null; then
+            sudo apt-get install -y --no-install-recommends tmux
+          else
+            echo "$RUNNER_TEMP/tmux/bin" >>"$GITHUB_PATH"
+          fi
+          tmux -V
+
+      - name: tests/run.sh
+        env:
+          TERM: xterm-256color
+        run: tests/run.sh
+
+  contract:
+    name: contract with cvcpkg.org
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -I tests/contract.py

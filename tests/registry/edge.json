@@ -1,0 +1,62 @@
+{
+ "_comment": "Synthetic rows for edge cases; catalog.json holds the real ones.",
+ "rows": [
+  {
+   "platform": "linux",
+   "arch": "x86_64",
+   "build_type": "release",
+   "link": "shared",
+   "org": "",
+   "required_deps": [],
+   "yanked": false,
+   "archive_url": "",
+   "sha256": "",
+   "name": "edge-unicode-zoë",
+   "version": "1.0.0+cvc.1",
+   "size_bytes": 2048,
+   "published_at": "2026-10-01T00:00:00Z",
+   "description": "Edge case: accents (zoë, café), CJK (日本語) and an emoji (🎉) in one description, long enough that it has to be cut where the window ends.",
+   "homepage": "https://example.org/zoë",
+   "license": "MIT",
+   "tags": "edge,unicode"
+  },
+  {
+   "platform": "linux",
+   "arch": "x86_64",
+   "build_type": "release",
+   "link": "shared",
+   "org": "",
+   "required_deps": [],
+   "yanked": false,
+   "archive_url": "",
+   "sha256": "",
+   "name": "edge-a-package-name-much-longer-than-the-name-column",
+   "version": "2.0.0+cvc.1",
+   "size_bytes": 1,
+   "published_at": "2026-10-02T00:00:00Z",
+   "description": "Edge case: a long name.",
+   "homepage": "",
+   "license": "MIT",
+   "tags": "edge"
+  },
+  {
+   "platform": "linux",
+   "arch": "x86_64",
+   "build_type": "release",
+   "link": "shared",
+   "org": "",
+   "required_deps": [],
+   "yanked": false,
+   "archive_url": "",
+   "sha256": "",
+   "name": "edge-nulls",
+   "version": "0.1.0+cvc.1",
+   "size_bytes": null,
+   "published_at": null,
+   "description": null,
+   "homepage": null,
+   "license": null,
+   "tags": null
+  }
+ ]
+}

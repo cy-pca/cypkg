@@ -1,0 +1,30 @@
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│[ < Back ]                                                                                        │
+│package: zlib                                                                                     │
+│zlib — a general-purpose lossless data compression library.                                       │
+│latest: 1.3.1+cvc.5                                                                               │
+│license: Zlib                                                                                     │
+│homepage: https://zlib.net/                                                                       │
+│tags: wasi,utils,io,wasm                                                                          │
+│install: cvcpkg install zlib                                                                      │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│builds 1-10 of 25                                                                                 │
+│version           platform              build           size         published                    │
+│1.3.1+cvc.5       macos/arm64           release static  123 KB       2026-10-17                   │
+│1.3.1+cvc.5       windows/x86_64        release static  321 KB       2026-10-17                   │
+│1.3.1+cvc.5       windows/x86_64        release shared  178 KB       2026-10-17                   │
+│1.3.1+cvc.5       macos/x86_64          release shared  142 KB       2026-10-15                   │
+│1.3.1+cvc.5       linux/arm64           release shared  160 KB       2026-10-15                   │
+│1.3.1+cvc.5       macos/arm64           release shared  122 KB       2026-10-14                   │
+│1.3.1+cvc.5       openbsd/x86_64        release shared  159 KB       2026-10-14                   │
+│1.3.1+cvc.5       netbsd/x86_64         release shared  150 KB       2026-10-12                   │
+│1.3.1+cvc.5       freebsd/x86_64        release shared  152 KB       2026-10-12                   │
+│1.3.1+cvc.5       linux/x86_64          release shared  160 KB       2026-09-26                   │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│[ < Prev ][ Next > ]                                                                              │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+

@@ -1,0 +1,67 @@
+# cypkg — a terminal client for cvcpkg registries.
+#
+# M0: anonymous, read-only browsing. Search the catalog with the web page's filters, and open a
+# package to see its builds and its install line. The launcher (bin/cypkg) runs this in stock ari
+# with the network allowed to the registry and nothing else:
+#
+#   ari run --net-allow https://cvcpkg.org share/cypkg/main.ari --server https://cvcpkg.org
+#
+# This document only composes two modules, search.ari and package.ari, and wires them together.
+# Each owns its state and runs its own requests in its on_tick. Its widgets only set a request
+# flag; its on_tick sends the request and writes the parsed reply into its state with
+# state-set-tree, where the rows bind. The logic is functions in lib.ari, unit-tested in
+# tests/lib/; each module is tested on its own in tests/modules/.
+#
+# Holes, from main.ari's state to each module:
+#   args   read-only: the command line
+#   view   "search" or "package": which module shows
+#   nav    nav.open: the package the search view opens; nav.start: its first build
+
+meta:
+  name: cypkg
+  version: 0.1.0
+  description: Browse a cvcpkg registry in the terminal
+  min_libcvc: 3.7.4
+
+requires:
+  - net
+  - json-parse
+  - state-set-tree
+
+args:
+  server: {type: string, default: "https://cvcpkg.org", help: The registry to browse}
+  q: {type: string, default: "", help: Search for this at start}
+  package: {type: string, default: "", help: Open this package at start}
+  platform: {type: string, default: all, help: "Only builds for this platform (all, linux, macos, windows, ...)"}
+  arch: {type: string, default: all, help: "Only builds for this architecture (all, x86_64, arm64, ...)"}
+  link: {type: string, default: all, help: "Only shared or static builds (all, shared, static)"}
+  offset: {type: int, default: 0, help: The first search row to show}
+  pkg-offset: {type: int, default: 0, help: The first build of the opened package to show}
+  page: {type: int, default: 10, help: Rows per page}
+
+init: |
+  (begin
+    (state-set "view" (if (= (state-get "args.package") "") "search" "package"))
+    (state-set "nav.open" (state-get "args.package"))
+    (state-set "nav.start" (int (state-get "args.pkg-offset"))))
+
+windows:
+  - window: cypkg
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - text: "registry"
+        bind: args.server
+      # A hidden mount doesn't start until it is first shown.
+      - load: search.ari
+        as: search
+        visible_when: (= (state-get "view") "search")
+        link: &holes
+          args: { to: args, mode: ro }
+          view: view
+          nav: nav
+      - load: package.ari
+        as: package
+        visible_when: (= (state-get "view") "package")
+        link: *holes
