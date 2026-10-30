@@ -3,9 +3,14 @@ name: test
 # cypkg's test layers (tests/run.sh) on a stock ari built from libcvc, plus a daily contract check
 # against cvcpkg.org.
 #
-# ari comes from source: no ari package yet has what cypkg needs. Until transfix/libcvc#883
-# (json-parse, state-set-tree), #896 (quit codes, assert, `ari test`) and #900 (functions:,
-# stacked on #896) merge, the job merges them onto libcvc master. A PR that has merged is skipped, so nothing breaks when they land;
+# ari comes from source: no ari package yet has what cypkg needs. Until these transfix/libcvc PRs
+# merge, the job merges them onto libcvc master, in this order:
+#   #883  json-parse, state-set-tree
+#   #896  quit codes, assert, `ari test`
+#   #900  functions: (stacked on #896)
+#   #902  a bound widget's on: runs after its write (a combo's on:)
+#   #904  a load:ed module's on_tick: runs (stacked on #900)
+#   #905  a link: hole grants the subtree under its target A PR that has merged is skipped, so nothing breaks when they land;
 # empty LIBCVC_PRS then. When an ari package has both, install it from cvcpkg instead of building it.
 
 on:
@@ -21,11 +26,11 @@ on:
         default: master
       libcvc_prs:
         description: libcvc PR numbers to merge on top, space-separated
-        default: "883 896 900"
+        default: "883 896 900 902 904 905"
 
 env:
   LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
-  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900' }}
+  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905' }}
 
 concurrency:
   group: test-${{ github.ref }}

@@ -36,8 +36,8 @@ work on cvcpkg is tracked as C-items in
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
 | L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | transfix/libcvc#896 open (issue #894) | M0 tests |
 | L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | transfix/libcvc#900 open (on #896) | M0 tests |
-| L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | raised; a follow-up in libcvc | M1 |
-| L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | raised; on libcvc's follow-up list | none (worked around) |
+| L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | transfix/libcvc#904 (module on_tick) and #905 (subtree holes) open | M1 |
+| L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | transfix/libcvc#902 open | none (worked around) |
 | L16 | (agenda, not planned) file descriptors as state channels or streams | agenda | |
 
 `ari` itself is already packaged. The xterm.js page has been live since
@@ -113,8 +113,9 @@ What the tests found and fixed:
 
 To do for M0:
 
-- **CI: `.github/workflows/test.yml`.** Until an `ari` package has #883,
-  #896 and #900, it builds `ari` from libcvc master with those PRs merged in. Switch to
+- **CI: `.github/workflows/test.yml`.** Until an `ari` package has them, it
+  builds `ari` from libcvc master with #883, #896, #900, #902, #904 and #905
+  merged in. All pass the suite unchanged locally. Switch to
   the package once one has both.
 - **The browser path**: #887's xterm.js page with `"flags": ["--net"]`, served
   by C1. Untested: see L4.

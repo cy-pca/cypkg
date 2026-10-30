@@ -4,8 +4,8 @@
 #   tests/run.sh          1-3: check, unit, logic, snapshot, interactive (skipped without tmux)
 #   tests/run.sh --live   ... and 4: the contract check against https://cvcpkg.org
 #
-# ARI names the ari to run. Until transfix/libcvc#883, #896 and #900 merge, that is an ari built
-# from libcvc master with them merged in, as .github/workflows/test.yml builds it.
+# ARI names the ari to run. Until the transfix/libcvc PRs that .github/workflows/test.yml lists
+# merge, that is an ari built from libcvc master with them merged in, as that workflow builds it.
 set -eu
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 

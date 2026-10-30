@@ -134,9 +134,9 @@ appended, then runs `ari test` on the copy.
 
 `.github/workflows/test.yml` runs `tests/run.sh` on every push and PR:
 
-- No `ari` package yet has transfix/libcvc#883, #896 and #900, so the
-  workflow builds `ari` from libcvc master with those PRs merged on top,
-  skipping any that have already merged.
+- No `ari` package yet has the libcvc PRs cypkg needs, so the workflow builds
+  `ari` from libcvc master with them merged on top (`LIBCVC_PRS`: currently
+  #883, #896, #900, #902, #904 and #905), skipping any that have merged.
 - libcvc's dependencies come from cvcpkg, as in libcvc's own CI.
 - The built `ari` is cached by its libcvc source tree, so an unchanged libcvc
   isn't rebuilt.
