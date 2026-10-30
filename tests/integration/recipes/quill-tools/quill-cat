@@ -1,0 +1,3 @@
+#!/bin/sh
+# quill-cat: a test package's one tool. It copies its input.
+exec cat "$@"

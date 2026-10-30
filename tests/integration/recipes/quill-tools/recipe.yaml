@@ -1,0 +1,33 @@
+schema_version: 1
+recipe:
+  name: quill-tools
+  upstream_version: "0.9.0"
+  cvc_revision: 1
+  maintainer: "cypkg tests"
+  homepage: https://example.org/quill-tools
+  license: Apache-2.0
+  tags: [compression, tools]
+  description: >-
+    Command-line tools for quill streams: the second package a search for "quill" or
+    "compression" finds.
+
+source:
+  type: vendored
+  path: recipes/quill-tools   # from tests/integration, the recipes directory's parent
+
+patches: []
+
+depends:
+  build: []
+  runtime: []
+  host_tools: []
+
+build:
+  build_type_independent: true
+  matrix:
+    - platform: any
+      script: build.sh
+
+package:
+  files:
+    - bin/quill-cat

@@ -1,0 +1,107 @@
+# The package module (share/cypkg/package.ari) against a real cvcpkg-server.
+#
+# As tests/modules/package_test.ari, but the registry is a local cvcpkg-server that
+# tests/integration/seed.py filled. quill has 12 builds, newest first: 1.4.2+cvc.3 for
+# wasi/wasm32 (release static) down to linux/x86_64, then 1.4.2 and 1.3.0 for any/noarch. bare
+# has no description, license, homepage or tags. tests/integration.sh puts the server's URL in
+# place of @SERVER@ and runs `ari test`.
+
+meta:
+  name: cypkg-package-integration-test
+  min_libcvc: 3.7.4
+
+requires: [net]
+
+args:
+  server: {type: string, default: "@SERVER@"}
+  q: {type: string, default: ""}
+  platform: {type: string, default: all}
+  arch: {type: string, default: all}
+  link: {type: string, default: all}
+  offset: {type: int, default: 0}
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "view" "package")
+    (state-set "nav.open" "")
+    (state-set "nav.start" 0))
+
+windows:
+  - window: test
+    children:
+      - load: ../../../share/cypkg/package.ari
+        as: p
+        link:
+          args: { to: args, mode: ro }
+          view: view
+          nav: nav
+
+tests:
+  opening a package shows its details and first builds: |
+    (begin
+      (set n (int (state-get "includes.p.pkg.seq")))
+      (state-set "nav.open" "quill")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.p.pkg.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.p.pkg.name") "quill"))
+      (assert (= (state-get "includes.p.pkg.total") "12") (state-get "includes.p.pkg.total"))
+      (assert (= (state-get "includes.p.pkg.count") "10") (state-get "includes.p.pkg.count"))
+      (assert (= (state-get "includes.p.pkg.status") "builds 1-10 of 12") (state-get "includes.p.pkg.status"))
+      (assert (= (state-get "includes.p.pkg.version") "1.4.2+cvc.3") (state-get "includes.p.pkg.version"))
+      (assert (= (state-get "includes.p.pkg.license") "MIT") (state-get "includes.p.pkg.license"))
+      (assert (= (state-get "includes.p.pkg.homepage") "https://example.org/quill"))
+      (assert (= (state-get "includes.p.pkg.tags") "compression,io") (state-get "includes.p.pkg.tags"))
+      (assert (= (state-get "includes.p.pkg.install") "cvcpkg install quill"))
+      ;; The recipe's description is longer than the window: cut to 92 characters.
+      (assert (string.starts-with (state-get "includes.p.pkg.desc") "quill, a tiny line-oriented"))
+      (assert (= (string.length (state-get "includes.p.pkg.desc")) 92) (state-get "includes.p.pkg.desc")))
+
+  a build row is formatted for the table: |
+    (begin
+      (assert (= (state-get "includes.p.pkg.page.0.where") "wasi/wasm32") (state-get "includes.p.pkg.page.0.where"))
+      (assert (= (state-get "includes.p.pkg.page.0.kind") "release static") (state-get "includes.p.pkg.page.0.kind"))
+      (assert (= (state-get "includes.p.pkg.page.0.size") "1 KB") (state-get "includes.p.pkg.page.0.size"))
+      (assert (= (string.length (state-get "includes.p.pkg.page.0.date")) 10) (state-get "includes.p.pkg.page.0.date"))
+      (assert (= (state-get "includes.p.pkg.page.3.kind") "debug shared") (state-get "includes.p.pkg.page.3.kind")))
+
+  the last page of builds is partial: |
+    (begin
+      (set n (int (state-get "includes.p.pkg.seq")))
+      (state-set "includes.p.pkg.offset" 10)
+      (state-set "includes.p.req.pkgpage" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.p.pkg.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.p.pkg.count") "2") (state-get "includes.p.pkg.count"))
+      (assert (= (state-get "includes.p.pkg.status") "builds 11-12 of 12"))
+      (assert (= (state-get "includes.p.pkg.page.0.where") "any/noarch") (state-get "includes.p.pkg.page.0.where"))
+      (assert (= (state-get "includes.p.pkg.page.1.version") "1.3.0+cvc.1") (state-get "includes.p.pkg.page.1.version")))
+
+  empty fields become empty text: |
+    (begin
+      (set n (int (state-get "includes.p.pkg.seq")))
+      (state-set "nav.open" "bare")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.p.pkg.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.p.pkg.status") "builds 1-1 of 1") (state-get "includes.p.pkg.status"))
+      (assert (= (state-get "includes.p.pkg.desc") "") (state-get "includes.p.pkg.desc"))
+      (assert (= (state-get "includes.p.pkg.license") "") (state-get "includes.p.pkg.license"))
+      (assert (= (state-get "includes.p.pkg.homepage") "") (state-get "includes.p.pkg.homepage"))
+      (assert (= (state-get "includes.p.pkg.tags") "") (state-get "includes.p.pkg.tags"))
+      (assert (= (state-get "includes.p.pkg.page.0.size") "1 KB") (state-get "includes.p.pkg.page.0.size")))
+
+  an unknown package is 200 with no builds: |
+    (begin
+      (set r (http-get (str-concat (state-get "args.server") "/v1/packages/no-such-package")))
+      (assert (= (get-attr r "status") 200) (get-attr r "status"))
+      (assert (= (length (get-attr (json-parse (get-attr r "body")) "packages")) 0)))
+
+  an unknown package says so: |
+    (begin
+      (set n (int (state-get "includes.p.pkg.seq")))
+      (state-set "nav.open" "no-such-package")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.p.pkg.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.p.pkg.count") "0"))
+      (assert (= (state-get "includes.p.pkg.status") "no package named no-such-package")
+              (state-get "includes.p.pkg.status")))

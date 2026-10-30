@@ -1,0 +1,29 @@
+schema_version: 1
+recipe:
+  name: bare
+  upstream_version: "0.1.0"
+  cvc_revision: 1
+  maintainer: "cypkg tests"
+
+# The fewest fields a recipe can have: no description, license, homepage or tags, so the registry
+# sends them empty and cypkg shows blanks.
+source:
+  type: vendored
+  path: recipes/bare   # from tests/integration, the recipes directory's parent
+
+patches: []
+
+depends:
+  build: []
+  runtime: []
+  host_tools: []
+
+build:
+  build_type_independent: true
+  matrix:
+    - platform: any
+      script: build.sh
+
+package:
+  files:
+    - share/bare/

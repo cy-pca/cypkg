@@ -135,6 +135,7 @@ the `ari` to run.
 | 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
 | 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, Ctrl-C |
 | 3c. browser | `tests/browser.mjs` | The wasm page in headless Chrome, served with the fixture API from one origin under a strict CSP. Real keys over DevTools, through the same steps as 3b; it reads the terminal's text. Runs when `ARI_WEB` and `CHROME` are set |
+| 3d. integration | `tests/integration.sh` | cypkg against a real registry instead of the fixture: cy-pca/cvcpkg's own `cvcpkg-server`, installed into a venv (pinned to a commit), run on SQLite in a temp dir, with no database server. It packs the recipes in `tests/integration/recipes/` with `cvcpkg pack`, publishes them with `cvcpkg publish` and the publish API (14 builds of 3 packages; one has 12 builds across platforms, arches and link modes, one has no description, license, homepage or tags), then runs the contract check against it, 14 `ari test` module tests (`tests/integration/modules/`) and 9 snapshots (`tests/integration/expected/`). It asserts what the real server does: an unknown package is 200 with no builds, and `package_count` counts every match only with `facets=true`. Skipped when cvcpkg can't be installed |
 | 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
 
 The fixture registry (`tests/registry/fixture_registry.py`, Python stdlib
@@ -147,7 +148,13 @@ only) serves 193 real builds of 7 packages, captured from cvcpkg.org with
 ARI=/path/to/ari tests/run.sh
 ARI=/path/to/ari tests/snapshot.sh --update   # rewrite the expected frames
 ARI=/path/to/ari tests/unit.sh --show search_rows
+ARI=/path/to/ari CVCPKG_VENV=~/.cache/cypkg-cvcpkg tests/integration.sh   # keep the venv
 ```
+
+The integration layer takes about 20 seconds once cvcpkg is installed (the
+install takes about a minute). It keeps the server's state on `/dev/shm` when
+there is one, because SQLite syncs every commit. Its frames mask the server's
+port and the publish dates. `CVCPKG_REF` installs another cvcpkg commit.
 
 Snapshots are frame-for-frame text and fail on any warning. Layer 3b is the
 only one that checks input and the tvision backend, because `ari snapshot`
@@ -187,6 +194,8 @@ How the pieces fit:
 - `tools/libcvc.sh` does the fetching and merging for both jobs. When two of
   the PRs conflict in a way `tools/libcvc-resolve.py` knows (today, #887 and
   #896 in `src/ari/main.cpp`), it resolves it; any other conflict fails.
+- `tests/run.sh` runs the integration layer too, installing cvcpkg-server from
+  cy-pca/cvcpkg. In CI a failed install fails the job instead of skipping it.
 - A daily job runs the contract check against cvcpkg.org.
 - `workflow_dispatch` takes another libcvc ref or list of PRs.
 

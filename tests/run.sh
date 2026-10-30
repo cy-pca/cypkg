@@ -2,7 +2,8 @@
 # Run cypkg's test layers in order, stopping at the first that fails.
 #
 #   tests/run.sh          1-3: check, units, functions, modules, snapshot, interactive (no tmux:
-#                         interactive is skipped)
+#                         interactive is skipped), integration (cvcpkg-server can't be installed:
+#                         skipped)
 #   tests/run.sh --live   ... and 4: the contract check against https://cvcpkg.org
 #
 # With ARI_WEB and CHROME set, it also runs 3c: the browser build in headless Chrome.
@@ -38,6 +39,9 @@ if [ -n "${ARI_WEB:-}" ] && [ -n "${CHROME:-}" ]; then
     _ "$here" "$ARI_WEB" "$site" "$CHROME"
   rm -rf "$site"
 fi
+# A real registry: cvcpkg-server installed into a venv, filled with test packages. Skipped when it
+# can't be installed (it needs the network, or CVCPKG_VENV naming a venv that has it).
+layer "3d. integration: a local cvcpkg-server, seeded with test packages" "$here/integration.sh"
 if [ "${1:-}" = --live ]; then
   layer "4. contract: the live registry against what cypkg reads" python3 -I "$here/contract.py"
 fi
