@@ -11,6 +11,14 @@ usage: cypkg [--server URL] [--tvision] [document flags...]
 
   --server URL   the registry to browse (default $CYPKG_SERVER, else https://cvcpkg.org)
   --tvision      the tvision desktop instead of FTXUI
+  --token-env VAR
+                 sign in with the cvctok_ API token in environment variable VAR (default:
+                 CYPKG_TOKEN, when it's set). ari keeps the token for this run; the documents
+                 never see it, and it goes to the registry's origin only
+  --open LIST    windows to open at start, comma-separated: builders, builds, activity, account
+  --no-remember  don't keep a browser sign-in (Account > Sign in with a browser) for the next run.
+                 By default ari keeps it in ~/.config/cvc/credentials/cypkg (0600), as
+                 `cvcpkg login` keeps its session
   --q TEXT       search for TEXT at start
   --package NAME open NAME at start
   --page N       rows per page (default 10)
@@ -21,8 +29,14 @@ EOF
 
 server=${CYPKG_SERVER:-https://cvcpkg.org}
 backend=ftxui
+token_env=
+[ -n "${CYPKG_TOKEN:-}" ] && token_env=CYPKG_TOKEN
+remember=1
 while [ $# -gt 0 ]; do
   case $1 in
+    --token-env) [ $# -ge 2 ] || { usage >&2; exit 2; }; token_env=$2; shift 2 ;;
+    --token-env=*) token_env=${1#*=}; shift ;;
+    --no-remember) remember=; shift ;;
     --server) [ $# -ge 2 ] || { usage >&2; exit 2; }; server=$2; shift 2 ;;
     --server=*) server=${1#*=}; shift ;;
     --tvision) backend=tvision; shift ;;
@@ -45,4 +59,22 @@ case $origin in
   *) echo "cypkg: --server must be an http(s) URL: $server" >&2; exit 2 ;;
 esac
 
-exec "$ari" run --backend "$backend" --net-allow "$origin" "$doc" --server "$server" "$@"
+# A browser sign-in is kept for the next run in ari's credential store (written 0600), unless
+# --no-remember. ari keeps tokens out of the documents either way.
+store=
+[ -n "$remember" ] && store="--credential-store cypkg"
+
+# A token: ari takes it from the environment (--credential-env) and a policy line binds it to the
+# registry's origin, so it is sent nowhere else. The policy file is written for this run only.
+if [ -n "$token_env" ]; then
+  policy=$(mktemp "${TMPDIR:-/tmp}/cypkg-policy.XXXXXX")
+  trap 'rm -f "$policy"' EXIT INT TERM
+  printf 'allow %s\ncredential cvcpkg %s\n' "$origin" "$origin" >"$policy"
+  # shellcheck disable=SC2086 # store is two words or none
+  "$ari" run --backend "$backend" --net-policy "$policy" --credential-env "cvcpkg=$token_env" \
+    $store "$doc" --server "$server" "$@"
+  exit $?
+fi
+
+# shellcheck disable=SC2086 # store is two words or none
+exec "$ari" run --backend "$backend" --net-allow "$origin" $store "$doc" --server "$server" "$@"

@@ -1,7 +1,7 @@
 # The package module (share/cypkg/package.ari) on its own.
 #
 # A module test: this document mounts only package.ari, against the fixture registry, through the
-# same holes main.ari grants (args, view, nav). Each test drives the module through its state at
+# same holes main.ari grants (args, view, nav, auth). Each test drives the module through its state at
 # includes.p.*, the way its view does, waits for its pkg.seq to
 # count one more finished request, and asserts on what its view reads. tests/modules.sh puts the
 # fixture's URL in place of @SERVER@ and runs `ari test`. Fixture numbers: 196 builds of 10
@@ -26,7 +26,8 @@ init: |
   (begin
     (state-set "view" "package")
     (state-set "nav.open" "")
-    (state-set "nav.start" 0))
+    (state-set "nav.start" 0)
+    (state-set "auth.signed_in" "0"))
 
 windows:
   - window: test
@@ -37,6 +38,7 @@ windows:
           args: { to: args, mode: ro }
           view: view
           nav: nav
+          auth: { to: auth, mode: ro }
 
 tests:
   opening a package shows its first builds: |

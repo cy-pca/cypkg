@@ -4,7 +4,9 @@ Run by tools/libcvc.sh in a libcvc checkout mid-merge. Each conflict block must 
 file's rules (RULES) or a rule for any file (ANY_FILE), or nothing is written and it exits 1. Temporary: delete a rule once the PRs it reconciles have merged or been rebased onto each
 other.
 
-In any file, a conflict where both sides only add #include lines keeps them all (sorted).
+In any file, a conflict where both sides only add #include lines keeps them all (sorted). In docs/
+and test files, any other conflict keeps both sides, ours first: there two open PRs adding a
+paragraph or a test each is the usual clash, and the build doesn't depend on them.
 
 Known today (2026-10-30):
   src/cvc/tests/state_exec_builtins_test.cpp, master (#889's <cstdlib>) vs #883 (<cmath>):
@@ -23,16 +25,20 @@ import sys
 BLOCK = re.compile(r"^<<<<<<< [^\n]*\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]*\n", re.S | re.M)
 
 
+# Each rule takes the two sides in either order: which PR is "ours" depends on which merged first
+# (#887 is in master now, so master carries its half and #896 the other).
 def ari_main_flags(ours, theirs):
-    if '"--tap"' in ours and "CVC_ARI_WASM_BACKEND" in theirs:
-        return theirs.replace('{"--json", "--functions"}', '{"--json", "--functions", "--tap"}')
+    for tap, web in ((ours, theirs), (theirs, ours)):
+        if '"--tap"' in tap and "CVC_ARI_WASM_BACKEND" in web and '"--tap"' not in web:
+            return web.replace('{"--json", "--functions"}', '{"--json", "--functions", "--tap"}')
     return None
 
 
 def ari_main_check(ours, theirs):
-    if "return rt.exit_code();" in ours and "ari::report_running();" in theirs:
-        running = [l for l in theirs.splitlines(True) if "report_running" in l]
-        return ours + "".join(running)
+    for code, web in ((ours, theirs), (theirs, ours)):
+        if "return rt.exit_code();" in code and "ari::report_running();" in web:
+            running = [l for l in web.splitlines(True) if "report_running" in l]
+            return code + "".join(running)
     return None
 
 
@@ -42,6 +48,16 @@ def includes_only(ours, theirs):
     if lines and all(l.startswith("#include ") for l in lines):
         return "".join(sorted(set(lines)))
     return None
+
+
+def keep_both(ours, theirs):
+    """Both sides added text at the same place: keep ours, then theirs. Only for docs and tests
+    (see BOTH_OK), where two PRs adding a paragraph or a test each is the usual clash."""
+    return ours + theirs
+
+
+def both_ok(path):
+    return path.startswith("docs/") or "/tests/" in path
 
 
 RULES = {"src/ari/main.cpp": [ari_main_flags, ari_main_check]}
@@ -56,7 +72,7 @@ def main():
         return 1
     out = {}
     for f in files:
-        rules = RULES.get(f, []) + ANY_FILE
+        rules = RULES.get(f, []) + ANY_FILE + ([keep_both] if both_ok(f) else [])
         text = open(f).read()
 
         def fix(m):

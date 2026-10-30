@@ -16,6 +16,7 @@
 #   args   read-only: the command line
 #   view   "search" or "package": which module shows
 #   nav    nav.open: the package the search view opens; nav.start: its first build
+#   auth   auth.signed_in and auth.can_pair, read-only (the account window may set auth.signout)
 
 meta:
   name: cypkg
@@ -38,12 +39,67 @@ args:
   offset: {type: int, default: 0, help: The first search row to show}
   pkg-offset: {type: int, default: 0, help: The first build of the opened package to show}
   page: {type: int, default: 10, help: Rows per page}
+  open: {type: string, default: "", help: "Windows to open at start, comma-separated: builders, builds, activity, account"}
+  progress: {type: string, default: "on", help: "off: wait for replies without a progress bar (the browser build passes it)"}
 
 init: |
   (begin
+    ;; Signed in when the launcher handed ari a cvcpkg token (--token-env). Only the top-level
+    ;; document can ask the host about its credential verbs, so the modules read auth.* instead.
+    (state-set "auth.signed_in"
+      (if (has? "net-auth-has?") (if (net-auth-has? "cvcpkg") "1" "0") "0"))
+    (state-set "auth.signout" "0")
+    (state-set "auth.recheck" "0")
+    ;; Signing in with a browser (pairing) needs a hash and a CSPRNG in the DSL.
+    (state-set "auth.can_pair" (if (if (has? "sha256-hex") (has? "random-token") #f) "1" "0"))
+    ;; The fleet and account windows start closed (a window's open state is tree.<id>.open)
+    ;; unless --open names them. A closed window's module doesn't start until it's opened.
+    ;; The search window starts open. Set it, rather than rely on the default: the View menu's
+    ;; Search item binds the same key, and the tvision host reads an unset key as unticked.
+    (state-set "tree.main.open" 1)
+    (for w (list "builders" "builds" "activity" "account")
+      (state-set (str-concat "tree." w ".open")
+        (if (string.contains (str-concat "," (state-get "args.open") ",") (str-concat "," w ",")) 1 0)))
     (state-set "view" (if (= (state-get "args.package") "") "search" "package"))
     (state-set "nav.open" (state-get "args.package"))
     (state-set "nav.start" (int (state-get "args.pkg-offset"))))
+
+# Signing in and out: the account window asks (auth.recheck after pairing, auth.signout), and this
+# top-level tick answers, since only the top-level document can ask the host (has?).
+on_tick: |
+  (begin
+    (if (= (state-get "auth.signout") "1")
+        (begin
+          (state-set "auth.signout" "0")
+          (if (has? "net-auth-forget")
+              (begin (net-auth-forget "cvcpkg") (net-auth-forget "cvcpkg.refresh")))
+          (state-set "auth.signed_in" "0")))
+    ;; The account window signed in (pairing captured a token into the host): ask again.
+    (if (= (state-get "auth.recheck") "1")
+        (begin
+          (state-set "auth.recheck" "0")
+          (state-set "auth.signed_in"
+            (if (has? "net-auth-has?") (if (net-auth-has? "cvcpkg") "1" "0") "0")))))
+
+# The menus. View's items are ticked while their window is open, and toggle it (they bind the
+# window's tree.<id>.open, as the window's close button does).
+menubar:
+  - menu: cypkg
+    items:
+      - menu_item: Quit
+        on: quit
+  - menu: View
+    items:
+      - menu_item: Search
+        bind: tree.main.open
+      - menu_item: Builders
+        bind: tree.builders.open
+      - menu_item: Builds
+        bind: tree.builds.open
+      - menu_item: Activity
+        bind: tree.activity.open
+      - menu_item: Account
+        bind: tree.account.open
 
 windows:
   - window: cypkg
@@ -61,7 +117,58 @@ windows:
           args: { to: args, mode: ro }
           view: view
           nav: nav
+          auth: { to: auth, mode: ro }
       - load: package.ari
         as: package
         visible_when: (= (state-get "view") "package")
         link: *holes
+
+  # The fleet and account windows, one module each. Each refreshes while its window is open.
+  - window: Builders
+    id: builders
+    pos: [24, 32]
+    size: [704, 320]
+    closable: true
+    children:
+      - load: builders.ari
+        as: builders
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.builders.open, mode: ro }
+          auth: { to: auth, mode: ro }
+  - window: Builds
+    id: builds
+    pos: [48, 48]
+    size: [736, 320]
+    closable: true
+    children:
+      - load: builds.ari
+        as: builds
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.builds.open, mode: ro }
+          auth: { to: auth, mode: ro }
+  - window: Activity
+    id: activity
+    pos: [72, 64]
+    size: [704, 320]
+    closable: true
+    children:
+      - load: activity.ari
+        as: activity
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.activity.open, mode: ro }
+          auth: { to: auth, mode: ro }
+  - window: Account
+    id: account
+    pos: [96, 80]
+    size: [640, 224]
+    closable: true
+    children:
+      - load: account.ari
+        as: account
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.account.open, mode: ro }
+          auth: auth

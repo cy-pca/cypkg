@@ -2,6 +2,12 @@
   "title": "cypkg",
   "src": "main.ari",
   "src_param": false,
-  "flags": ["--net-allow", "https://cvcpkg.org"],
-  "args": ["--server", "https://cvcpkg.org"]
+  "flags": [
+    "--net-allow",
+    "https://cvcpkg.org"
+  ],
+  "args": [
+    "--server",
+    "https://cvcpkg.org"
+  ]
 }

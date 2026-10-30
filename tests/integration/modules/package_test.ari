@@ -25,7 +25,8 @@ init: |
   (begin
     (state-set "view" "package")
     (state-set "nav.open" "")
-    (state-set "nav.start" 0))
+    (state-set "nav.start" 0)
+    (state-set "auth.signed_in" "0"))
 
 windows:
   - window: test
@@ -36,6 +37,7 @@ windows:
           args: { to: args, mode: ro }
           view: view
           nav: nav
+          auth: { to: auth, mode: ro }
 
 tests:
   opening a package shows its details and first builds: |

@@ -121,10 +121,47 @@ cvcpkg build cypkg --local --platform any --prefix ./prefix
 
 It isn't published yet: no released `ari` has the libcvc PRs cypkg needs.
 
+## Menus and windows
+
+The menu bar has **cypkg** (Quit) and **View**. View's items are ticked while
+their window is open, and toggle it. F10 opens the menu bar from the keyboard.
+
+| Window | Shows | Refreshes |
+|---|---|---|
+| Search | The search and package pages | On request; Next and Prev come from pages already fetched |
+| Builders | The fleet: platform, status, load, version, last heartbeat | About every 10 s while open |
+| Builds | Build jobs, newest first, by status, a page at a time | The newest page, about every 10 s while open |
+| Activity | What was published and yanked | About every 10 s while open |
+| Account | Who the registry says you are; sign out | When opened |
+
+- **Modules:** each window is its own module (`share/cypkg/<window>.ari`). A
+  closed window's module doesn't start until the window is first opened.
+- **Progress:** each window draws a progress bar at its bottom while a request
+  is in flight.
+- **Signing in with an API token:** pass `--token-env VAR`, where `VAR` holds a
+  `cvctok_` token (default `CYPKG_TOKEN`, if it's set).
+  - The launcher hands it to `ari` with `--credential-env`, bound to the
+    registry's origin by a policy file written for the run.
+  - `ari` adds the Bearer header to every request, so the documents never see
+    the token. Private orgs' packages then show up in search.
+  - A token the registry refuses (401) is dropped, and the windows go back to
+    anonymous requests.
+- **Signing in with a browser:** this is cvcpkg's OIDC route for a terminal,
+  device pairing. Account > Sign in with a browser shows a code and a URL; open
+  the URL anywhere, sign in, and approve the code.
+  - The window polls `/v1/auth/device/token` and the host captures the
+    session's access and refresh tokens, so the documents never see them.
+  - It works over SSH, since the browser can be on another machine.
+  - `bin/cypkg` keeps the sign-in for the next run in ari's credential store
+    (`~/.config/cvc/credentials/cypkg`, 0600), as `cvcpkg login` keeps its
+    session; `--no-remember` keeps it for this run only.
+  - Sign out ends the session on the server too.
+  - Pairing needs `sha256-hex` and `random-token` (transfix/libcvc#911).
+
 ## Running from a checkout
 
-`CYPKG_ARI` names the `ari` to run. Until #883 merges, that is an `ari` built
-from libcvc master with #883 merged in.
+`CYPKG_ARI` names the `ari` to run: one built from libcvc master with the PRs
+`.github/workflows/test.yml` lists merged in.
 
 ```bash
 CYPKG_ARI=/path/to/ari bin/cypkg --q zlib
@@ -132,7 +169,11 @@ CYPKG_ARI=/path/to/ari bin/cypkg --tvision --package zstd
 ```
 
 Document flags: `--q`, `--platform`, `--arch`, `--link`, `--offset`,
-`--package`, `--pkg-offset` and `--page`. `bin/cypkg --help` lists them.
+`--package`, `--pkg-offset`, `--page` and `--open` (windows to open at start,
+e.g. `--open builders,activity`). `--progress off` waits for replies without
+a progress bar, for a browser `ari` without libcvc's async fetch
+(transfix/libcvc#914). The launcher adds `--server`, `--tvision` and
+`--token-env`. `bin/cypkg --help` lists them.
 
 ## Tests
 

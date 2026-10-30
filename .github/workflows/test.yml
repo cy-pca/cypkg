@@ -12,8 +12,11 @@ name: test
 #   #902  a bound widget's on: runs after its write (a combo's on:)
 #   #904  a load:ed module's on_tick: runs (stacked on #900)
 #   #905  a link: hole grants the subtree under its target
-#   #887  the browser pages: ari.html runs a document by URL (browser job only; it conflicts
-#         with #896 in src/ari/main.cpp, which tools/libcvc-resolve.py resolves)
+#   #911  sha256-hex and random-token, for signing in with a browser (device pairing)
+#   #912  has? inside a load:ed module's init:
+#   #887  the browser pages: ari.html runs a document by URL (browser job only; merged now; it
+#         conflicts with #896 in src/ari/main.cpp, which tools/libcvc-resolve.py resolves)
+#   #914  L4: requests in single-threaded wasm no longer stall the frame loop (browser job only)
 # Empty a list once its PRs have merged; once an ari package (and its web page) has them, install
 # those from cvcpkg instead of building.
 
@@ -30,15 +33,15 @@ on:
         default: master
       libcvc_prs:
         description: libcvc PR numbers to merge on top, space-separated
-        default: "883 896 900 902 904 905"
+        default: "883 896 900 902 904 905 911 912"
       libcvc_web_prs:
         description: more libcvc PRs for the browser build
-        default: "887"
+        default: "887 914"
 
 env:
   LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
-  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905' }}
-  LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '887' }}
+  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905 911 912' }}
+  LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '887 914' }}
 
 concurrency:
   group: test-${{ github.ref }}
@@ -134,9 +137,13 @@ jobs:
           ari="$GITHUB_WORKSPACE/_libcvc/build/bin/ari"
           echo "ARI=$ari" >>"$GITHUB_ENV"
           "$ari" info | grep -E 'terminal backend|desktop backend|HTTP'
-          "$ari" info --functions | tr ' ,' '\n\n' | grep -qx json-parse \
+          # Read whole outputs first: grep -q stops at the first match, and under pipefail the
+          # writer's SIGPIPE would fail the step.
+          fns=$("$ari" info --functions | tr ' ,' '\n\n')
+          grep -qx json-parse <<<"$fns" \
             || { echo "::error::this ari has no json-parse (transfix/libcvc#883)"; exit 1; }
-          "$ari" --help 2>&1 | grep -q 'ari test' \
+          help=$("$ari" --help 2>&1 || true)
+          grep -q 'ari test' <<<"$help" \
             || { echo "::error::this ari has no 'ari test' (transfix/libcvc#896)"; exit 1; }
           printf 'meta: {name: f, min_libcvc: 3.7.4}\nfunctions: (defun f () 1)\ntests: {f: (assert (= (f) 1))}\n' >"$RUNNER_TEMP/f.ari"
           "$ari" test "$RUNNER_TEMP/f.ari" >/dev/null \

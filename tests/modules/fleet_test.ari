@@ -1,0 +1,103 @@
+# The builders, builds and activity modules (share/cypkg/builders.ari, builds.ari, activity.ari),
+# each mounted alone in its own window against the fixture registry, through the holes main.ari
+# grants (args, shown, auth). Each test waits for the module's <name>.seq to count one more
+# finished request and asserts on what its view reads. tests/modules.sh puts the fixture's URL in
+# place of @SERVER@. The fixture serves fleet.json: 20 builders (14 online), 30 build jobs,
+# 30 activity events.
+
+meta:
+  name: cypkg-fleet-test
+  min_libcvc: 3.7.4
+
+requires: [net]
+
+import: ../../share/cypkg/lib.ari
+
+args:
+  server: {type: string, default: "@SERVER@"}
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "auth.signed_in" "0")
+    (state-set "tree.builders.open" 1)
+    (state-set "tree.builds.open" 1)
+    (state-set "tree.activity.open" 1))
+
+windows:
+  - window: Builders
+    id: builders
+    children:
+      - load: ../../share/cypkg/builders.ari
+        as: b
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.builders.open, mode: ro }
+          auth: { to: auth, mode: ro }
+  - window: Builds
+    id: builds
+    children:
+      - load: ../../share/cypkg/builds.ari
+        as: j
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.builds.open, mode: ro }
+          auth: { to: auth, mode: ro }
+  - window: Activity
+    id: activity
+    children:
+      - load: ../../share/cypkg/activity.ari
+        as: a
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.activity.open, mode: ro }
+          auth: { to: auth, mode: ro }
+
+tests:
+  builders lists the fleet and counts who is online: |
+    (begin
+      (set i 0)
+      (while (if (< (int (state-get "includes.b.builders.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.b.builders.count") "20") (state-get "includes.b.builders.count"))
+      (assert (= (state-get "includes.b.builders.status") "14 of 20 online") (state-get "includes.b.builders.status"))
+      (assert (= (state-get "includes.b.builders.res.builders.0.name") "star-00")))
+
+  Refresh asks again at once: |
+    (begin
+      (set n (int (state-get "includes.b.builders.seq")))
+      (state-set "includes.b.req.refresh" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.b.builders.seq")) n) (< i 50) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (> (int (state-get "includes.b.builders.seq")) n) "Refresh waited for the timer"))
+
+  builds shows the newest jobs a page at a time: |
+    (begin
+      (set i 0)
+      (while (if (< (int (state-get "includes.j.builds.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.j.builds.status") "jobs 1-10 of 30") (state-get "includes.j.builds.status"))
+      (assert (= (state-get "includes.j.builds.res.jobs.0.id") "24252"))
+      (set n (int (state-get "includes.j.builds.seq")))
+      (state-set "includes.j.builds.offset" 20)
+      (state-set "includes.j.req.refresh" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.j.builds.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.j.builds.status") "jobs 21-30 of 30") (state-get "includes.j.builds.status")))
+
+  a status filter starts again from the newest matching job: |
+    (begin
+      (set n (int (state-get "includes.j.builds.seq")))
+      ;; As the view's combo does: set the filter and ask for a refresh.
+      (state-set "includes.j.builds.filter" "running")
+      (state-set "includes.j.req.refresh" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.j.builds.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.j.builds.offset") "0"))
+      (assert (= (state-get "includes.j.builds.res.jobs.0.status") "running"))
+      (assert (string.starts-with (state-get "includes.j.builds.status") "jobs 1-")))
+
+  activity lists the latest events: |
+    (begin
+      (set i 0)
+      (while (if (< (int (state-get "includes.a.activity.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.a.activity.status") "the latest 20 events") (state-get "includes.a.activity.status"))
+      (assert (= (state-get "includes.a.activity.res.events.0.kind") "yank")))

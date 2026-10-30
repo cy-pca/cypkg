@@ -186,3 +186,204 @@ units:
       # The progress bar: the package module draws pkg.bar while a request is in flight.
       - text: ""
         bind: pkg.bar
+
+  # ── The fleet windows (main.ari's View menu opens them). Each module keeps its reply under its
+  # own name (builders.*, builds.*, activity.*) and draws <name>.bar while a request is in flight.
+
+  builders_view:
+    type: group
+    children:
+      - type: group
+        layout: { kind: horizontal }
+        children:
+          - type: button
+            label: "Refresh"
+            on: (state-set "req.refresh" "1")
+          - text: ""
+            bind: builders.status
+      - separator
+      - type: group
+        layout: { kind: grid, col_widths: [152, 136, 64, 48, 64, 128] }
+        visible_when: (> (int (state-get "builders.count")) 0)
+        children:
+          - text: "name"
+          - text: "platform"
+          - text: "status"
+          - text: "jobs"
+          - text: "version"
+          - text: "heartbeat"
+      - type: group
+        repeat: (state-get "builders.count")
+        children:
+          - type: group
+            id: builder{i}
+            layout: { kind: grid, col_widths: [152, 136, 64, 48, 64, 128] }
+            children:
+              - text: ""
+                bind: '(let ((n (state-get "builders.res.builders.{i}.name"))) (if (> (string.length n) 18) (string.join (list (string.substring n 0 17) "…") "") n))'
+              - text: ""
+                bind: '(string.join (list (state-get "builders.res.builders.{i}.platform") (state-get "builders.res.builders.{i}.arch")) "/")'
+              - text: ""
+                bind: builders.res.builders.{i}.status
+              - text: ""
+                bind: '(string.join (list (state-get "builders.res.builders.{i}.current_jobs") (state-get "builders.res.builders.{i}.max_jobs")) "/")'
+              - text: ""
+                bind: '(let ((v (state-get "builders.res.builders.{i}.version"))) (if (> (string.length v) 7) (string.join (list (string.substring v 0 6) "…") "") v))'
+              - text: ""
+                bind: '(string.replace (string.substring (state-get "builders.res.builders.{i}.last_heartbeat") 0 16) "T" " ")'
+      - text: ""
+        bind: builders.bar
+
+  builds_view:
+    type: group
+    children:
+      - type: group
+        layout: { kind: grid, col_widths: [200, 104, 300] }
+        children:
+          - type: combo
+            label: "Status"
+            bind: builds.filter
+            options: [all, queued, running, succeeded, failed, cancelled]
+            on: (state-set "req.refresh" "1")
+          - type: button
+            label: "Refresh"
+            on: (state-set "req.refresh" "1")
+          - text: ""
+            bind: builds.status
+      - separator
+      - type: group
+        layout: { kind: grid, col_widths: [56, 176, 136, 80, 48, 128] }
+        visible_when: (> (int (state-get "builds.count")) 0)
+        children:
+          - text: "job"
+          - text: "recipe"
+          - text: "platform"
+          - text: "status"
+          - text: "on"
+          - text: "submitted"
+      - type: group
+        repeat: (state-get "builds.count")
+        children:
+          - type: group
+            id: build{i}
+            layout: { kind: grid, col_widths: [56, 176, 136, 80, 48, 128] }
+            children:
+              - text: ""
+                bind: builds.res.jobs.{i}.id
+              - text: ""
+                bind: '(let ((n (state-get "builds.res.jobs.{i}.recipe_name"))) (if (> (string.length n) 21) (string.join (list (string.substring n 0 20) "…") "") n))'
+              - text: ""
+                bind: '(string.join (list (state-get "builds.res.jobs.{i}.platform") (state-get "builds.res.jobs.{i}.arch")) "/")'
+              - text: ""
+                bind: builds.res.jobs.{i}.status
+              - text: ""
+                bind: builds.res.jobs.{i}.builder_id
+              - text: ""
+                bind: '(string.replace (string.substring (state-get "builds.res.jobs.{i}.submitted_at") 0 16) "T" " ")'
+      - separator
+      - type: group
+        layout: { kind: horizontal }
+        visible_when: (> (int (state-get "builds.total")) (int (state-get "args.page")))
+        children:
+          - type: button
+            label: "< Newer"
+            enabled_when: (> (int (state-get "builds.offset")) 0)
+            on: |
+              (begin
+                (state-set "builds.offset"
+                  (let ((o (- (int (state-get "builds.offset")) (int (state-get "args.page"))))) (if (< o 0) 0 o)))
+                (state-set "req.refresh" "1"))
+          - type: button
+            label: "Older >"
+            enabled_when: (< (+ (int (state-get "builds.offset")) (int (state-get "builds.count"))) (int (state-get "builds.total")))
+            on: |
+              (begin
+                (state-set "builds.offset" (+ (int (state-get "builds.offset")) (int (state-get "args.page"))))
+                (state-set "req.refresh" "1"))
+      - text: ""
+        bind: builds.bar
+
+  activity_view:
+    type: group
+    children:
+      - type: group
+        layout: { kind: horizontal }
+        children:
+          - type: button
+            label: "Refresh"
+            on: (state-set "req.refresh" "1")
+          - text: ""
+            bind: activity.status
+      - separator
+      - type: group
+        layout: { kind: grid, col_widths: [136, 72, 176, 128, 136] }
+        visible_when: (> (int (state-get "activity.count")) 0)
+        children:
+          - text: "when"
+          - text: "event"
+          - text: "package"
+          - text: "version"
+          - text: "platform"
+      - type: group
+        repeat: (state-get "activity.count")
+        children:
+          - type: group
+            id: event{i}
+            layout: { kind: grid, col_widths: [136, 72, 176, 128, 136] }
+            children:
+              - text: ""
+                bind: '(string.replace (string.substring (state-get "activity.res.events.{i}.created_at") 0 16) "T" " ")'
+              - text: ""
+                bind: activity.res.events.{i}.kind
+              - text: ""
+                bind: '(let ((n (state-get "activity.res.events.{i}.name"))) (if (> (string.length n) 22) (string.join (list (string.substring n 0 21) "…") "") n))'
+              - text: ""
+                bind: '(let ((v (state-get "activity.res.events.{i}.version"))) (if (> (string.length v) 15) (string.join (list (string.substring v 0 14) "…") "") v))'
+              - text: ""
+                bind: '(string.join (list (state-get "activity.res.events.{i}.platform") (state-get "activity.res.events.{i}.arch")) "/")'
+      - text: ""
+        bind: activity.bar
+
+  # The account window: who the registry says you are, and signing in and out.
+  account_view:
+    type: group
+    children:
+      - text: ""
+        bind: account.status
+      - type: group
+        visible_when: (= (state-get "account.signed_in") "1")
+        children:
+          - text: "name"
+            bind: account.who.name
+          - text: "role"
+            bind: account.who.role
+          - text: "signed in with"
+            bind: account.who.kind
+          - text: "orgs"
+            bind: account.orgs
+          - type: button
+            label: "Sign out"
+            on: (state-set "req.signout" "1")
+      - separator
+      - type: group
+        visible_when: (!= (state-get "account.signed_in") "1")
+        children:
+          - text: ""
+            bind: account.pairing_note
+          - type: button
+            label: "Sign in with a browser"
+            enabled_when: (= (state-get "account.can_pair") "1")
+            on: (state-set "req.pair" "1")
+          - text: "code"
+            bind: account.code
+            visible_when: (!= (state-get "account.code") "")
+          - text: "approve at"
+            bind: account.url
+            visible_when: (!= (state-get "account.url") "")
+          - type: button
+            label: "Cancel"
+            visible_when: (!= (state-get "account.code") "")
+            on: (state-set "req.cancel" "1")
+          - text: "Or with an API token: cypkg --token-env VAR, where VAR holds a cvctok_ token."
+      - text: ""
+        bind: account.bar
