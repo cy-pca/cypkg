@@ -1,11 +1,14 @@
 """Resolve the merge conflicts between open libcvc PRs that cypkg's CI knows, and no others.
 
-Run by tools/libcvc.sh in a libcvc checkout mid-merge. Each conflicted file must be in RULES, and
-each conflict block in it must match one of the file's rules, or nothing is written and it exits
-1. Temporary: delete a rule once the PRs it reconciles have merged or been rebased onto each
+Run by tools/libcvc.sh in a libcvc checkout mid-merge. Each conflict block must match one of its
+file's rules (RULES) or a rule for any file (ANY_FILE), or nothing is written and it exits 1. Temporary: delete a rule once the PRs it reconciles have merged or been rebased onto each
 other.
 
+In any file, a conflict where both sides only add #include lines keeps them all (sorted).
+
 Known today (2026-10-30):
+  src/cvc/tests/state_exec_builtins_test.cpp, master (#889's <cstdlib>) vs #883 (<cmath>):
+    the include rule.
   src/ari/main.cpp, transfix/libcvc#896 (ari test, quit codes) vs #887 (the browser pages). Both
   sides of both hunks are wanted:
     1. #896 adds "--tap" to the host flags; #887 makes the options mutable and adds the browser
@@ -33,7 +36,17 @@ def ari_main_check(ours, theirs):
     return None
 
 
+def includes_only(ours, theirs):
+    """Both sides only add #include lines: keep them all, sorted. Safe in any file."""
+    lines = (ours + theirs).splitlines(True)
+    if lines and all(l.startswith("#include ") for l in lines):
+        return "".join(sorted(set(lines)))
+    return None
+
+
 RULES = {"src/ari/main.cpp": [ari_main_flags, ari_main_check]}
+# Rules tried in every file, after its own.
+ANY_FILE = [includes_only]
 
 
 def main():
@@ -43,10 +56,7 @@ def main():
         return 1
     out = {}
     for f in files:
-        rules = RULES.get(f)
-        if not rules:
-            print(f"libcvc-resolve: no rule for {f}", file=sys.stderr)
-            return 1
+        rules = RULES.get(f, []) + ANY_FILE
         text = open(f).read()
 
         def fix(m):
