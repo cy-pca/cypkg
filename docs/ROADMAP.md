@@ -50,7 +50,7 @@ transfix/libcvc#710.
 | C1 | The registry serves `tools/site.sh`'s output at `/apps/cypkg/` with a strict CSP, as `tests/registry/fixture_registry.py --site` does: ari's page, cypkg's documents and `web/ariadne.config.json` (`--net`, `--server {origin}`) | later; Joe isn't ready to put it on cvcpkg.org, so GitHub Pages hosts it for now (C5) |
 | C5 | cvcpkg.org allows `https://cy-pca.github.io` in `CVCPKG_CORS_ORIGINS`, so the GitHub Pages build (https://cy-pca.github.io/cypkg/, `web/ariadne.config.pages.json`) can call its API. Today's CORS doesn't list it: the preflight is a 400, and GETs carry no `Access-Control-Allow-Origin` | M0 (browser) |
 | C2 | Check that every action the web pages do through cookie forms also has a Bearer JSON endpoint. Tokens, org members and admin stats do (`/v1/tokens`, `/v1/orgs/{slug}/members`, `/v1/admin/*`). Add the ones that don't | M3 |
-| C3 | Add the `cypkg` recipe to the shared recipe set | M5 |
+| C3 | The `cypkg` recipe. It lives in this repo (`recipes/cypkg/`), as libcvc's do, and builds; publish it once an `ari` release has the PRs cypkg needs | M5 |
 | C4 | One package's dependencies and dependents. `/v1/deps` returns the whole catalog's graph (1.75 MB on cvcpkg.org), which is too much to fetch for one package page. For now the package page shows nothing for dependencies | M1 |
 
 ## Milestones

@@ -1,0 +1,50 @@
+schema_version: 1
+recipe:
+  name: cypkg
+  upstream_version: "0.1.0"
+  cvc_revision: 1
+  maintainer: "cvcpkg group"
+  maintainer_email: "info@cvcpkg.org"
+  maintainer_url: "https://cvcpkg.org"
+  homepage: https://github.com/cy-pca/cypkg
+  license: MIT
+  tags: [ui, terminal, tui, tools, packaging]
+  description: >-
+    cypkg, a terminal client for cvcpkg registries, written as Ariadne documents: search the
+    catalog with the web page's filters and open a package to see its builds and install line.
+    `cypkg` runs the documents in the stock ari host (FTXUI, or `--tvision`), over SSH too, with
+    the network allowed to the registry's origin only. `cypkg --server URL` browses another
+    registry. Documents only: share/cypkg/ and the bin/cypkg launcher, on every platform ari is.
+
+# Documents and a launcher, nothing compiled, so one build serves every platform. The launcher
+# runs the ari beside it in the prefix (the runtime dependency), else ari on PATH.
+#
+# Not published yet. No released ari has what cypkg needs: json-parse (transfix/libcvc#883),
+# functions: (#900) and module on_tick (#904); .github/workflows/test.yml lists the open PRs.
+# Publish once an ari release has them, with `version: ">=<that release>"` on the ari dependency
+# below. Until then an older ari stops at main.ari's requires: and says what it lacks.
+source:
+  # This repository: recipes/cypkg/../.. is its root.
+  type: vendored
+  path: ../..
+
+patches: []
+
+depends:
+  build: []
+  runtime:
+    - name: ari
+  host_tools: []
+
+build:
+  build_type_independent: true
+  matrix:
+    - platform: any
+      script: build.sh
+
+package:
+  files:
+    - bin/cypkg
+    - bin/cypkg.cmd
+    - share/cypkg/
+    - share/doc/cypkg/
