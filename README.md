@@ -55,6 +55,16 @@ it needs no CORS.
 - The page runs under a strict Content-Security-Policy: no inline code or
   style, no eval, nothing from another origin.
 
+**GitHub Pages, for now.** Until a registry serves it, CI publishes the page
+from `main` to https://cy-pca.github.io/cypkg/.
+- That build uses `web/ariadne.config.pages.json`, which browses
+  https://cvcpkg.org: `--net-allow https://cvcpkg.org` and
+  `--server https://cvcpkg.org`.
+- That's another origin, so cvcpkg.org must allow `https://cy-pca.github.io`
+  with CORS (`CVCPKG_CORS_ORIGINS`). Until it does, the page loads and says
+  "search failed: ... (network or CORS)". Checked locally from a plain static
+  server: CORS is the only thing in the way.
+
 To try it, serve a site with the fixture registry and open
 `http://127.0.0.1:8766/apps/cypkg/`:
 

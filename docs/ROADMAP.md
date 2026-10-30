@@ -47,7 +47,8 @@ transfix/libcvc#710.
 
 | # | Feature | Needed by |
 |---|---------|-----------|
-| C1 | The registry serves `tools/site.sh`'s output at `/apps/cypkg/` with a strict CSP, as `tests/registry/fixture_registry.py --site` does: ari's page, cypkg's documents and `web/ariadne.config.json` (`--net`, `--server {origin}`) | M0 (browser) |
+| C1 | The registry serves `tools/site.sh`'s output at `/apps/cypkg/` with a strict CSP, as `tests/registry/fixture_registry.py --site` does: ari's page, cypkg's documents and `web/ariadne.config.json` (`--net`, `--server {origin}`) | later; Joe isn't ready to put it on cvcpkg.org, so GitHub Pages hosts it for now (C5) |
+| C5 | cvcpkg.org allows `https://cy-pca.github.io` in `CVCPKG_CORS_ORIGINS`, so the GitHub Pages build (https://cy-pca.github.io/cypkg/, `web/ariadne.config.pages.json`) can call its API. Today's CORS doesn't list it: the preflight is a 400, and GETs carry no `Access-Control-Allow-Origin` | M0 (browser) |
 | C2 | Check that every action the web pages do through cookie forms also has a Bearer JSON endpoint. Tokens, org members and admin stats do (`/v1/tokens`, `/v1/orgs/{slug}/members`, `/v1/admin/*`). Add the ones that don't | M3 |
 | C3 | Add the `cypkg` recipe to the shared recipe set | M5 |
 | C4 | One package's dependencies and dependents. `/v1/deps` returns the whole catalog's graph (1.75 MB on cvcpkg.org), which is too much to fetch for one package page. For now the package page shows nothing for dependencies | M1 |
@@ -127,7 +128,10 @@ To do for M0:
   - Measured locally: `ari.wasm` is 8.8 MB raw, 3.1 MB gzipped; `ari.js` is
     26 KB gzipped; xterm.js is 0.4 MB. The first search results show 3.7 s
     after navigation (headless Chrome, localhost, cold).
-  - Left: a registry serving it (C1), and #887 merging. #887 conflicts with
+  - GitHub Pages hosts it for now: CI deploys `main`'s tested page to
+    https://cy-pca.github.io/cypkg/ with `web/ariadne.config.pages.json`.
+    It needs cvcpkg.org's CORS to allow that origin (C5).
+  - Left: C5, #887 merging, and later a registry serving it (C1). #887 conflicts with
     #896 in `src/ari/main.cpp`; `tools/libcvc-resolve.py` resolves that until
     one of them is rebased.
 - **Wrapped text (L5).** Until it lands, long descriptions are cut at 89

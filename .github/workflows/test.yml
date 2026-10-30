@@ -253,6 +253,33 @@ jobs:
           path: shots
           if-no-files-found: ignore
 
+      # GitHub Pages: the same page with web/ariadne.config.pages.json, which browses
+      # https://cvcpkg.org. Only main's tested build is published (the pages job deploys it).
+      - name: Assemble the GitHub Pages site
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: tools/site.sh _libcvc/build-wasm/bin pages web/ariadne.config.pages.json
+
+      - name: Upload the GitHub Pages site
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages/apps/cypkg
+
+  pages:
+    name: deploy to GitHub Pages
+    needs: browser
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
   contract:
     name: contract with cvcpkg.org
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
