@@ -43,7 +43,11 @@ package_nulls|--package edge-nulls
 package_missing|--package no-such-package
 package_fault_500|--package fault-500
 package_fault_badjson|--package fault-badjson
-package_fault_shape|--package fault-shape'
+package_fault_shape|--package fault-shape
+window_builders|--open builders
+window_builds|--open builds
+window_activity|--open activity
+window_account|--open account'
 
 tmp=$(mktemp -d)
 trap 'kill "$pid" 2>/dev/null || true; rm -rf "$tmp"' EXIT INT TERM

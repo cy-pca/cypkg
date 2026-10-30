@@ -1,0 +1,30 @@
+ cypkg  View
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│Search: []                           Platform: < all >     Arch: < all >      Link: < all >       │
+│builds 1╭ Activity [x]─────────────────────────────────────────────────────────────────────────╮  │
+├────────│[ Refresh ]the latest 20 events                                                      ┃│──┤
+│        ├─────────────────────────────────────────────────────────────────────────────────────┃│  │
+│[ Open ]│when             event    package               version         platform             ┃│  │
+│[ Open ]│2026-10-30 20:48 yank     libglvnd              1.7.0+cvc.1     netbsd/x86_64        ┃│  │
+│[ Open ]│2026-10-30 20:38 yank     libglvnd              1.7.0+cvc.2     netbsd/x86_64        ┃│  │
+│[ Open ]│2026-10-30 20:36 publish  libglvnd              1.7.0+cvc.3     netbsd/x86_64        ┃│  │
+│[ Open ]│2026-10-30 20:33 publish  libdrm                2.4.134+cvc.1   netbsd/x86_64        ┃│  │
+│[ Open ]│2026-10-30 20:03 publish  libxcb                1.17.0+cvc.4    netbsd/x86_64        ┃│  │
+│[ Open ]│2026-10-30 20:01 publish  python311             3.11.13+cvc.13  netbsd/x86_64        ┃│  │
+│[ Open ]│2026-10-30 19:53 publish  mesa                  25.3.6+cvc.1    freebsd/x86_64       ┃│  │
+│[ Open ]│2026-10-30 19:42 publish  openssl               3.4.1+cvc.11    netbsd/x86_64        ┃│  │
+│[ Open ]│2026-10-30 19:40 publish  libxcb                1.17.0+cvc.4    freebsd/x86_64       ┃│  │
+├────────│2026-10-30 19:39 publish  libglvnd              1.7.0+cvc.3     freebsd/x86_64       ┃│──┤
+│[ < Prev│2026-10-30 19:38 publish  libdrm                2.4.134+cvc.1   freebsd/x86_64       ┃│  │
+│        │2026-10-30 19:38 publish  libxxf86vm            1.1.7+cvc.1     netbsd/x86_64         │  │
+│        │2026-10-30 19:38 publish  libxshmfence          1.3.3+cvc.1     netbsd/x86_64         │  │
+│        │2026-10-30 19:38 publish  libxxf86vm            1.1.7+cvc.1     freebsd/x86_64        │  │
+│        │2026-10-30 19:38 publish  libxshmfence          1.3.3+cvc.1     freebsd/x86_64        │  │
+│        ╰──────────────────────────────────────────────────────────────────────────────────────╯  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯

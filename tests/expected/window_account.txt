@@ -1,0 +1,30 @@
+ cypkg  View
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│Search: []                           Platform: < all >     Arch: < all >      Link: < all >       │
+│builds 1-10 of 196, 10 packages                                                                   │
+├───────────╭ Account [x]──────────────────────────────────────────────────────────────────╮───────┤
+│        nam│Not signed in.                                                                │       │
+│[ Open ]ari├──────────────────────────────────────────────────────────────────────────────┤       │
+│[ Open ]ari│With an API token: run cypkg --token-env VAR, where VAR holds a cvctok_ token.│       │
+│[ Open ]ari│A browser sign-in needs a newer ari (sha256-hex, random-token).               │       │
+│[ Open ]ari│[ Sign in with a browser ]                                                    │       │
+│[ Open ]ari│                                                                              │       │
+│[ Open ]ari│                                                                              │       │
+│[ Open ]ari│                                                                              │       │
+│[ Open ]ari│                                                                              │       │
+│[ Open ]ari│                                                                              │       │
+│[ Open ]ari│                                                                              │       │
+├───────────│                                                                              │───────┤
+│[ < Prev ][╰──────────────────────────────────────────────────────────────────────────────╯       │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯

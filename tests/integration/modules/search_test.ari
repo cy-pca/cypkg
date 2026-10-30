@@ -24,7 +24,8 @@ init: |
   (begin
     (state-set "view" "search")
     (state-set "nav.open" "")
-    (state-set "nav.start" 0))
+    (state-set "nav.start" 0)
+    (state-set "auth.signed_in" "0"))
 
 windows:
   - window: test
@@ -35,6 +36,7 @@ windows:
           args: { to: args, mode: ro }
           view: view
           nav: nav
+          auth: { to: auth, mode: ro }
 
 tests:
   the start-up search lists every build: |
@@ -133,6 +135,6 @@ tests:
       (state-set "includes.s.req.search" "1")
       (set i 0)
       (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
-      (assert (= (state-get "includes.s.search.count") "0"))
+      (assert (= (state-get "includes.s.search.count") "0") (str-concat "count=" (state-get "includes.s.search.count") " status=" (state-get "includes.s.search.status") " q=" (state-get "includes.s.search.q")))
       (assert (= (state-get "includes.s.search.status") "no builds match")
               (state-get "includes.s.search.status")))

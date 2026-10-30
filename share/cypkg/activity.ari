@@ -1,0 +1,50 @@
+# activity.ari: what was published and yanked, newest first.
+#
+# A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
+# window's tree.<id>.open, read-only: it refreshes only while open) and view/nav where it needs
+# them. A closed window's module doesn't start until the window is first opened.
+
+meta:
+  name: cypkg-activity
+  min_libcvc: 3.7.4
+
+needs: [args, shown, auth]
+
+import: [views.ari, lib.ari, net.ari]
+
+init: |
+  (begin
+    (state-set "activity.count" 0)
+    (state-set "activity.status" "")
+    (state-set "activity.busy" 0)
+    (state-set "activity.bar" "")
+    (state-set "activity.seq" 0)
+    (state-set "req.refresh" "1"))
+
+on_tick: |
+  (begin
+    (if (= (state-get "req.refresh") "1")
+        (begin
+          (state-set "req.refresh" "0")
+          (set r (fetch (str-concat (state-get "args.server") "/v1/activity")
+                        (with-auth (dict "query" (dict "limit" (* 2 (int-or (state-get "args.page") 10)))))
+                        "activity"))
+          (set d (reply-object r))
+          (set rows (if (= d nil) nil (field d "events")))
+          (if (is-list rows)
+              (begin
+                (state-set-tree "activity.res" d)
+                (state-set "activity.count" (length rows))
+                (state-set "activity.status"
+                  (if (= (length rows) 0) "nothing yet" (str-concat "the latest " (length rows) " events"))))
+              (begin
+                (state-set "activity.count" 0)
+                (state-set "activity.status" (str-concat "failed: " (failure r)))))
+          (state-set "activity.seq" (+ (int (state-get "activity.seq")) 1))))
+
+    ;; Refresh about every 10 s while the window is open; a click is answered at once.
+    (if (not (idle-wait 10 (list "req.refresh")))
+        (if (not (closed (state-get "shown"))) (state-set "req.refresh" "1"))))
+
+root:
+  - include: activity_view

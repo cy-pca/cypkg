@@ -125,3 +125,33 @@ functions: |
   (defun page-bounds (off page total)
     (let ((start (if (>= off total) 0 off)))
       (list start (if (> (+ start page) total) total (+ start page)))))
+
+  ;; ── Waiting ──
+
+  ;; Wait up to secs, in 0.1 s slices, for any of flags (state keys) to read "1". #t when one
+  ;; did, so a module that refreshes on a timer still answers a click within a tenth of a second.
+  (defun idle-wait (secs flags)
+    (set k 0)
+    (set hit #f)
+    (while (if (not hit) (< k (* secs 10)) #f)
+      (for flag flags (if (= (state-get flag) "1") (set hit #t)))
+      (if (not hit) (begin (sleep 0.1) (set k (+ k 1)))))
+    hit)
+
+  ;; ── Tables ──
+
+  ;; A timestamp as "YYYY-MM-DD HH:MM" (UTC, as the server sends it), or "" for none.
+  (defun when-text (ts)
+    (let ((t2 (text ts)))
+      (if (< (string.length t2) 16) t2
+          (str-concat (string.substring t2 0 10) " " (string.substring t2 11 5)))))
+
+  ;; platform/arch.
+  (defun where (platform arch) (str-concat (text platform) "/" (text arch)))
+
+  ;; A builder's load, "jobs/max".
+  (defun jobs-text (current max) (str-concat (text current) "/" (text max)))
+
+  ;; Whether a window's open state (tree.<id>.open) says closed.
+  (defun closed (v) (let ((t2 (text v))) (if (= t2 "0") #t (= t2 "false"))))
+

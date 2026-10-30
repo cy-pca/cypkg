@@ -1,0 +1,50 @@
+# builders.ari: the builder fleet: name, platform, status, load, version, last heartbeat.
+#
+# A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
+# window's tree.<id>.open, read-only: it refreshes only while open) and view/nav where it needs
+# them. A closed window's module doesn't start until the window is first opened.
+
+meta:
+  name: cypkg-builders
+  min_libcvc: 3.7.4
+
+needs: [args, shown, auth]
+
+import: [views.ari, lib.ari, net.ari]
+
+init: |
+  (begin
+    (state-set "builders.count" 0)
+    (state-set "builders.status" "")
+    (state-set "builders.busy" 0)
+    (state-set "builders.bar" "")
+    (state-set "builders.seq" 0)
+    (state-set "req.refresh" "1"))
+
+on_tick: |
+  (begin
+    (if (= (state-get "req.refresh") "1")
+        (begin
+          (state-set "req.refresh" "0")
+          (set r (fetch (str-concat (state-get "args.server") "/v1/builders") (with-auth (dict))
+                        "builders"))
+          (set d (reply-object r))
+          (set rows (if (= d nil) nil (field d "builders")))
+          (if (is-list rows)
+              (begin
+                (state-set-tree "builders.res" d)
+                (state-set "builders.count" (length rows))
+                (set online 0)
+                (for b rows (if (= (field b "status") "online") (set online (+ online 1))))
+                (state-set "builders.status" (str-concat online " of " (length rows) " online")))
+              (begin
+                (state-set "builders.count" 0)
+                (state-set "builders.status" (str-concat "failed: " (failure r)))))
+          (state-set "builders.seq" (+ (int (state-get "builders.seq")) 1))))
+
+    ;; Refresh about every 10 s while the window is open; a click is answered at once.
+    (if (not (idle-wait 10 (list "req.refresh")))
+        (if (not (closed (state-get "shown"))) (state-set "req.refresh" "1"))))
+
+root:
+  - include: builders_view

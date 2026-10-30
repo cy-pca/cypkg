@@ -1,0 +1,65 @@
+# The account module (share/cypkg/account.ari) mounted alone, signed in. tests/modules.sh runs this
+# with the fixture's test token handed to ari (--credential-env cvcpkg=..., bound to the fixture
+# by a policy file), as bin/cypkg --token-env does. This document stands in for main.ari: it asks
+# the host whether it holds the credential, and forgets it when the account window asks.
+
+meta:
+  name: cypkg-account-test
+  min_libcvc: 3.7.4
+
+requires: [net]
+
+import: ../../share/cypkg/lib.ari
+
+args:
+  server: {type: string, default: "@SERVER@"}
+
+init: |
+  (begin
+    (state-set "auth.signed_in" (if (has? "net-auth-has?") (if (net-auth-has? "cvcpkg") "1" "0") "0"))
+    (state-set "auth.signout" "0")
+    (state-set "auth.can_pair" "0")
+    (state-set "tree.account.open" 1))
+
+on_tick: |
+  (if (= (state-get "auth.signout") "1")
+      (begin
+        (state-set "auth.signout" "0")
+        (if (has? "net-auth-forget") (net-auth-forget "cvcpkg"))
+        (state-set "auth.signed_in" "0")))
+
+windows:
+  - window: Account
+    id: account
+    children:
+      - load: ../../share/cypkg/account.ari
+        as: c
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.account.open, mode: ro }
+          auth: auth
+
+tests:
+  the token signs in, and whoami names the account: |
+    (begin
+      (assert (= (state-get "auth.signed_in") "1") "the host has no cvcpkg credential")
+      (set i 0)
+      (while (if (< (int (state-get "includes.c.account.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "includes.c.account.signed_in") "1") (state-get "includes.c.account.status"))
+      (assert (= (state-get "includes.c.account.who.name") "fixture-tester"))
+      (assert (= (state-get "includes.c.account.orgs") "cvc (member)") (state-get "includes.c.account.orgs")))
+
+  without a hash and a CSPRNG, the browser sign-in says so: |
+    (begin
+      (assert (= (state-get "includes.c.account.can_pair") "0"))
+      (assert (string.contains (state-get "includes.c.account.pairing_note") "sha256-hex")))
+
+  Sign out forgets the token: |
+    (begin
+      (set n (int (state-get "includes.c.account.seq")))
+      (state-set "includes.c.req.signout" "1")
+      (set i 0)
+      (while (if (<= (int (state-get "includes.c.account.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (= (state-get "auth.signed_in") "0"))
+      (assert (= (state-get "includes.c.account.signed_in") "0"))
+      (assert (= (state-get "includes.c.account.status") "Not signed in.") (state-get "includes.c.account.status")))

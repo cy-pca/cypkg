@@ -11,6 +11,11 @@ usage: cypkg [--server URL] [--tvision] [document flags...]
 
   --server URL   the registry to browse (default $CYPKG_SERVER, else https://cvcpkg.org)
   --tvision      the tvision desktop instead of FTXUI
+  --token-env VAR
+                 sign in with the cvctok_ API token in environment variable VAR (default:
+                 CYPKG_TOKEN, when it's set). ari keeps the token for this run; the documents
+                 never see it, and it goes to the registry's origin only
+  --open LIST    windows to open at start, comma-separated: builders, builds, activity, account
   --q TEXT       search for TEXT at start
   --package NAME open NAME at start
   --page N       rows per page (default 10)
@@ -21,8 +26,12 @@ EOF
 
 server=${CYPKG_SERVER:-https://cvcpkg.org}
 backend=ftxui
+token_env=
+[ -n "${CYPKG_TOKEN:-}" ] && token_env=CYPKG_TOKEN
 while [ $# -gt 0 ]; do
   case $1 in
+    --token-env) [ $# -ge 2 ] || { usage >&2; exit 2; }; token_env=$2; shift 2 ;;
+    --token-env=*) token_env=${1#*=}; shift ;;
     --server) [ $# -ge 2 ] || { usage >&2; exit 2; }; server=$2; shift 2 ;;
     --server=*) server=${1#*=}; shift ;;
     --tvision) backend=tvision; shift ;;
@@ -44,5 +53,16 @@ case $origin in
   http://*|https://*) ;;
   *) echo "cypkg: --server must be an http(s) URL: $server" >&2; exit 2 ;;
 esac
+
+# A token: ari takes it from the environment (--credential-env) and a policy line binds it to the
+# registry's origin, so it is sent nowhere else. The policy file is written for this run only.
+if [ -n "$token_env" ]; then
+  policy=$(mktemp "${TMPDIR:-/tmp}/cypkg-policy.XXXXXX")
+  trap 'rm -f "$policy"' EXIT INT TERM
+  printf 'allow %s\ncredential cvcpkg %s\n' "$origin" "$origin" >"$policy"
+  "$ari" run --backend "$backend" --net-policy "$policy" --credential-env "cvcpkg=$token_env" \
+    "$doc" --server "$server" "$@"
+  exit $?
+fi
 
 exec "$ari" run --backend "$backend" --net-allow "$origin" "$doc" --server "$server" "$@"

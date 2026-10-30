@@ -68,6 +68,13 @@ for backend in "$@"; do
     keys Tab; keys Enter
     wait_for "Back returns to the search" 'Search: \[zstd\]'
     wait_for "... with its filters kept" 'builds 1-5 of 5, 1 package([^s]|$)'
+    # F10 opens the menu bar. FTXUI opens View on Right, so one Down reaches Builders. tvision opens
+    # it on the first Down with nothing selected; Search is the second, Builders the third.
+    keys F10; keys Right; keys Down
+    if [ "$backend" = tvision ]; then keys Down; keys Down; fi
+    keys Enter
+    wait_for "View > Builders opens the builders window" '14 of 20 online'
+    wait_for "... and it lists the fleet" 'star-00 +linux/x86_64'
     keys C-c
     n=0
     while [ ! -s "$tmp/exit" ]; do

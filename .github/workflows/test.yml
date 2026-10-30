@@ -12,8 +12,9 @@ name: test
 #   #902  a bound widget's on: runs after its write (a combo's on:)
 #   #904  a load:ed module's on_tick: runs (stacked on #900)
 #   #905  a link: hole grants the subtree under its target
-#   #887  the browser pages: ari.html runs a document by URL (browser job only; it conflicts
-#         with #896 in src/ari/main.cpp, which tools/libcvc-resolve.py resolves)
+#   #887  the browser pages: ari.html runs a document by URL (browser job only; merged now; it
+#         conflicts with #896 in src/ari/main.cpp, which tools/libcvc-resolve.py resolves)
+#   #914  L4: requests in single-threaded wasm no longer stall the frame loop (browser job only)
 # Empty a list once its PRs have merged; once an ari package (and its web page) has them, install
 # those from cvcpkg instead of building.
 
@@ -33,12 +34,12 @@ on:
         default: "883 896 900 902 904 905"
       libcvc_web_prs:
         description: more libcvc PRs for the browser build
-        default: "887"
+        default: "887 914"
 
 env:
   LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
   LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905' }}
-  LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '887' }}
+  LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '887 914' }}
 
 concurrency:
   group: test-${{ github.ref }}

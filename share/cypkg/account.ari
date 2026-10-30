@@ -1,0 +1,80 @@
+# account.ari: who the registry says you are; signing out; signing in with a browser.
+#
+# A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
+# window's tree.<id>.open, read-only: it refreshes only while open) and view/nav where it needs
+# them. A closed window's module doesn't start until the window is first opened.
+
+meta:
+  name: cypkg-account
+  min_libcvc: 3.7.4
+
+needs: [args, shown, auth]
+
+import: [views.ari, lib.ari, net.ari]
+
+init: |
+  (begin
+    (state-set "account.signed_in" "0")
+    (state-set "account.status" "")
+    (state-set "account.orgs" "")
+    (state-set "account.code" "")
+    (state-set "account.url" "")
+    (state-set "account.busy" 0)
+    (state-set "account.bar" "")
+    (state-set "account.seq" 0)
+    ;; Pairing (cvcpkg's OIDC route for a terminal) needs a hash and a CSPRNG in the DSL; main.ari
+    ;; asks the host (auth.can_pair).
+    (state-set "account.can_pair" (text (state-get "auth.can_pair")))
+    (state-set "account.pairing_note"
+      (if (= (state-get "account.can_pair") "1") ""
+          "A browser sign-in needs a newer ari (sha256-hex, random-token)."))
+    (state-set "req.refresh" "1"))
+
+on_tick: |
+  (begin
+    (if (= (state-get "req.signout") "1")
+        (begin
+          (state-set "req.signout" "0")
+          (state-set "auth.signout" "1")
+          ;; main.ari's tick forgets the token; refresh once it has.
+          (set k 0)
+          (while (if (= (state-get "auth.signout") "1") (< k 50) #f) (sleep 0.02) (set k (+ k 1)))
+          (state-set "req.refresh" "1")))
+    (if (= (state-get "req.pair") "1")
+        (begin
+          (state-set "req.pair" "0")
+          (state-set "account.status" "Signing in with a browser isn't available in this build yet.")))
+    (if (= (state-get "req.refresh") "1")
+        (begin
+          (state-set "req.refresh" "0")
+          (if (signed-in)
+              (begin
+                (set r (fetch (str-concat (state-get "args.server") "/v1/auth/whoami")
+                              (with-auth (dict)) "account"))
+                (set d (reply-object r))
+                (if (= d nil)
+                    (begin
+                      (state-set "account.signed_in" "0")
+                      ;; A refused token is dropped, so the other windows stop sending it and
+                      ;; fall back to anonymous requests.
+                      (if (= (get-attr r "status") 401) (state-set "auth.signout" "1"))
+                      (state-set "account.status"
+                        (if (= (get-attr r "status") 401) "The registry refused the token, so it was dropped."
+                            (str-concat "failed: " (failure r)))))
+                    (begin
+                      (state-set-tree "account.who" d)
+                      (set slugs (list))
+                      (for o (if (is-list (field d "orgs")) (field d "orgs") (list))
+                        (set slugs (append slugs (str-concat (text (field o "slug")) " ("
+                                                             (text (field o "role")) ")"))))
+                      (state-set "account.orgs" (if (= (length slugs) 0) "none" (string.join slugs ", ")))
+                      (state-set "account.signed_in" "1")
+                      (state-set "account.status" (str-concat "Signed in to " (state-get "args.server"))))))
+              (begin
+                (state-set "account.signed_in" "0")
+                (state-set "account.status" "Not signed in.")))
+          (state-set "account.seq" (+ (int (state-get "account.seq")) 1))))
+    (idle-wait 3600 (list "req.refresh" "req.signout" "req.pair")))
+
+root:
+  - include: account_view

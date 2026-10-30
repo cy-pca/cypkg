@@ -28,5 +28,11 @@ for doc in "$here"/modules/*_test.ari; do
   sed "s#@SERVER@#$server#" "$doc" >"$copy"
   copies="$copies $copy"
 done
+# Signed in with the fixture's test token, as bin/cypkg --token-env does: ari takes it from the
+# environment, and a policy line binds it to the fixture's origin. Documents that want an anonymous
+# run say so (auth.signed_in "0"); account_test.ari asks the host.
+printf 'allow %s\ncredential cvcpkg %s\n' "$server" "$server" >"$tmp/policy"
+token=$(python3 -I -c 'import sys; sys.path.insert(0, sys.argv[1]); import fixture_registry as f; print(f.TEST_TOKEN)' "$here/registry")
 # shellcheck disable=SC2086 # the copies are words
-"$ari" test ${1:+"$1"} --timeout 60 --net-allow "$server" $copies
+CYPKG_TEST_TOKEN=$token "$ari" test ${1:+"$1"} --timeout 60 --net-policy "$tmp/policy" \
+  --credential-env cvcpkg=CYPKG_TEST_TOKEN $copies

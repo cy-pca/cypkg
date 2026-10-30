@@ -1,0 +1,53 @@
+# net.ari: the request helper the modules share. Not in lib.ari, which stays pure and is tested
+# with no network: this one needs the host's network verbs, and writes progress to the calling
+# module's own state (programs are chrooted to their module).
+
+meta:
+  name: cypkg-net
+  min_libcvc: 3.7.4
+
+requires:
+  - net
+
+import: lib.ari
+
+functions: |
+  ;; GET url with opts (a dict of query, auth, ...) and wait for the reply in 50 ms slices. Between
+  ;; slices, count the wait in <prefix>.busy and draw it in <prefix>.bar, which the module's view
+  ;; shows. The tick is parked, not blocked, so frames keep drawing.
+  ;;
+  ;;
+  ;; With args.progress "off" it makes a plain blocking request, with no bar. The single-threaded
+  ;; browser build passes that (web/ariadne.config*.json): there an http-get-async future can
+  ;; hang, awaited with or without a timeout. libcvc's L4 work (async fetch in single-threaded
+  ;; wasm) should make the slices work there too.
+  (defun fetch (url opts prefix)
+    (if (= (text (state-get "args.progress")) "off")
+        (http-get url opts)
+        (fetch-sliced url opts prefix)))
+
+  (defun fetch-sliced (url opts prefix)
+    (set f (http-get-async url opts))
+    (set r nil)
+    (set busy (str-concat prefix ".busy"))
+    (set bar (str-concat prefix ".bar"))
+    (state-set busy 1)
+    (while (= r nil)
+      (set r (try (await f 0.05) (catch (TimeoutError e) nil)))
+      (if (= r nil)
+          (begin
+            (state-set busy (+ (int (state-get busy)) 1))
+            (state-set bar (progress-bar (int (state-get busy)) 96)))))
+    (state-set busy 0)
+    (state-set bar "")
+    r)
+
+  ;; Whether this run is signed in to the registry. main.ari decides (auth.signed_in, through
+  ;; the auth hole): only the top-level document can ask the host (has?) for its credential verbs.
+  (defun signed-in () (= (text (state-get "auth.signed_in")) "1"))
+
+  ;; opts plus auth: "cvcpkg" when signed in, so the host adds the Bearer header (the document
+  ;; never sees the token). Private orgs' packages show up then.
+  (defun with-auth (opts)
+    (if (signed-in) (begin (set-attr opts "auth" "cvcpkg") opts) opts))
+

@@ -8,6 +8,9 @@ the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
 - GET /v1/search: q, platform, arch, build_type, link, tag, limit, offset,
   facets. Rows are builds, newest first within a name.
 - GET /v1/packages/{name}: every build of one package (none for an unknown name).
+- GET /v1/builders, /v1/builds (status, limit, offset), /v1/activity (limit): rows captured
+  from cvcpkg.org (fleet.json).
+- GET /v1/auth/whoami: a reader named fixture-tester for "Bearer <TEST_TOKEN>", else 401.
 - GET /healthz.
 
 For tests: GET /_requests lists the /v1 requests served so far (path, q, offset, facets), and
@@ -40,6 +43,11 @@ HERE = pathlib.Path(__file__).parent
 # Real rows (capture.py), then synthetic edge cases (edge.json).
 CATALOG = json.loads((HERE / "catalog.json").read_text()) + json.loads(
     (HERE / "edge.json").read_text())["rows"]
+
+# Builders, builds and activity captured from cvcpkg.org (fleet.json), for those windows.
+FLEET = json.loads((HERE / "fleet.json").read_text())
+# The API token tests sign in with (an env var the launcher hands to ari; never a real token).
+TEST_TOKEN = "cvctok_fixture-test-token-0123456789"
 
 # Faults, chosen by the query or package name, for the error paths.
 FAULTS = {
@@ -109,6 +117,34 @@ def search(qs):
     return 200, reply
 
 
+def builders():
+    return 200, {"total": len(FLEET["builders"]), "builders": FLEET["builders"]}
+
+
+def builds(qs):
+    one = lambda k: qs.get(k, [""])[0]
+    rows = [j for j in FLEET["builds"] if not one("status") or j["status"] == one("status")]
+    limit = max(1, min(1000, int(one("limit") or 100)))
+    offset = max(0, int(one("offset") or 0))
+    return 200, {"total": len(rows), "jobs": rows[offset:offset + limit]}
+
+
+def activity(qs):
+    limit = max(1, int(qs.get("limit", ["50"])[0] or 50))
+    ev = FLEET["activity"][:limit]
+    return 200, {"events": ev, "total": len(FLEET["activity"]),
+                 "max_id": max((e["id"] for e in FLEET["activity"]), default=0)}
+
+
+def whoami(authorization):
+    if authorization != "Bearer " + TEST_TOKEN:
+        return 401, {"detail": "Not authenticated"}
+    return 200, {"name": "fixture-tester", "role": "reader", "kind": "token", "principal": "",
+                 "email": "tester@example.org", "issuer": "", "subject": "",
+                 "device": "fixture-tester", "session_id": None, "expires_at": "",
+                 "orgs": [{"slug": "cvc", "role": "member"}]}
+
+
 def package(name):
     name = slow(name)
     if name in FAULTS:
@@ -161,6 +197,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     REQUESTS.clear()
         elif u.path == "/v1/search":
             status, body = search(urllib.parse.parse_qs(u.query))
+        elif u.path == "/v1/builders":
+            status, body = builders()
+        elif u.path == "/v1/builds":
+            status, body = builds(urllib.parse.parse_qs(u.query))
+        elif u.path == "/v1/activity":
+            status, body = activity(urllib.parse.parse_qs(u.query))
+        elif u.path == "/v1/auth/whoami":
+            status, body = whoami(self.headers.get("Authorization", ""))
         elif u.path.startswith("/v1/packages/"):
             status, body = package(urllib.parse.unquote(u.path[len("/v1/packages/"):]))
         elif u.path == "/healthz":

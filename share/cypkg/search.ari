@@ -14,9 +14,9 @@ meta:
   name: cypkg-search
   min_libcvc: 3.7.4
 
-needs: [args, view, nav]
+needs: [args, view, nav, auth]
 
-import: [views.ari, lib.ari]
+import: [views.ari, lib.ari, net.ari]
 
 init: |
   (begin
@@ -51,22 +51,6 @@ on_tick: |
           (state-set "search.sent" filters)
           (state-set "req.search" "1")))
 
-    ;; A request with a progress bar: wait in 50 ms slices, and between them count the wait in
-    ;; search.busy and draw it in search.bar, which the view shows. The tick is parked, not
-    ;; blocked, while it waits, so frames keep drawing.
-    (defun fetch (url query)
-      (set f (http-get-async url (dict "query" query)))
-      (set r nil)
-      (state-set "search.busy" 1)
-      (while (= r nil)
-        (set r (try (await f 0.05) (catch (TimeoutError e) nil)))
-        (if (= r nil)
-            (begin
-              (state-set "search.busy" (+ (int (state-get "search.busy")) 1))
-              (state-set "search.bar" (progress-bar (int (state-get "search.busy")) 96)))))
-      (state-set "search.busy" 0)
-      (state-set "search.bar" "")
-      r)
     (set url (str-concat (state-get "args.server") "/v1/search"))
     (set page (int-or (state-get "args.page") 10))
     (set key (search-key (state-get "search.q") (state-get "search.platform")
@@ -95,9 +79,11 @@ on_tick: |
           (set r (if (= body nil)
                      (begin
                        (state-set "search.status" "searching...")
-                       (fetch url (search-query (state-get "search.q") (state-get "search.platform")
-                                                (state-get "search.arch") (state-get "search.link")
-                                                page off fresh)))
+                       (fetch url (with-auth (dict "query"
+                                    (search-query (state-get "search.q") (state-get "search.platform")
+                                                  (state-get "search.arch") (state-get "search.link")
+                                                  page off fresh)))
+                              "search"))
                      (dict "status" 200 "body" body "error" "")))
           (set d (reply-object r))
           (set rows (reply-rows d))
@@ -127,7 +113,10 @@ on_tick: |
 
           ;; Prefetch the next page in the background, so Next is instant. A failure is left for
           ;; the click to find.
-          (if (if (is-list rows) (< (+ off page) (int (state-get "search.total"))) #f)
+          ;; Not with --progress off (the browser build), where an async request can hang.
+          (if (if (is-list rows)
+                  (if (< (+ off page) (int (state-get "search.total")))
+                      (!= (text (state-get "args.progress")) "off") #f) #f)
               (if (= (kept "next" (+ off page)) nil)
                   (begin
                     (set nf (http-get-async url (dict "query"
