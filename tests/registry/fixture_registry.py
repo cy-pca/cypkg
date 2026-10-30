@@ -10,12 +10,18 @@ the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
 - GET /v1/packages/{name}: every build of one package (none for an unknown name).
 - GET /healthz.
 
+For tests: GET /_requests lists the /v1 requests served so far (path, q, offset, facets), and
+/_requests?reset=1 clears the list. A query or package name starting "slow:" is answered after a
+second, as if for the rest of the name, so a test can watch a request in flight.
+
 With --port 0 it picks a free port and writes it to --port-file. With --site DIR it also serves
 the files under DIR (tools/site.sh's output: /apps/cypkg/...), so the browser build and the API
 share one origin, as on a real registry. Stdlib only.
 """
 
 import argparse
+import threading
+import time
 import collections
 import http.server
 import json
@@ -53,7 +59,21 @@ def ordered(rows):
     return sorted(rows, key=lambda p: p["name"])
 
 
+REQUESTS = []
+REQUESTS_LOCK = threading.Lock()
+
+
+def slow(name):
+    """The name without a "slow:" prefix, after a second's wait when it had one."""
+    if name.startswith("slow:"):
+        time.sleep(1.0)
+        return name[len("slow:"):]
+    return name
+
+
 def search(qs):
+    if qs.get("q", [""])[0].startswith("slow:"):
+        qs = dict(qs, q=[slow(qs["q"][0])])
     one = lambda k: qs.get(k, [""])[0]
     if one("q") in FAULTS:
         return FAULTS[one("q")]
@@ -90,6 +110,7 @@ def search(qs):
 
 
 def package(name):
+    name = slow(name)
     if name in FAULTS:
         return FAULTS[name]
     # As cvcpkg.org does: an unknown name is 200 with no builds, not 404 (tests/contract.py).
@@ -127,7 +148,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(data)
                 return
-        if u.path == "/v1/search":
+        if u.path.startswith("/v1/"):
+            q = urllib.parse.parse_qs(u.query)
+            with REQUESTS_LOCK:
+                REQUESTS.append({"path": u.path, "q": q.get("q", [""])[0],
+                                 "offset": q.get("offset", [""])[0],
+                                 "facets": q.get("facets", [""])[0]})
+        if u.path == "/_requests":
+            with REQUESTS_LOCK:
+                status, body = 200, {"requests": list(REQUESTS)}
+                if "reset" in urllib.parse.parse_qs(u.query):
+                    REQUESTS.clear()
+        elif u.path == "/v1/search":
             status, body = search(urllib.parse.parse_qs(u.query))
         elif u.path.startswith("/v1/packages/"):
             status, body = package(urllib.parse.unquote(u.path[len("/v1/packages/"):]))

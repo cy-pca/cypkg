@@ -12,6 +12,7 @@
 #   search.res.packages.{i}.name .version .platform .arch .link .size_bytes
 #   pkg.name .desc .version .license .homepage .tags .install .status .offset .count .total
 #   pkg.page.{i}.version .where .kind .size .date
+#   search.bar, pkg.bar       a progress bar while a request is in flight ("" otherwise)
 # The views write:
 #   search.q .platform .arch .link .offset, and req.search "1" to ask for a search
 #   nav.open, and view "package", to open a package (the package module reads nav.open)
@@ -103,6 +104,10 @@ units:
                 (state-set "search.offset"
                   (+ (int (state-get "search.offset")) (int (state-get "args.page"))))
                 (state-set "req.search" "1"))
+      # The progress bar: the search module draws search.bar while a request is in flight.
+      - text: ""
+        bind: search.bar
+
 
   package_view:
     type: group
@@ -178,3 +183,6 @@ units:
                 (state-set "pkg.offset"
                   (+ (int (state-get "pkg.offset")) (int (state-get "args.page"))))
                 (state-set "req.pkgpage" "1"))
+      # The progress bar: the package module draws pkg.bar while a request is in flight.
+      - text: ""
+        bind: pkg.bar

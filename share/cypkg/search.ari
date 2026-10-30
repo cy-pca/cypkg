@@ -30,6 +30,12 @@ init: |
     (state-set "search.status" "")
     (state-set "search.sent" "")
     (state-set "search.seq" 0)
+    (state-set "search.key" "")
+    (state-set "search.pc" "")
+    (state-set "search.busy" 0)
+    (state-set "search.bar" "")
+    (state-set "search.next.key" "")
+    (state-set "search.prev.key" "")
     (state-set "req.search" "1"))
 
 # search.seq counts the searches that have finished, so a test can wait for one.
@@ -45,31 +51,92 @@ on_tick: |
           (state-set "search.sent" filters)
           (state-set "req.search" "1")))
 
-    ;; A search: one page of rows.
+    ;; A request with a progress bar: wait in 50 ms slices, and between them count the wait in
+    ;; search.busy and draw it in search.bar, which the view shows. The tick is parked, not
+    ;; blocked, while it waits, so frames keep drawing.
+    (defun fetch (url query)
+      (set f (http-get-async url (dict "query" query)))
+      (set r nil)
+      (state-set "search.busy" 1)
+      (while (= r nil)
+        (set r (try (await f 0.05) (catch (TimeoutError e) nil)))
+        (if (= r nil)
+            (begin
+              (state-set "search.busy" (+ (int (state-get "search.busy")) 1))
+              (state-set "search.bar" (progress-bar (int (state-get "search.busy")) 96)))))
+      (state-set "search.busy" 0)
+      (state-set "search.bar" "")
+      r)
+    (set url (str-concat (state-get "args.server") "/v1/search"))
+    (set page (int-or (state-get "args.page") 10))
+    (set key (search-key (state-get "search.q") (state-get "search.platform")
+                         (state-get "search.arch") (state-get "search.link")))
+    ;; A page kept in slot (next or prev) for this search at offset off, as reply text, or nil.
+    (defun kept (slot off)
+      (if (if (= (state-get (str-concat "search." slot ".key")) key)
+              (= (int-or (state-get (str-concat "search." slot ".offset")) -1) off) #f)
+          (state-get (str-concat "search." slot ".body"))
+          nil))
+    (defun keep (slot off body)
+      (state-set (str-concat "search." slot ".key") key)
+      (state-set (str-concat "search." slot ".offset") off)
+      (state-set (str-concat "search." slot ".body") body))
+
+    ;; A search: one page of rows. A new query or filter asks the server for facets (the honest
+    ;; package count); paging doesn't, and reuses that count. A page already fetched (the next
+    ;; one, prefetched, or the one just left) is parsed from its text with no request.
     (if (= (state-get "req.search") "1")
         (begin
           (state-set "req.search" "0")
-          (state-set "search.status" "searching...")
-          (set r (http-get (str-concat (state-get "args.server") "/v1/search")
-                   (dict "query" (search-query (state-get "search.q") (state-get "search.platform")
-                                               (state-get "search.arch") (state-get "search.link")
-                                               (int-or (state-get "args.page") 10) (state-get "search.offset")))))
+          (set off (int (state-get "search.offset")))
+          (set fresh (!= key (state-get "search.key")))
+          (set body (if fresh nil (kept "next" off)))
+          (if (= body nil) (set body (if fresh nil (kept "prev" off))))
+          (set r (if (= body nil)
+                     (begin
+                       (state-set "search.status" "searching...")
+                       (fetch url (search-query (state-get "search.q") (state-get "search.platform")
+                                                (state-get "search.arch") (state-get "search.link")
+                                                page off fresh)))
+                     (dict "status" 200 "body" body "error" "")))
           (set d (reply-object r))
           (set rows (reply-rows d))
           (if (is-list rows)
               (begin
+                ;; The page being left stays at hand for Prev.
+                (if (if (not fresh) (!= (state-get "search.key") "") #f)
+                    (keep "prev" (int (state-get "search.shown")) (state-get "search.body")))
                 (state-set-tree "search.res" d)
+                (state-set "search.body" (body-text r))
+                (state-set "search.shown" off)
+                (state-set "search.key" key)
+                (if fresh (state-set "search.pc" (text (field d "package_count"))))
                 (set n (length rows))
                 (set total (if (= (field d "total") nil) n (int (field d "total"))))
                 (state-set "search.count" n)
                 (state-set "search.total" total)
                 (state-set "search.status"
-                  (search-status (int (state-get "search.offset")) n total (field d "package_count"))))
+                  (search-status off n total (if (= (state-get "search.pc") "") nil
+                                                 (int (state-get "search.pc"))))))
               (begin
+                (state-set "search.key" "")
                 (state-set "search.count" 0)
                 (state-set "search.total" 0)
                 (state-set "search.status" (search-failure r))))
-          (state-set "search.seq" (+ (int (state-get "search.seq")) 1)))))
+          (state-set "search.seq" (+ (int (state-get "search.seq")) 1))
+
+          ;; Prefetch the next page in the background, so Next is instant. A failure is left for
+          ;; the click to find.
+          (if (if (is-list rows) (< (+ off page) (int (state-get "search.total"))) #f)
+              (if (= (kept "next" (+ off page)) nil)
+                  (begin
+                    (set nf (http-get-async url (dict "query"
+                              (search-query (state-get "search.q") (state-get "search.platform")
+                                            (state-get "search.arch") (state-get "search.link")
+                                            page (+ off page) #f))))
+                    (set nr (await nf))
+                    (if (= (get-attr nr "status") 200)
+                        (keep "next" (+ off page) (body-text nr)))))))))
 
 root:
   - include: search_view

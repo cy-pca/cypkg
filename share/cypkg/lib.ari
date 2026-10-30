@@ -44,11 +44,33 @@ functions: |
   ;; A filter's value as the query sends it: "all" means no filter.
   (defun filter-value (v) (if (= v "all") "" v))
 
-  ;; The query for one page of a search, as the web page sends it. facets=true: without it the
-  ;; server counts packages on the returned page only.
-  (defun search-query (q platform arch link page offset)
+  ;; The query for one page of a search. facets is #t only for a new query or filters: it makes
+  ;; the server count every match (seconds on cvcpkg.org, against a fraction of one without), and
+  ;; it's the only way to get an honest package count; without it the count is page-local, so a
+  ;; page reuses the first page's.
+  (defun search-query (q platform arch link page offset facets)
     (dict "q" q "platform" (filter-value platform) "arch" (filter-value arch)
-          "link" (filter-value link) "limit" page "offset" offset "facets" "true"))
+          "link" (filter-value link) "limit" page "offset" offset
+          "facets" (if facets "true" "false")))
+
+  ;; What makes two searches the same search, paging aside.
+  (defun search-key (q platform arch link) (string.join (list q platform arch link) "|"))
+
+  ;; A reply's body as text (a reply's body is bytes).
+  (defun body-text (r)
+    (let ((b (get-attr r "body"))) (if (is-bytes b) (bytes.decode b) (text b))))
+
+  ;; An indeterminate progress bar, width cells wide (at most 160), for the nth step of a wait: a
+  ;; block that sweeps across and back. "" when n is 0 (nothing in flight). Three slices of a
+  ;; constant, not a loop: a tick redraws it 20 times a second.
+  (defun progress-bar (n width)
+    (if (= n 0) ""
+        (let ((span (- width 6)))
+          (let ((pos (% n (* 2 span))))
+            (let ((at (if (> pos span) (- (* 2 span) pos) pos))
+                  (dots "································································································································································"))
+              (str-concat (string.substring dots 0 at) "██████"
+                          (string.substring dots 0 (- span at))))))))
 
   ;; The status line for n rows from offset off, of total, in pc packages (nil: unknown).
   (defun search-status (off n total pc)
