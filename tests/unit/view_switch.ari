@@ -1,0 +1,37 @@
+# view_switch: one view at a time
+#
+# Both units included, view set to package: the search view is hidden.
+# A view unit test: it includes the unit from share/cypkg/views.ari over state seeded here, with no
+# network. tests/unit.sh renders it with ari snapshot and compares tests/unit/expected/.
+
+meta:
+  name: unit-view_switch
+  min_libcvc: 3.7.4
+
+import: ../../share/cypkg/views.ari
+
+args:
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "view" "package")
+    (state-set "search.q" "hidden")
+    (state-set "search.count" 0)
+    (state-set "search.total" 0)
+    (state-set "search.offset" 0)
+    (state-set "search.status" "this must not show")
+    (state-set "pkg.name" "zlib")
+    (state-set "pkg.count" 0)
+    (state-set "pkg.offset" 0)
+    (state-set "pkg.total" 0)
+    (state-set "pkg.status" "loading..."))
+
+windows:
+  - window: test
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - include: search_view
+      - include: package_view

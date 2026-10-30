@@ -7,7 +7,7 @@ the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
 
 - GET /v1/search: q, platform, arch, build_type, link, tag, limit, offset,
   facets. Rows are builds, newest first within a name.
-- GET /v1/packages/{name}: every build of one package.
+- GET /v1/packages/{name}: every build of one package (none for an unknown name).
 - GET /healthz.
 
 With --port 0 it picks a free port and writes it to --port-file. Stdlib only.
@@ -20,7 +20,18 @@ import json
 import pathlib
 import urllib.parse
 
-CATALOG = json.loads(pathlib.Path(__file__).with_name("catalog.json").read_text())
+HERE = pathlib.Path(__file__).parent
+# Real rows (capture.py), then synthetic edge cases (edge.json).
+CATALOG = json.loads((HERE / "catalog.json").read_text()) + json.loads(
+    (HERE / "edge.json").read_text())["rows"]
+
+# Faults, chosen by the query or package name, for the error paths.
+FAULTS = {
+    "fault-500": (500, {"detail": "internal error"}),
+    "fault-badjson": (200, "<html>not json</html>"),
+    "fault-shape": (200, {"total": 3, "packages": "not a list"}),
+    "fault-empty": (200, {"total": 0, "packages": []}),
+}
 FACETS = {
     "platforms": "platform", "archs": "arch", "build_types": "build_type",
     "links": "link",
@@ -28,12 +39,14 @@ FACETS = {
 
 
 def ordered(rows):
-    rows = sorted(rows, key=lambda p: p["published_at"], reverse=True)
+    rows = sorted(rows, key=lambda p: p["published_at"] or "", reverse=True)
     return sorted(rows, key=lambda p: p["name"])
 
 
 def search(qs):
     one = lambda k: qs.get(k, [""])[0]
+    if one("q") in FAULTS:
+        return FAULTS[one("q")]
     q = one("q").lower()
     rows = [
         p for p in CATALOG
@@ -51,7 +64,7 @@ def search(qs):
         "total": len(rows),
         # As the server does: over every match with facets, over the page without.
         "package_count": len({p["name"] for p in (rows if one("facets") != "false" else page)}),
-        "total_size_bytes": sum(p["size_bytes"] for p in rows),
+        "total_size_bytes": sum(p["size_bytes"] or 0 for p in rows),
         "packages": page,
         "limit": limit,
         "offset": offset,
@@ -67,9 +80,10 @@ def search(qs):
 
 
 def package(name):
+    if name in FAULTS:
+        return FAULTS[name]
+    # As cvcpkg.org does: an unknown name is 200 with no builds, not 404 (tests/contract.py).
     rows = ordered(p for p in CATALOG if p["name"] == name)
-    if not rows:
-        return 404, {"detail": f"package {name!r} not found"}
     return 200, {"total": len(rows), "packages": rows}
 
 
@@ -84,7 +98,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             status, body = 200, {"status": "ok"}
         else:
             status, body = 404, {"detail": "Not Found"}
-        data = json.dumps(body).encode()
+        data = (body if isinstance(body, str) else json.dumps(body, ensure_ascii=False)).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))

@@ -22,14 +22,28 @@ case ${1:-} in
   *) echo "usage: $0 [--update | --show CASE]" >&2; exit 2 ;;
 esac
 
-# name|document flags
+# name|document flags[|server, when not the fixture]
 cases='search_zlib|--q zlib
 search_linux_static|--q zlib --platform linux --link static
 search_page2|--q zlib --offset 10
+search_last_partial|--q zlib --offset 50
+search_page_size_1|--q zstd --page 1
 search_none|--q no-such-package
+search_edge|--q edge
+search_fault_500|--q fault-500
+search_fault_badjson|--q fault-badjson
+search_fault_shape|--q fault-shape
+search_refused|--q zlib|http://127.0.0.1:1
 package_zlib|--package zlib
 package_zlib_page2|--package zlib --pkg-offset 10
-package_missing|--package no-such-package'
+package_last_page|--package zlib --pkg-offset 20
+package_offset_past_end|--package zlib --pkg-offset 99
+package_unicode|--package edge-unicode-zoë
+package_nulls|--package edge-nulls
+package_missing|--package no-such-package
+package_fault_500|--package fault-500
+package_fault_badjson|--package fault-badjson
+package_fault_shape|--package fault-shape'
 
 tmp=$(mktemp -d)
 trap 'kill "$pid" 2>/dev/null || true; rm -rf "$tmp"' EXIT INT TERM
@@ -44,11 +58,12 @@ done
 server=http://127.0.0.1:$(cat "$tmp/port")
 
 fail=0
-printf '%s\n' "$cases" | while IFS='|' read -r name flags; do
+printf '%s\n' "$cases" | while IFS='|' read -r name flags at; do
   [ -z "$only" ] || [ "$only" = "$name" ] || continue
+  at=${at:-$server}
   # shellcheck disable=SC2086 # flags are words
-  "$ari" snapshot --width 100 --height 30 --frames 3 --net-allow "$server" \
-    "$root/share/cypkg/main.ari" --server "$server" $flags >"$tmp/out" 2>"$tmp/err" || {
+  "$ari" snapshot --width 100 --height 30 --frames 3 --net-allow "$at" \
+    "$root/share/cypkg/main.ari" --server "$at" $flags >"$tmp/out" 2>"$tmp/err" || {
     echo "FAIL $name: ari exited $?"; cat "$tmp/err"; exit 1; }
   # The fixture's port changes from run to run: name it, padded to the same width.
   placeholder=$(printf '%-*s' "${#server}" http://registry)

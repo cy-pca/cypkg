@@ -1,0 +1,30 @@
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│[ < Back ]                                                                                        │
+│package: zlib                                                                                     │
+│zlib — a general-purpose lossless data compression library.                                       │
+│latest: 1.3.1+cvc.5                                                                               │
+│license: Zlib                                                                                     │
+│homepage: https://zlib.net/                                                                       │
+│tags: wasi,utils,io,wasm                                                                          │
+│install: cvcpkg install zlib                                                                      │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│builds 21-25 of 25                                                                                │
+│version           platform              build           size         published                    │
+│1.3.1+cvc.3       linux/x86_64          debug static    158 KB       2026-07-08                   │
+│1.3.1+cvc.3       cosmo/x86_64          debug static    103 KB       2026-07-07                   │
+│1.3.1+cvc.3       cosmo/x86_64          release static  103 KB       2026-07-07                   │
+│1.3.1+cvc.3       wasi/wasm32           release static  115 KB       2026-07-07                   │
+│1.3.1+cvc.1       windows/x86_64        release static  238 KB       2026-07-02                   │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│[ < Prev ][ Next > ]                                                                              │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+

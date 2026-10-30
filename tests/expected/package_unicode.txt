@@ -1,0 +1,30 @@
+╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                                         │
+│[ < Back ]                                                                                        │
+│package: edge-unicode-zoë                                                                         │
+│Edge case: accents (zoë, café), CJK (日本語) and an emoji (🎉) in one description, long enoug...  │
+│latest: 1.0.0+cvc.1                                                                               │
+│license: MIT                                                                                      │
+│homepage: https://example.org/zoë                                                                 │
+│tags: edge,unicode                                                                                │
+│install: cvcpkg install edge-unicode-zoë                                                          │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│builds 1-1 of 1                                                                                   │
+│version           platform              build           size         published                    │
+│1.0.0+cvc.1       linux/x86_64          release shared  2 KB         2026-10-01                   │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+│                                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+

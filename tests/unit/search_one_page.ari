@@ -1,0 +1,37 @@
+# search_one_page: everything fits
+#
+# Fewer rows than a page: the pager is hidden.
+# A view unit test: it includes the unit from share/cypkg/views.ari over state seeded here, with no
+# network. tests/unit.sh renders it with ari snapshot and compares tests/unit/expected/.
+
+meta:
+  name: unit-search_one_page
+  min_libcvc: 3.7.4
+
+import: ../../share/cypkg/views.ari
+
+args:
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "view" "search")
+    (state-set "search.q" "zlib")
+    (state-set "search.platform" "all")
+    (state-set "search.arch" "all")
+    (state-set "search.link" "all")
+    (state-set "search.offset" 0)
+    (state-set "search.total" 1)
+    (state-set "search.status" "builds 1-1 of 1, 1 package")
+    (state-set-tree "search.res" (dict "packages" (list
+      (dict "name" "zstd" "version" "1.5.7+cvc.5" "platform" "linux" "arch" "x86_64" "link" "shared" "size_bytes" 511000)
+    )))
+    (state-set "search.count" 1))
+
+windows:
+  - window: test
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - include: search_view

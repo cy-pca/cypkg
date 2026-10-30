@@ -9,9 +9,9 @@ orgs and the registry. The same documents run natively in a terminal and in
 the browser on xterm.js.
 
 > **Status: M0 in progress.** Search and package pages work in both terminal
-> backends, but only in an `ari` built with two unmerged libcvc PRs,
-> transfix/libcvc#888 (network flags) and #883 (JSON). The browser path is
-> still to do. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> backends. They need an `ari` with transfix/libcvc#888 (network flags,
+> merged) and #883 (JSON, not yet merged). The browser path is still to do.
+> See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -68,7 +68,7 @@ shows the same `cvcpkg install` lines to copy.
 ## Layout
 
 ```
-share/cypkg/      the .ari documents (main.ari)
+share/cypkg/      the documents: main.ari (requests, state) and views.ari (the views)
 bin/              the launchers: cypkg (sh) and cypkg.cmd
 tests/            snapshot tests and a fixture registry
 recipe/           the cvcpkg recipe (M5)
@@ -77,8 +77,8 @@ docs/ROADMAP.md   milestones and the libcvc and cvcpkg features each one needs
 
 ## Running from a checkout
 
-`CYPKG_ARI` names the `ari` to run. Until #888 and #883 merge, that is an `ari`
-built from libcvc master with both PRs merged in.
+`CYPKG_ARI` names the `ari` to run. Until #883 merges, that is an `ari` built
+from libcvc master with #883 merged in.
 
 ```bash
 CYPKG_ARI=/path/to/ari bin/cypkg --q zlib
@@ -90,18 +90,38 @@ Document flags: `--q`, `--platform`, `--arch`, `--link`, `--offset`,
 
 ## Tests
 
-`tests/snapshot.sh` starts a fixture registry
-(`tests/registry/fixture_registry.py`, Python stdlib only). The fixture serves
-193 real builds of 7 packages, captured from cvcpkg.org with
-`tests/registry/capture.py`. The script renders each case with
-`ari snapshot` and compares the frame with `tests/expected/`. Any warning from
-the document fails the run.
+`tests/run.sh` runs four layers, stopping at the first that fails. `ARI` names
+the `ari` to run.
+
+| Layer | Script | What it catches |
+|---|---|---|
+| 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units |
+| 2. units | `tests/unit.sh` | Each view in `views.ari`, included in a test document over hand-seeded state, with no network: cut names, wide glyphs, empty results, hidden pagers, one view at a time |
+| 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
+| 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, Ctrl-C |
+| 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
+
+The fixture registry (`tests/registry/fixture_registry.py`, Python stdlib
+only) serves 193 real builds of 7 packages, captured from cvcpkg.org with
+`tests/registry/capture.py`. It also serves three synthetic edge-case packages
+(`edge.json`) and faults chosen by name (`fault-500`, `fault-badjson`,
+`fault-shape`, `fault-empty`).
 
 ```bash
-ARI=/path/to/ari tests/snapshot.sh            # check
+ARI=/path/to/ari tests/run.sh
 ARI=/path/to/ari tests/snapshot.sh --update   # rewrite the expected frames
-ARI=/path/to/ari tests/snapshot.sh --show package_zlib
+ARI=/path/to/ari tests/unit.sh --show search_rows
 ```
+
+Snapshots are frame-for-frame text and fail on any warning. Layer 3b is the
+only one that checks input and the tvision backend, because `ari snapshot`
+can't send keys and always lays out with FTXUI.
+
+The DSL can't share a function between programs yet, so the request logic in
+`main.ari` is tested only as a whole (layer 3), not as units. The libcvc
+changes underway (`(quit code)`, `assert`, `ari test`, and functions a
+document hands to the documents it loads) will let it move into units with
+assertions.
 
 ## License
 

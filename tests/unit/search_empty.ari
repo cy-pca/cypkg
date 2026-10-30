@@ -1,0 +1,34 @@
+# search_empty: no results
+#
+# No rows: the header and the pager are hidden, and the status says why.
+# A view unit test: it includes the unit from share/cypkg/views.ari over state seeded here, with no
+# network. tests/unit.sh renders it with ari snapshot and compares tests/unit/expected/.
+
+meta:
+  name: unit-search_empty
+  min_libcvc: 3.7.4
+
+import: ../../share/cypkg/views.ari
+
+args:
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "view" "search")
+    (state-set "search.q" "nothing")
+    (state-set "search.platform" "linux")
+    (state-set "search.arch" "all")
+    (state-set "search.link" "static")
+    (state-set "search.offset" 0)
+    (state-set "search.count" 0)
+    (state-set "search.total" 0)
+    (state-set "search.status" "no builds match"))
+
+windows:
+  - window: test
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - include: search_view

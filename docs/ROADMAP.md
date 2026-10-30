@@ -24,16 +24,21 @@ work on cvcpkg is tracked as C-items in
 
 | # | Feature | Status | Needed by |
 |---|---------|--------|-----------|
-| L1 | Hosts can turn on the HTTP verbs and the `http(s)://` URI handler, with an origin allowlist that denies by default (`--net-allow`) | transfix/libcvc#888 open | M0 |
-| L2 | Host-owned credentials: a Bearer header for bound origins only, a token captured from a reply and redacted, and optional 0600 persistence. Tokens never enter state | transfix/libcvc#888 open | M2 |
-| L2a | Use L2 with cvcpkg's tokens. #888 covers capturing `access_token` from `/v1/auth/device/token`, sending it, and signing out. Still needed: (a) capturing or redacting `refresh_token` too, which #888 leaves visible to the document; (b) sending a stored credential in a form field, for the refresh at `/v1/auth/token`; (c) a way to supply a `cvctok_` token, such as a host flag that reads it from an environment variable | partly covered by #888 | M2 |
+| L1 | Hosts can turn on the HTTP verbs and the `http(s)://` URI handler, with an origin allowlist that denies by default (`--net-allow`) | transfix/libcvc#888 merged | M0 |
+| L2 | Host-owned credentials: a Bearer header for bound origins only, a token captured from a reply and redacted, and optional 0600 persistence. Tokens never enter state | transfix/libcvc#888 merged | M2 |
+| L2a | Use L2 with cvcpkg's tokens: several fields captured per reply (the access and refresh tokens), a stored credential as a form value (for the refresh at `/v1/auth/token`), and `--credential-env NAME=VAR` for a `cvctok_` token | transfix/libcvc#895 open | M2 |
 | L3 | `json-parse` / `json-encode`, so documents can read REST replies | transfix/libcvc#883 open | M0 |
-| L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP. #887 links `-sFETCH`, and #888 runs the verbs inline there. No browser test makes a request through #887's page with #888's `--net`. A call that runs inline blocks its program until the reply arrives | likely works; untested | M0 (browser) |
+| L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP. #895's CI runs a sign-in, a refresh and a fetch from the single-threaded wasm `ari` under node. Not yet run in a browser through #887's page | tested under node in #895 | M0 (browser) |
 | L5 | A scrolling, virtualized list or table, wrapped text, and a filter box, in **both terminal backends** and FTXUI on wasm | open | M0 |
 | L6 | A general WebSocket verb whose frames arrive as `on_signal`, natively and in wasm | open | M1 |
 | L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 open | M0 (browser) |
 | L10 | ari's xterm.js page as a cvcpkg package, so a registry can serve it (#887 ships it in `arigl-web`) | transfix/libcvc#887 open | M5 |
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
+| L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | in progress (libcvc session) | M0 tests |
+| L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | in progress (libcvc session) | M0 tests |
+| L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | raised with the libcvc session | M1 |
+| L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | raised with the libcvc session | none (worked around) |
+| L16 | (agenda, not planned) file descriptors as state channels or streams | agenda | |
 
 `ari` itself is already packaged. The xterm.js page has been live since
 transfix/libcvc#710.
@@ -74,7 +79,7 @@ transfix/libcvc#710.
 
 ## M0 status
 
-Done, and checked with an `ari` built from libcvc master plus #888 and #883:
+Done, and checked with an `ari` built from libcvc master (#888 merged) plus #883:
 
 - `share/cypkg/main.ari`. **Search:** a query and the platform, arch and link
   filters, paged 10 rows at a time, sent with `facets=true` so that the
@@ -83,16 +88,28 @@ Done, and checked with an `ari` built from libcvc master plus #888 and #883:
   a page at a time. Results are build rows, as on the web page.
 - `bin/cypkg` and `bin/cypkg.cmd`. Each allows only the registry's origin
   (`--net-allow`). `cypkg.cmd` has not been run on Windows.
-- `tests/snapshot.sh`: 7 cases against the fixture registry, all passing.
+- The four test layers in the README's Tests section: 60 checks, all passing
+  (8 static, 6 view units, 21 snapshots, 24 interactive steps across both
+  backends, 1 live contract).
 - Checked by hand:
   - FTXUI and tvision in a 100x30 tmux pane: typing a query, Enter to search,
     Tab to a row's Open, and Back;
   - both views against https://cvcpkg.org.
 
+What the tests found and fixed:
+
+- A filter change didn't re-run the search (L15).
+- A long name ran into the next column.
+- A 1-byte build showed as "0 KB".
+- Bad JSON, a reply of the wrong shape, or null fields stopped the request
+  program.
+- cvcpkg.org answers an unknown package with 200 and no builds, not 404. The
+  fixture had assumed 404.
+
 To do for M0:
 
-- **CI.** It waits for an `ari` package with #888 and #883. Until then the
-  tests run locally.
+- **CI.** It waits for an `ari` package with #883 (and #888, merged). Until
+  then the tests run locally with `tests/run.sh`.
 - **The browser path**: #887's xterm.js page with `"flags": ["--net"]`, served
   by C1. Untested: see L4.
 - **Wrapped text (L5).** Until it lands, long descriptions are cut at 89

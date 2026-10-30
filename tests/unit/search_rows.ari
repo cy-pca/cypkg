@@ -1,0 +1,39 @@
+# search_rows: rows, long names and sizes
+#
+# Three rows: a name cut at its column, a size under 1 KB, and wide glyphs. Prev and Next both show.
+# A view unit test: it includes the unit from share/cypkg/views.ari over state seeded here, with no
+# network. tests/unit.sh renders it with ari snapshot and compares tests/unit/expected/.
+
+meta:
+  name: unit-search_rows
+  min_libcvc: 3.7.4
+
+import: ../../share/cypkg/views.ari
+
+args:
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "view" "search")
+    (state-set "search.q" "zlib")
+    (state-set "search.platform" "all")
+    (state-set "search.arch" "all")
+    (state-set "search.link" "all")
+    (state-set "search.offset" 10)
+    (state-set "search.total" 25)
+    (state-set "search.status" "builds 11-13 of 25, 3 packages")
+    (state-set-tree "search.res" (dict "packages" (list
+      (dict "name" "zlib" "version" "1.3.1+cvc.5" "platform" "linux" "arch" "x86_64" "link" "shared" "size_bytes" 164219)
+      (dict "name" "a-package-name-much-longer-than-the-name-column" "version" "2.0.0" "platform" "macos" "arch" "arm64" "link" "static" "size_bytes" 1)
+      (dict "name" "zoë-日本-🎉" "version" "1.0.0" "platform" "wasm" "arch" "wasm32" "link" "static" "size_bytes" 2048)
+    )))
+    (state-set "search.count" 3))
+
+windows:
+  - window: test
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - include: search_view

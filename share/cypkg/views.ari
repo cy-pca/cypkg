@@ -1,0 +1,179 @@
+# views.ari: cypkg's two views, as units for main.ari to include.
+#
+# Units share the including document's scope, so the bind paths here are main.ari's own state.
+# tests/unit/ includes the same units in test documents over seeded state, with no network.
+#
+# The contract. The views read:
+#   view                      "search" or "package"; each unit shows only for its own
+#   args.page                 rows per page
+#   search.q .platform .arch .link .offset .count .total .status
+#   search.res.packages.{i}.name .version .platform .arch .link .size_bytes
+#   pkg.name .desc .version .license .homepage .tags .install .status .offset .count .total
+#   pkg.page.{i}.version .where .kind .size .date
+# The views write:
+#   search.q .platform .arch .link .offset, and req.search "1" to ask for a search
+#   pkg.want                  a package name, to open it
+#   pkg.offset, and req.pkgpage "1" to ask for another page of builds
+#   view                      "search", from Back
+#
+# (A load:-mounted module would be isolated, but a link: hole exposes only the node it names, not
+# its children, so it can't carry a parsed reply. That's raised with libcvc.)
+
+meta:
+  name: cypkg-views
+  min_libcvc: 3.7.4
+
+units:
+  search_view:
+    type: group
+    visible_when: (= (state-get "view") "search")
+    children:
+      - type: group
+        layout: { kind: grid, col_widths: [296, 176, 152, 160] }
+        children:
+          - type: input_text
+            label: "Search"
+            bind: search.q
+            on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
+          - type: combo
+            label: "Platform"
+            bind: search.platform
+            options: [all, linux, macos, windows, freebsd, openbsd, netbsd, haiku, wasm, wasm-mt, wasi, cosmo, any]
+          - type: combo
+            label: "Arch"
+            bind: search.arch
+            options: [all, x86_64, arm64, wasm32, noarch]
+          - type: combo
+            label: "Link"
+            bind: search.link
+            options: [all, shared, static]
+      - text: ""
+        bind: search.status
+      - separator
+      - type: group
+        layout: { kind: grid, col_widths: [64, 232, 144, 144, 64, 80] }
+        visible_when: (> (int (state-get "search.count")) 0)
+        children:
+          - text: ""
+          - text: "name"
+          - text: "version"
+          - text: "platform"
+          - text: "link"
+          - text: "size"
+      - type: group
+        repeat: (state-get "search.count")
+        children:
+          - type: group
+            id: hit{i}
+            layout: { kind: grid, col_widths: [64, 232, 144, 144, 64, 80] }
+            children:
+              - type: button
+                label: "Open"
+                on: (state-set "pkg.want" (state-get "search.res.packages.{i}.name"))
+              # Cut to the column (28 cells), or it runs into the next one.
+              - text: ""
+                bind: '(let ((n (state-get "search.res.packages.{i}.name"))) (if (> (string.length n) 28) (string.join (list (string.substring n 0 27) "…") "") n))'
+              - text: ""
+                bind: search.res.packages.{i}.version
+              - text: ""
+                bind: '(string.join (list (state-get "search.res.packages.{i}.platform") (state-get "search.res.packages.{i}.arch")) "/")'
+              - text: ""
+                bind: search.res.packages.{i}.link
+              - text: ""
+                bind: '(let ((b (state-get "search.res.packages.{i}.size_bytes"))) (if (= b "") "" (if (< (int b) 1024) (string.join (list b "B") " ") (string.join (list (str (int (/ (int b) 1024))) "KB") " "))))'
+      - separator
+      - type: group
+        layout: { kind: horizontal }
+        visible_when: (> (int (state-get "search.total")) (int (state-get "args.page")))
+        children:
+          - type: button
+            label: "< Prev"
+            enabled_when: (> (int (state-get "search.offset")) 0)
+            on: |
+              (begin
+                (state-set "search.offset"
+                  (let ((o (- (int (state-get "search.offset")) (int (state-get "args.page"))))) (if (< o 0) 0 o)))
+                (state-set "req.search" "1"))
+          - type: button
+            label: "Next >"
+            enabled_when: (< (+ (int (state-get "search.offset")) (int (state-get "search.count"))) (int (state-get "search.total")))
+            on: |
+              (begin
+                (state-set "search.offset"
+                  (+ (int (state-get "search.offset")) (int (state-get "args.page"))))
+                (state-set "req.search" "1"))
+
+  package_view:
+    type: group
+    visible_when: (= (state-get "view") "package")
+    children:
+      - type: button
+        label: "< Back"
+        on: (state-set "view" "search")
+      - text: "package"
+        bind: pkg.name
+      - type: group
+        visible_when: (> (int (state-get "pkg.count")) 0)
+        children:
+          - text: ""
+            bind: pkg.desc
+          - text: "latest"
+            bind: pkg.version
+          - text: "license"
+            bind: pkg.license
+          - text: "homepage"
+            bind: pkg.homepage
+          - text: "tags"
+            bind: pkg.tags
+          - text: "install"
+            bind: pkg.install
+      - separator
+      - text: ""
+        bind: pkg.status
+      - type: group
+        layout: { kind: grid, col_widths: [144, 176, 128, 104, 104] }
+        visible_when: (> (int (state-get "pkg.count")) 0)
+        children:
+          - text: "version"
+          - text: "platform"
+          - text: "build"
+          - text: "size"
+          - text: "published"
+      - type: group
+        repeat: (state-get "pkg.count")
+        children:
+          - type: group
+            id: build{i}
+            layout: { kind: grid, col_widths: [144, 176, 128, 104, 104] }
+            children:
+              - text: ""
+                bind: pkg.page.{i}.version
+              - text: ""
+                bind: pkg.page.{i}.where
+              - text: ""
+                bind: pkg.page.{i}.kind
+              - text: ""
+                bind: pkg.page.{i}.size
+              - text: ""
+                bind: pkg.page.{i}.date
+      - separator
+      - type: group
+        layout: { kind: horizontal }
+        visible_when: (> (int (state-get "pkg.total")) (int (state-get "args.page")))
+        children:
+          - type: button
+            label: "< Prev"
+            enabled_when: (> (int (state-get "pkg.offset")) 0)
+            on: |
+              (begin
+                (state-set "pkg.offset"
+                  (let ((o (- (int (state-get "pkg.offset")) (int (state-get "args.page"))))) (if (< o 0) 0 o)))
+                (state-set "req.pkgpage" "1"))
+          - type: button
+            label: "Next >"
+            enabled_when: (< (+ (int (state-get "pkg.offset")) (int (state-get "pkg.count"))) (int (state-get "pkg.total")))
+            on: |
+              (begin
+                (state-set "pkg.offset"
+                  (+ (int (state-get "pkg.offset")) (int (state-get "args.page"))))
+                (state-set "req.pkgpage" "1"))
