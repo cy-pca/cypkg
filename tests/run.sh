@@ -5,6 +5,8 @@
 #                         interactive is skipped)
 #   tests/run.sh --live   ... and 4: the contract check against https://cvcpkg.org
 #
+# With ARI_WEB and CHROME set, it also runs 3c: the browser build in headless Chrome.
+#
 # ARI names the ari to run. Until the transfix/libcvc PRs that .github/workflows/test.yml lists
 # merge, that is an ari built from libcvc master with them merged in, as that workflow builds it.
 set -eu
@@ -27,6 +29,15 @@ layer "2b. functions: ari test on lib.ari's functions" "$here/lib.sh"
 layer "2c. modules: ari test on each module, mounted alone" "$here/modules.sh"
 layer "3a. whole document: snapshots against the fixture registry" "$here/snapshot.sh"
 layer "3b. whole document: real keys in tmux, FTXUI and tvision" "$here/interactive.sh"
+# The browser build, when ARI_WEB (ari's wasm page: ari.html, ari.js, ari.wasm, ...) and CHROME are
+# set; CI's browser job runs it.
+if [ -n "${ARI_WEB:-}" ] && [ -n "${CHROME:-}" ]; then
+  site=$(mktemp -d)
+  layer "3c. browser: the wasm page in headless Chrome" sh -c \
+    '"$1/../tools/site.sh" "$2" "$3" >/dev/null && node "$1/browser.mjs" --site "$3" --chrome "$4"' \
+    _ "$here" "$ARI_WEB" "$site" "$CHROME"
+  rm -rf "$site"
+fi
 if [ "${1:-}" = --live ]; then
   layer "4. contract: the live registry against what cypkg reads" python3 -I "$here/contract.py"
 fi

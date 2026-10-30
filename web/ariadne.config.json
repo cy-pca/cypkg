@@ -1,0 +1,7 @@
+{
+  "title": "cypkg",
+  "src": "main.ari",
+  "src_param": false,
+  "flags": ["--net"],
+  "args": ["--server", "{origin}"]
+}

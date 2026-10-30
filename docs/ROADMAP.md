@@ -28,10 +28,10 @@ work on cvcpkg is tracked as C-items in
 | L2 | Host-owned credentials: a Bearer header for bound origins only, a token captured from a reply and redacted, and optional 0600 persistence. Tokens never enter state | transfix/libcvc#888 merged | M2 |
 | L2a | Use L2 with cvcpkg's tokens: several fields captured per reply (the access and refresh tokens), a stored credential as a form value (for the refresh at `/v1/auth/token`), and `--credential-env NAME=VAR` for a `cvctok_` token | transfix/libcvc#895 open | M2 |
 | L3 | `json-parse` / `json-encode`, so documents can read REST replies | transfix/libcvc#883 open | M0 |
-| L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP. #895's CI runs a sign-in, a refresh and a fetch from the single-threaded wasm `ari` under node. Not yet run in a browser through #887's page | tested under node in #895 | M0 (browser) |
+| L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP. #895's CI runs a sign-in, a refresh and a fetch from the single-threaded wasm `ari` under node.  Now run in headless Chrome through #887's page by `tests/browser.mjs` | works in Chrome; tested in CI | M0 (browser) |
 | L5 | A scrolling, virtualized list or table, wrapped text, and a filter box, in **both terminal backends** and FTXUI on wasm | open | M0 |
 | L6 | A general WebSocket verb whose frames arrive as `on_signal`, natively and in wasm | open | M1 |
-| L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 open | M0 (browser) |
+| L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 open; cypkg's browser job uses it | M0 (browser) |
 | L10 | ari's xterm.js page as a cvcpkg package, so a registry can serve it (#887 ships it in `arigl-web`) | transfix/libcvc#887 open | M5 |
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
 | L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | transfix/libcvc#896 open (issue #894) | M0 tests |
@@ -47,7 +47,8 @@ transfix/libcvc#710.
 
 | # | Feature | Needed by |
 |---|---------|-----------|
-| C1 | The registry serves the documents and ari's xterm.js page at `/apps/cypkg/`, with a config that passes `--net-allow {origin}` | M0 (browser) |
+| C1 | The registry serves `tools/site.sh`'s output at `/apps/cypkg/` with a strict CSP, as `tests/registry/fixture_registry.py --site` does: ari's page, cypkg's documents and `web/ariadne.config.json` (`--net`, `--server {origin}`) | later; Joe isn't ready to put it on cvcpkg.org, so GitHub Pages hosts it for now (C5) |
+| C5 | cvcpkg.org allows `https://cy-pca.github.io` in `CVCPKG_CORS_ORIGINS`, so the GitHub Pages build (https://cy-pca.github.io/cypkg/, `web/ariadne.config.pages.json`) can call its API. Today's CORS doesn't list it: the preflight is a 400, and GETs carry no `Access-Control-Allow-Origin` | M0 (browser) |
 | C2 | Check that every action the web pages do through cookie forms also has a Bearer JSON endpoint. Tokens, org members and admin stats do (`/v1/tokens`, `/v1/orgs/{slug}/members`, `/v1/admin/*`). Add the ones that don't | M3 |
 | C3 | The `cypkg` recipe. It lives in this repo (`recipes/cypkg/`), as libcvc's do, and builds; publish it once an `ari` release has the PRs cypkg needs | M5 |
 | C4 | One package's dependencies and dependents. `/v1/deps` returns the whole catalog's graph (1.75 MB on cvcpkg.org), which is too much to fetch for one package page. For now the package page shows nothing for dependencies | M1 |
@@ -119,8 +120,19 @@ To do for M0:
   builds `ari` from libcvc master with #883, #896, #900, #902, #904 and #905
   merged in. All pass the suite unchanged locally. Switch to
   the package once one has both.
-- **The browser path**: #887's xterm.js page with `"flags": ["--net"]`, served
-  by C1. Untested: see L4.
+- **The browser path: works.**
+  - `tools/site.sh` assembles `/apps/cypkg/`; `web/ariadne.config.json` sets
+    `--net` and `--server {origin}`.
+  - `tests/browser.mjs` passes 7 steps in headless Chrome under a strict CSP,
+    and CI's browser job builds the page and runs it.
+  - Measured locally: `ari.wasm` is 8.8 MB raw, 3.1 MB gzipped; `ari.js` is
+    26 KB gzipped; xterm.js is 0.4 MB. The first search results show 3.7 s
+    after navigation (headless Chrome, localhost, cold).
+  - GitHub Pages hosts it for now: CI deploys `main`'s tested page to
+    https://cy-pca.github.io/cypkg/ with `web/ariadne.config.pages.json`.
+    It needs cvcpkg.org's CORS to allow that origin (C5).
+  - Left: C5, #887 merging, and later a registry serving it (C1). #887 conflicts with
+    #896 in `src/ari/main.cpp`; `tools/libcvc-resolve.py` resolves that until
+    one of them is rebased.
 - **Wrapped text (L5).** Until it lands, long descriptions are cut at 89
   characters.
-- Measure the wasm page's size and time to first frame.
