@@ -7,8 +7,6 @@
   ],
   "args": [
     "--server",
-    "{origin}",
-    "--progress",
-    "off"
+    "{origin}"
   ]
 }

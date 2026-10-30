@@ -8,8 +8,6 @@
   ],
   "args": [
     "--server",
-    "https://cvcpkg.org",
-    "--progress",
-    "off"
+    "https://cvcpkg.org"
   ]
 }
