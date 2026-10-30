@@ -68,8 +68,12 @@ shows the same `cvcpkg install` lines to copy.
 ## Layout
 
 ```
-share/cypkg/      the documents: main.ari (requests and state), lib.ari (the logic, as
-                  functions) and views.ari (the views)
+share/cypkg/      the documents:
+                    main.ari     composes the two modules and wires their holes
+                    search.ari   the search module: its state, view and requests
+                    package.ari  the package module: its state, view and requests
+                    lib.ari      the logic, as functions the modules import
+                    views.ari    the two views, as units the modules include
 bin/              the launchers: cypkg (sh) and cypkg.cmd
 tests/            snapshot tests and a fixture registry
 recipe/           the cvcpkg recipe (M5)
@@ -98,8 +102,8 @@ the `ari` to run.
 |---|---|---|
 | 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units |
 | 2a. units | `tests/unit.sh` | Each view in `views.ari`, included in a test document over hand-seeded state, with no network: cut names, wide glyphs, empty results, hidden pagers, one view at a time |
-| 2b. functions | `tests/lib.sh` | 15 `ari test` tests of `lib.ari`'s functions (`tests/lib/lib_test.ari`): values in, values out, no network or state |
-| 2c. logic | `tests/logic.sh` | 17 `ari test` tests of `main.ari`'s request logic against the fixture registry (`tests/logic.tests.yaml`). Each test sets state the way the views do, waits for `search.seq` or `pkg.seq` to count a finished request, and asserts on the result |
+| 2b. functions | `tests/lib.sh` | 16 `ari test` tests of `lib.ari`'s functions (`tests/lib/lib_test.ari`): values in, values out, no network or state |
+| 2c. modules | `tests/modules.sh` | 17 `ari test` tests in `tests/modules/`, each document mounting one module alone against the fixture registry through the holes `main.ari` grants (9 search, 8 package). Each test sets the module's state the way its view does, waits for its `seq` counter to count a finished request, and asserts on what its view reads |
 | 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
 | 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, Ctrl-C |
 | 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
@@ -120,15 +124,23 @@ Snapshots are frame-for-frame text and fail on any warning. Layer 3b is the
 only one that checks input and the tvision backend, because `ari snapshot`
 can't send keys and always lays out with FTXUI.
 
-The logic lives in `lib.ari` as `functions:` (transfix/libcvc#900) that
-`main.ari` imports. Its `on_tick` only moves values between those functions and
-the state tree, so layer 2b tests each function directly. Binds can't call
-functions, so the views keep a few formatting expressions inline.
+How the pieces fit:
 
-`ari test` takes no document arguments, and the tests don't belong in the
-shipped document. So `tests/logic.sh` writes a copy of `main.ari` beside it,
-with the fixture as the server's default and `tests/logic.tests.yaml`
-appended, then runs `ari test` on the copy.
+- `main.ari` only composes. It mounts `search.ari` and `package.ari` with
+  `load:` and grants each three holes: `args` (read-only), `view` (which
+  module shows) and `nav` (the package Open hands from search to package).
+- Each module owns its state, which lives at `includes.<as>` in the parent.
+  It imports its view from `views.ari` and its logic from `lib.ari`, and runs
+  its own requests in its `on_tick` (transfix/libcvc#904). Its view binds
+  reach a parsed reply through holes that grant a whole subtree (#905).
+- A hidden mount doesn't run until it is first shown. So Open sets `view` to
+  "package" as well as `nav.open`, and that starts the package module.
+- The logic is pure `functions:` in `lib.ari` (#900), so layer 2b tests each
+  function directly. Binds can't call functions, so the views keep a few
+  formatting expressions inline.
+- `ari test` takes no document arguments. So `tests/modules.sh` writes a copy
+  of each module test beside it, with the fixture's URL in place of
+  `@SERVER@`, and runs `ari test` on the copies.
 
 ### CI
 

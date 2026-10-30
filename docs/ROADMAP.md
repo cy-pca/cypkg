@@ -36,7 +36,7 @@ work on cvcpkg is tracked as C-items in
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
 | L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | transfix/libcvc#896 open (issue #894) | M0 tests |
 | L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | transfix/libcvc#900 open (on #896) | M0 tests |
-| L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | transfix/libcvc#904 (module on_tick) and #905 (subtree holes) open | M1 |
+| L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | transfix/libcvc#904 and #905 open; cypkg's views and request loops are modules on them | M1 |
 | L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | transfix/libcvc#902 open | none (worked around) |
 | L16 | (agenda, not planned) file descriptors as state channels or streams | agenda | |
 
@@ -81,7 +81,9 @@ transfix/libcvc#710.
 
 Done, and checked with an `ari` built from libcvc master (#888 merged) plus #883:
 
-- `share/cypkg/main.ari`. **Search:** a query and the platform, arch and link
+- `share/cypkg/`: `main.ari` composes two modules, `search.ari` and
+  `package.ari`. Each owns its state and requests, with views from
+  `views.ari` and logic from `lib.ari`. **Search:** a query and the platform, arch and link
   filters, paged 10 rows at a time, sent with `facets=true` so that the
   package count covers every match. **Package page:** description, latest
   version, license, homepage, tags, the `cvcpkg install` line, and its builds
@@ -91,8 +93,8 @@ Done, and checked with an `ari` built from libcvc master (#888 merged) plus #883
 - The test layers in the README's Tests section, all passing:
   - 8 static checks;
   - 6 view units;
-  - 15 `ari test` function tests;
-  - 17 `ari test` logic tests;
+  - 16 `ari test` function tests;
+  - 17 `ari test` module tests, each module mounted alone;
   - 21 snapshots;
   - 24 interactive steps across both backends;
   - 1 live contract check.

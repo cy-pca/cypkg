@@ -20,6 +20,13 @@ tests:
       (assert (= (text "zlib") "zlib"))
       (assert (= (text 42) "42")))
 
+  int-or falls back for nil and empty: |
+    (begin
+      (assert (= (int-or "12" 0) 12))
+      (assert (= (int-or 7 0) 7))
+      (assert (= (int-or nil 10) 10))
+      (assert (= (int-or "" 10) 10)))
+
   reply-object takes only a 200 with a JSON object: |
     (begin
       (assert (= (field (reply-object (dict "status" 200 "body" "{\"total\": 3}")) "total") 3))

@@ -4,5 +4,5 @@ deps/
 .cvcpkg/
 *.log
 
-# tests/logic.sh writes a test copy of main.ari here while it runs
-share/cypkg/.main.test.*.ari
+# tests/modules.sh writes a copy of each module test here while it runs
+tests/modules/.*_test.*.ari

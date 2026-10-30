@@ -1,0 +1,75 @@
+# search.ari: the search module.
+#
+# The query and filters, one page of build rows, and the pager. Its on_tick runs the searches.
+#
+# A module: main.ari mounts it with load:. It owns its state (its chroot is includes.<as> in the
+# parent) and reaches the parent only through the holes main.ari grants:
+#   args   read-only: the command line (server, page, and the start-up search)
+#   view   which view shows: "search" or "package"
+#   nav    nav.open, the package to open, and nav.start, its first build
+# It imports its own view (views.ari) and logic (lib.ari). A hidden mount doesn't run until it is
+# first shown; after that its on_tick keeps running.
+
+meta:
+  name: cypkg-search
+  min_libcvc: 3.7.4
+
+needs: [args, view, nav]
+
+import: [views.ari, lib.ari]
+
+init: |
+  (begin
+    (state-set "search.q" (text (state-get "args.q")))
+    (state-set "search.platform" (if (= (text (state-get "args.platform")) "") "all" (state-get "args.platform")))
+    (state-set "search.arch" (if (= (text (state-get "args.arch")) "") "all" (state-get "args.arch")))
+    (state-set "search.link" (if (= (text (state-get "args.link")) "") "all" (state-get "args.link")))
+    (state-set "search.offset" (int-or (state-get "args.offset") 0))
+    (state-set "search.count" 0)
+    (state-set "search.total" 0)
+    (state-set "search.status" "")
+    (state-set "search.sent" "")
+    (state-set "search.seq" 0)
+    (state-set "req.search" "1"))
+
+# search.seq counts the searches that have finished, so a test can wait for one.
+on_tick: |
+  (begin
+    ;; A filter changed since the last search: search again from the first row. (A combo's on: is
+    ;; dropped by libcvc today, so the combos can't ask for it themselves.)
+    (set filters (str-concat (state-get "search.platform") "|" (state-get "search.arch") "|"
+                             (state-get "search.link")))
+    (if (!= filters (state-get "search.sent"))
+        (begin
+          (if (!= (state-get "search.sent") "") (state-set "search.offset" 0))
+          (state-set "search.sent" filters)
+          (state-set "req.search" "1")))
+
+    ;; A search: one page of rows.
+    (if (= (state-get "req.search") "1")
+        (begin
+          (state-set "req.search" "0")
+          (state-set "search.status" "searching...")
+          (set r (http-get (str-concat (state-get "args.server") "/v1/search")
+                   (dict "query" (search-query (state-get "search.q") (state-get "search.platform")
+                                               (state-get "search.arch") (state-get "search.link")
+                                               (int-or (state-get "args.page") 10) (state-get "search.offset")))))
+          (set d (reply-object r))
+          (set rows (reply-rows d))
+          (if (is-list rows)
+              (begin
+                (state-set-tree "search.res" d)
+                (set n (length rows))
+                (set total (if (= (field d "total") nil) n (int (field d "total"))))
+                (state-set "search.count" n)
+                (state-set "search.total" total)
+                (state-set "search.status"
+                  (search-status (int (state-get "search.offset")) n total (field d "package_count"))))
+              (begin
+                (state-set "search.count" 0)
+                (state-set "search.total" 0)
+                (state-set "search.status" (search-failure r))))
+          (state-set "search.seq" (+ (int (state-get "search.seq")) 1)))))
+
+root:
+  - include: search_view

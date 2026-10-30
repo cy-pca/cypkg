@@ -6,19 +6,22 @@
 #
 #   ari run --net-allow https://cvcpkg.org share/cypkg/main.ari --server https://cvcpkg.org
 #
-# Requests run in on_tick, the action lane. Widgets only set a request flag (req.search) or name a
-# package to open (pkg.want); on_tick sends the request and writes the parsed reply into the state
-# tree with state-set-tree, where the rows bind to it. search.seq and pkg.seq count the requests
-# that have finished, so tests/logic.tests.yaml can wait for one. The logic itself is functions in
-# lib.ari, unit-tested in tests/lib/; on_tick only moves values between them and the state tree.
+# This document only composes two modules, search.ari and package.ari, and wires them together.
+# Each owns its state and runs its own requests in its on_tick. Its widgets only set a request
+# flag; its on_tick sends the request and writes the parsed reply into its state with
+# state-set-tree, where the rows bind. The logic is functions in lib.ari, unit-tested in
+# tests/lib/; each module is tested on its own in tests/modules/.
+#
+# Holes, from main.ari's state to each module:
+#   args   read-only: the command line
+#   view   "search" or "package": which module shows
+#   nav    nav.open: the package the search view opens; nav.start: its first build
 
 meta:
   name: cypkg
   version: 0.1.0
   description: Browse a cvcpkg registry in the terminal
   min_libcvc: 3.7.4
-
-import: [views.ari, lib.ari]
 
 requires:
   - net
@@ -38,127 +41,9 @@ args:
 
 init: |
   (begin
-    (state-set "view" "search")
-    (state-set "app.started" "")
-    (state-set "search.q" (state-get "args.q"))
-    (state-set "search.platform" (state-get "args.platform"))
-    (state-set "search.arch" (state-get "args.arch"))
-    (state-set "search.link" (state-get "args.link"))
-    (state-set "search.offset" (int (state-get "args.offset")))
-    (state-set "search.count" 0)
-    (state-set "search.total" 0)
-    (state-set "search.status" "")
-    (state-set "search.sent" "")
-    (state-set "search.seq" 0)
-    (state-set "pkg.seq" 0)
-    (state-set "req.search" "0")
-    (state-set "req.pkgpage" "0")
-    (state-set "pkg.want" "")
-    (state-set "pkg.name" "")
-    (state-set "pkg.offset" 0)
-    (state-set "pkg.start" 0)
-    (state-set "pkg.count" 0)
-    (state-set "pkg.total" 0)
-    (state-set "pkg.status" ""))
-
-on_tick: |
-  (begin
-    (if (= (state-get "app.started") "")
-        (begin
-          (state-set "app.started" "1")
-          (state-set "req.search" "1")
-          (if (!= (state-get "args.package") "")
-              (begin
-                (state-set "pkg.start" (int (state-get "args.pkg-offset")))
-                (state-set "pkg.want" (state-get "args.package"))))))
-
-    ;; A filter changed since the last search: search again from the first row. (A combo's on: is
-    ;; dropped by libcvc today, so the combos can't ask for it themselves.)
-    (set filters (str-concat (state-get "search.platform") "|" (state-get "search.arch") "|"
-                             (state-get "search.link")))
-    (if (!= filters (state-get "search.sent"))
-        (begin
-          (if (!= (state-get "search.sent") "") (state-set "search.offset" 0))
-          (state-set "search.sent" filters)
-          (state-set "req.search" "1")))
-
-    ;; A search: one page of rows.
-    (if (= (state-get "req.search") "1")
-        (begin
-          (state-set "req.search" "0")
-          (state-set "search.status" "searching...")
-          (set r (http-get (str-concat (state-get "args.server") "/v1/search")
-                   (dict "query" (search-query (state-get "search.q") (state-get "search.platform")
-                                               (state-get "search.arch") (state-get "search.link")
-                                               (state-get "args.page") (state-get "search.offset")))))
-          (set d (reply-object r))
-          (set rows (reply-rows d))
-          (if (is-list rows)
-              (begin
-                (state-set-tree "search.res" d)
-                (set n (length rows))
-                (set total (if (= (field d "total") nil) n (int (field d "total"))))
-                (state-set "search.count" n)
-                (state-set "search.total" total)
-                (state-set "search.status"
-                  (search-status (int (state-get "search.offset")) n total (field d "package_count"))))
-              (begin
-                (state-set "search.count" 0)
-                (state-set "search.total" 0)
-                (state-set "search.status" (search-failure r))))
-          (state-set "search.seq" (+ (int (state-get "search.seq")) 1))))
-
-    ;; Open a package: every build of it, shown a page at a time.
-    (if (!= (state-get "pkg.want") "")
-        (begin
-          (set name (state-get "pkg.want"))
-          (state-set "pkg.want" "")
-          (state-set "pkg.name" name)
-          (state-set "pkg.offset" (state-get "pkg.start"))
-          (state-set "pkg.start" 0)
-          (state-set "pkg.count" 0)
-          (state-set "pkg.total" 0)
-          (state-set "pkg.status" "loading...")
-          (state-set "view" "package")
-          (set r (http-get (str-concat (state-get "args.server") "/v1/packages/" (url-encode name))))
-          (set rows (reply-rows (reply-object r)))
-          (if (if (is-list rows) (> (length rows) 0) #f)
-              (begin
-                (state-set-tree "pkg.all" rows)
-                (set p (nth rows 0))
-                (state-set "pkg.desc" (cut (text (field p "description")) 92))
-                (state-set "pkg.version" (text (field p "version")))
-                (state-set "pkg.license" (text (field p "license")))
-                (state-set "pkg.homepage" (text (field p "homepage")))
-                (state-set "pkg.tags" (text (field p "tags")))
-                (state-set "pkg.install" (str-concat "cvcpkg install " name))
-                (state-set "pkg.total" (length rows))
-                (state-set "req.pkgpage" "1"))
-              (begin
-                (state-set "pkg.status" (package-failure r rows name))
-                (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1))))))
-
-    ;; One page of the open package's builds, from the reply already held.
-    (if (= (state-get "req.pkgpage") "1")
-        (begin
-          (state-set "req.pkgpage" "0")
-          (set total (int (state-get "pkg.total")))
-          (set b (page-bounds (int (state-get "pkg.offset")) (int (state-get "args.page")) total))
-          (set off (nth b 0))
-          (set end (nth b 1))
-          (state-set "pkg.offset" off)
-          (set at (lambda (i k) (text (state-get (str-concat "pkg.all." i "." k)))))
-          (set rows (list))
-          (set i off)
-          (while (< i end)
-            (set rows (append rows (build-row (at i "version") (at i "platform") (at i "arch")
-                                              (at i "build_type") (at i "link") (at i "size_bytes")
-                                              (at i "published_at"))))
-            (set i (+ i 1)))
-          (state-set-tree "pkg.page" rows)
-          (state-set "pkg.count" (- end off))
-          (state-set "pkg.status" (str-concat "builds " (+ off 1) "-" end " of " total))
-          (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1)))))
+    (state-set "view" (if (= (state-get "args.package") "") "search" "package"))
+    (state-set "nav.open" (state-get "args.package"))
+    (state-set "nav.start" (int (state-get "args.pkg-offset"))))
 
 windows:
   - window: cypkg
@@ -168,7 +53,15 @@ windows:
     children:
       - text: "registry"
         bind: args.server
-
-      # The views: units from views.ari.
-      - include: search_view
-      - include: package_view
+      # A hidden mount doesn't start until it is first shown.
+      - load: search.ari
+        as: search
+        visible_when: (= (state-get "view") "search")
+        link: &holes
+          args: { to: args, mode: ro }
+          view: view
+          nav: nav
+      - load: package.ari
+        as: package
+        visible_when: (= (state-get "view") "package")
+        link: *holes

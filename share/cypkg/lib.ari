@@ -18,6 +18,9 @@ functions: |
   ;; v as text: nil is "", a string is itself (str would quote it), anything else is str.
   (defun text (v) (if (= v nil) "" (if (is-string v) v (str v))))
 
+  ;; v as an int, or d when v is nil or empty (a hole that wasn't granted reads nil).
+  (defun int-or (v d) (if (= (text v) "") d (int v)))
+
   ;; The JSON object in a 200 reply r, or nil: another status, a body that isn't JSON, or JSON
   ;; that isn't an object.
   (defun reply-object (r)

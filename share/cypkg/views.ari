@@ -1,7 +1,9 @@
-# views.ari: cypkg's two views, as units for main.ari to include.
+# views.ari: cypkg's two views, as units for the modules search.ari and package.ari to include.
 #
-# Units share the including document's scope, so the bind paths here are main.ari's own state.
-# tests/unit/ includes the same units in test documents over seeded state, with no network.
+# Units share the including document's scope. The modules search.ari and package.ari include
+# them, so the bind paths here are a module's own state (search.*, pkg.*) plus the holes main.ari
+# grants it (view, nav, args). tests/unit/ includes the same units in test documents over seeded
+# state, with no network.
 #
 # The contract. The views read:
 #   view                      "search" or "package"; each unit shows only for its own
@@ -12,12 +14,10 @@
 #   pkg.page.{i}.version .where .kind .size .date
 # The views write:
 #   search.q .platform .arch .link .offset, and req.search "1" to ask for a search
-#   pkg.want                  a package name, to open it
+#   nav.open, and view "package", to open a package (the package module reads nav.open)
 #   pkg.offset, and req.pkgpage "1" to ask for another page of builds
 #   view                      "search", from Back
-#
-# (A load:-mounted module would be isolated, but a link: hole exposes only the node it names, not
-# its children, so it can't carry a parsed reply. That's raised with libcvc.)
+
 
 meta:
   name: cypkg-views
@@ -69,7 +69,8 @@ units:
             children:
               - type: button
                 label: "Open"
-                on: (state-set "pkg.want" (state-get "search.res.packages.{i}.name"))
+                on: (begin (state-set "nav.open" (state-get "search.res.packages.{i}.name"))
+                           (state-set "view" "package"))
               # Cut to the column (28 cells), or it runs into the next one.
               - text: ""
                 bind: '(let ((n (state-get "search.res.packages.{i}.name"))) (if (> (string.length n) 28) (string.join (list (string.substring n 0 27) "…") "") n))'
