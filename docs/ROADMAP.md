@@ -26,9 +26,9 @@ work on cvcpkg is tracked as C-items in
 |---|---------|--------|-----------|
 | L1 | Hosts can turn on the HTTP verbs and the `http(s)://` URI handler, with an origin allowlist that denies by default (`--net-allow`) | transfix/libcvc#888 open | M0 |
 | L2 | Host-owned credentials: a Bearer header for bound origins only, a token captured from a reply and redacted, and optional 0600 persistence. Tokens never enter state | transfix/libcvc#888 open | M2 |
-| L2a | Use L2 with cvcpkg's tokens: capture `cvcses_` and `cvcref_` from `/v1/auth/device/token`, refresh through `/v1/auth/token` on a 401, and accept a pasted `cvctok_`. Check whether #888 covers this | to check | M2 |
+| L2a | Use L2 with cvcpkg's tokens. #888 covers capturing `access_token` from `/v1/auth/device/token`, sending it, and signing out. Still needed: (a) capturing or redacting `refresh_token` too, which #888 leaves visible to the document; (b) sending a stored credential in a form field, for the refresh at `/v1/auth/token`; (c) a way to supply a `cvctok_` token, such as a host flag that reads it from an environment variable | partly covered by #888 | M2 |
 | L3 | `json-parse` / `json-encode`, so documents can read REST replies | transfix/libcvc#883 open | M0 |
-| L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP | to check | M0 (browser) |
+| L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP. #887 links `-sFETCH`, and #888 runs the verbs inline there. No browser test makes a request through #887's page with #888's `--net`. A call that runs inline blocks its program until the reply arrives | likely works; untested | M0 (browser) |
 | L5 | A scrolling, virtualized list or table, wrapped text, and a filter box, in **both terminal backends** and FTXUI on wasm | open | M0 |
 | L6 | A general WebSocket verb whose frames arrive as `on_signal`, natively and in wasm | open | M1 |
 | L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 open | M0 (browser) |
