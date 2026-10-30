@@ -34,10 +34,10 @@ work on cvcpkg is tracked as C-items in
 | L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 open | M0 (browser) |
 | L10 | ari's xterm.js page as a cvcpkg package, so a registry can serve it (#887 ships it in `arigl-web`) | transfix/libcvc#887 open | M5 |
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
-| L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | in progress (libcvc session) | M0 tests |
+| L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | transfix/libcvc#896 open (issue #894) | M0 tests |
 | L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | in progress (libcvc session) | M0 tests |
-| L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | raised with the libcvc session | M1 |
-| L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | raised with the libcvc session | none (worked around) |
+| L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | raised; a follow-up in libcvc | M1 |
+| L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | raised; on libcvc's follow-up list | none (worked around) |
 | L16 | (agenda, not planned) file descriptors as state channels or streams | agenda | |
 
 `ari` itself is already packaged. The xterm.js page has been live since
