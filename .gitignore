@@ -3,3 +3,6 @@ build/
 deps/
 .cvcpkg/
 *.log
+
+# tests/logic.sh writes a test copy of main.ari here while it runs
+share/cypkg/.main.test.*.ari

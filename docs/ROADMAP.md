@@ -88,9 +88,13 @@ Done, and checked with an `ari` built from libcvc master (#888 merged) plus #883
   a page at a time. Results are build rows, as on the web page.
 - `bin/cypkg` and `bin/cypkg.cmd`. Each allows only the registry's origin
   (`--net-allow`). `cypkg.cmd` has not been run on Windows.
-- The four test layers in the README's Tests section: 60 checks, all passing
-  (8 static, 6 view units, 21 snapshots, 24 interactive steps across both
-  backends, 1 live contract).
+- The test layers in the README's Tests section, all passing:
+  - 8 static checks;
+  - 6 view units;
+  - 17 `ari test` logic tests;
+  - 21 snapshots;
+  - 24 interactive steps across both backends;
+  - 1 live contract check.
 - Checked by hand:
   - FTXUI and tvision in a 100x30 tmux pane: typing a query, Enter to search,
     Tab to a row's Open, and Back;
@@ -108,8 +112,9 @@ What the tests found and fixed:
 
 To do for M0:
 
-- **CI.** It waits for an `ari` package with #883 (and #888, merged). Until
-  then the tests run locally with `tests/run.sh`.
+- **CI: `.github/workflows/test.yml`.** Until an `ari` package has #883 and
+  #896, it builds `ari` from libcvc master with those PRs merged in. Switch to
+  the package once one has both.
 - **The browser path**: #887's xterm.js page with `"flags": ["--net"]`, served
   by C1. Untested: see L4.
 - **Wrapped text (L5).** Until it lands, long descriptions are cut at 89

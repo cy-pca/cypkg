@@ -8,7 +8,8 @@
 #
 # Requests run in on_tick, the action lane. Widgets only set a request flag (req.search) or name a
 # package to open (pkg.want); on_tick sends the request and writes the parsed reply into the state
-# tree with state-set-tree, where the rows bind to it.
+# tree with state-set-tree, where the rows bind to it. search.seq and pkg.seq count the requests
+# that have finished, so tests/logic.tests.yaml can wait for one.
 
 meta:
   name: cypkg
@@ -47,7 +48,10 @@ init: |
     (state-set "search.total" 0)
     (state-set "search.status" "")
     (state-set "search.sent" "")
+    (state-set "search.seq" 0)
+    (state-set "pkg.seq" 0)
     (state-set "req.search" "0")
+    (state-set "req.pkgpage" "0")
     (state-set "pkg.want" "")
     (state-set "pkg.name" "")
     (state-set "pkg.offset" 0)
@@ -127,7 +131,8 @@ on_tick: |
                 (state-set "search.status"
                   (if (= (get-attr r "status") 200)
                       "search failed: the registry's reply was not a search result"
-                      (str-concat "search failed: " (failure r))))))))
+                      (str-concat "search failed: " (failure r))))))
+          (state-set "search.seq" (+ (int (state-get "search.seq")) 1))))
 
     ;; Open a package: every build of it, shown a page at a time.
     (if (!= (state-get "pkg.want") "")
@@ -166,7 +171,9 @@ on_tick: |
                         (str-concat "no package named " name)
                         (if (= (get-attr r "status") 200)
                             "failed: the registry's reply was not a package"
-                            (str-concat "failed: " (failure r))))))))))
+                            (str-concat "failed: " (failure r)))))))
+          (if (= (state-get "req.pkgpage") "0")
+              (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1)))))
 
     ;; One page of the open package's builds, from the reply already held.
     (if (= (state-get "req.pkgpage") "1")
@@ -195,7 +202,8 @@ on_tick: |
             (set i (+ i 1)))
           (state-set-tree "pkg.page" rows)
           (state-set "pkg.count" (- end off))
-          (state-set "pkg.status" (str-concat "builds " (+ off 1) "-" end " of " total)))))
+          (state-set "pkg.status" (str-concat "builds " (+ off 1) "-" end " of " total))
+          (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1)))))
 
 windows:
   - window: cypkg
