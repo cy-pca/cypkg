@@ -4,8 +4,8 @@ name: test
 # against cvcpkg.org.
 #
 # ari comes from source: no ari package yet has what cypkg needs. Until transfix/libcvc#883
-# (json-parse, state-set-tree) and #896 (quit codes, assert, `ari test`) merge, the job merges
-# them onto libcvc master. A PR that has merged is skipped, so nothing breaks when they land;
+# (json-parse, state-set-tree), #896 (quit codes, assert, `ari test`) and #900 (functions:,
+# stacked on #896) merge, the job merges them onto libcvc master. A PR that has merged is skipped, so nothing breaks when they land;
 # empty LIBCVC_PRS then. When an ari package has both, install it from cvcpkg instead of building it.
 
 on:
@@ -21,11 +21,11 @@ on:
         default: master
       libcvc_prs:
         description: libcvc PR numbers to merge on top, space-separated
-        default: "883 896"
+        default: "883 896 900"
 
 env:
   LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
-  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896' }}
+  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900' }}
 
 concurrency:
   group: test-${{ github.ref }}
@@ -150,6 +150,9 @@ jobs:
             || { echo "::error::this ari has no json-parse (transfix/libcvc#883)"; exit 1; }
           "$ari" --help 2>&1 | grep -q 'ari test' \
             || { echo "::error::this ari has no 'ari test' (transfix/libcvc#896)"; exit 1; }
+          printf 'meta: {name: f, min_libcvc: 3.7.4}\nfunctions: (defun f () 1)\ntests: {f: (assert (= (f) 1))}\n' >"$RUNNER_TEMP/f.ari"
+          "$ari" test "$RUNNER_TEMP/f.ari" >/dev/null \
+            || { echo "::error::this ari has no functions: (transfix/libcvc#900)"; exit 1; }
 
       # tmux drives the interactive layer. cvcpkg packages it for arm64 only so far, so x86_64
       # runners fall back to apt.

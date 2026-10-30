@@ -1,0 +1,129 @@
+# Unit tests for share/cypkg/lib.ari's functions, run with `ari test` (tests/lib.sh). No network
+# and no state: each test calls functions with values and asserts on what comes back.
+
+meta:
+  name: cypkg-lib-test
+  min_libcvc: 3.7.4
+
+import: ../../share/cypkg/lib.ari
+
+tests:
+  field reads a field, and nil for a missing one: |
+    (begin
+      (assert (= (field (dict "a" 1) "a") 1))
+      (assert (= (field (dict "a" 1) "b") nil))
+      (assert (= (field (json-parse "{\"a\": null}") "a") nil)))
+
+  text makes nil empty and leaves strings alone: |
+    (begin
+      (assert (= (text nil) ""))
+      (assert (= (text "zlib") "zlib"))
+      (assert (= (text 42) "42")))
+
+  reply-object takes only a 200 with a JSON object: |
+    (begin
+      (assert (= (field (reply-object (dict "status" 200 "body" "{\"total\": 3}")) "total") 3))
+      (assert (= (reply-object (dict "status" 500 "body" "{\"total\": 3}")) nil) "a 500")
+      (assert (= (reply-object (dict "status" 200 "body" "<html>")) nil) "not JSON")
+      (assert (= (reply-object (dict "status" 200 "body" "[1, 2]")) nil) "an array")
+      (assert (= (reply-object (dict "status" 200 "body" "")) nil) "empty"))
+
+  reply-rows takes only a list of packages: |
+    (begin
+      (assert (= (length (reply-rows (json-parse "{\"packages\": [1, 2]}"))) 2))
+      (assert (= (length (reply-rows (json-parse "{\"packages\": []}"))) 0))
+      (assert (= (reply-rows (json-parse "{\"packages\": \"x\"}")) nil))
+      (assert (= (reply-rows (json-parse "{\"total\": 0}")) nil))
+      (assert (= (reply-rows nil) nil)))
+
+  failure names the error or the status: |
+    (begin
+      (assert (= (failure (dict "status" 0 "error" "Could not connect")) "Could not connect"))
+      (assert (= (failure (dict "status" 0 "error" nil)) ""))
+      (assert (= (failure (dict "status" 503 "error" "")) "HTTP 503")))
+
+  all means no filter: |
+    (begin
+      (assert (= (filter-value "all") ""))
+      (assert (= (filter-value "linux") "linux")))
+
+  search-query sends the filters, the page and facets: |
+    (begin
+      (set q (search-query "zlib" "all" "arm64" "static" 10 20))
+      (assert (= (get-attr q "q") "zlib"))
+      (assert (= (get-attr q "platform") ""))
+      (assert (= (get-attr q "arch") "arm64"))
+      (assert (= (get-attr q "link") "static"))
+      (assert (= (get-attr q "limit") 10))
+      (assert (= (get-attr q "offset") 20))
+      (assert (= (get-attr q "facets") "true")))
+
+  search-status counts rows and packages: |
+    (begin
+      (assert (= (search-status 0 10 196 10) "builds 1-10 of 196, 10 packages"))
+      (assert (= (search-status 20 5 25 1) "builds 21-25 of 25, 1 package"))
+      (assert (= (search-status 0 3 3 nil) "builds 1-3 of 3"))
+      (assert (= (search-status 0 0 0 0) "no builds match")))
+
+  search-failure says what went wrong: |
+    (begin
+      (assert (= (search-failure (dict "status" 500 "error" ""))
+                 "search failed: HTTP 500"))
+      (assert (= (search-failure (dict "status" 0 "error" "Could not connect"))
+                 "search failed: Could not connect"))
+      (assert (= (search-failure (dict "status" 200 "error" ""))
+                 "search failed: the registry's reply was not a search result")))
+
+  package-failure tells an unknown name from an error: |
+    (begin
+      (assert (= (package-failure (dict "status" 200 "error" "") (list) "nope") "no package named nope"))
+      (assert (= (package-failure (dict "status" 404 "error" "") nil "nope") "no package named nope"))
+      (assert (= (package-failure (dict "status" 200 "error" "") nil "x")
+                 "failed: the registry's reply was not a package"))
+      (assert (= (package-failure (dict "status" 500 "error" "") nil "x") "failed: HTTP 500")))
+
+  cut leaves short text and cuts long text to n: |
+    (begin
+      (assert (= (cut "zlib" 92) "zlib"))
+      (assert (= (cut "" 92) ""))
+      (set long (string.join (list "0123456789" "0123456789" "0123456789" "0123456789"
+                                   "0123456789" "0123456789" "0123456789" "0123456789"
+                                   "0123456789" "0123456789") ""))
+      (assert (= (string.length (cut long 92)) 92))
+      (assert (string.ends-with (cut long 92) "..."))
+      (assert (= (cut (string.substring long 0 92) 92) (string.substring long 0 92)) "exactly n"))
+
+  size-text shows bytes under 1 KB, then whole KB: |
+    (begin
+      (assert (= (size-text "") ""))
+      (assert (= (size-text nil) ""))
+      (assert (= (size-text 1) "1 B"))
+      (assert (= (size-text "1023") "1023 B"))
+      (assert (= (size-text 1024) "1 KB"))
+      (assert (= (size-text "164219") "160 KB")))
+
+  date-text keeps the date: |
+    (begin
+      (assert (= (date-text "2026-10-30T06:23:20.162Z") "2026-10-30"))
+      (assert (= (date-text "2026-10-30") "2026-10-30"))
+      (assert (= (date-text "") "")))
+
+  build-row formats a table row: |
+    (begin
+      (set r (build-row "1.3.1+cvc.5" "linux" "x86_64" "release" "shared" "164219"
+                        "2026-09-26T00:00:00Z"))
+      (assert (= (get-attr r "version") "1.3.1+cvc.5"))
+      (assert (= (get-attr r "where") "linux/x86_64"))
+      (assert (= (get-attr r "kind") "release shared"))
+      (assert (= (get-attr r "size") "160 KB"))
+      (assert (= (get-attr r "date") "2026-09-26")))
+
+  page-bounds pages, ends partial pages, and wraps a past-the-end offset: |
+    (begin
+      (set b (lambda (off page total) (page-bounds off page total)))
+      (assert (= (str (b 0 10 25)) (str (list 0 10))))
+      (assert (= (str (b 20 10 25)) (str (list 20 25))))
+      (assert (= (str (b 10 10 20)) (str (list 10 20))) "an exact last page")
+      (assert (= (str (b 99 10 25)) (str (list 0 10))) "past the end")
+      (assert (= (str (b 25 10 25)) (str (list 0 10))) "at the end")
+      (assert (= (str (b 0 10 0)) (str (list 0 0))) "nothing"))

@@ -35,7 +35,7 @@ work on cvcpkg is tracked as C-items in
 | L10 | ari's xterm.js page as a cvcpkg package, so a registry can serve it (#887 ships it in `arigl-web`) | transfix/libcvc#887 open | M5 |
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
 | L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | transfix/libcvc#896 open (issue #894) | M0 tests |
-| L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | in progress (libcvc session) | M0 tests |
+| L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | transfix/libcvc#900 open (on #896) | M0 tests |
 | L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | raised; a follow-up in libcvc | M1 |
 | L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | raised; on libcvc's follow-up list | none (worked around) |
 | L16 | (agenda, not planned) file descriptors as state channels or streams | agenda | |
@@ -91,6 +91,7 @@ Done, and checked with an `ari` built from libcvc master (#888 merged) plus #883
 - The test layers in the README's Tests section, all passing:
   - 8 static checks;
   - 6 view units;
+  - 15 `ari test` function tests;
   - 17 `ari test` logic tests;
   - 21 snapshots;
   - 24 interactive steps across both backends;
@@ -112,8 +113,8 @@ What the tests found and fixed:
 
 To do for M0:
 
-- **CI: `.github/workflows/test.yml`.** Until an `ari` package has #883 and
-  #896, it builds `ari` from libcvc master with those PRs merged in. Switch to
+- **CI: `.github/workflows/test.yml`.** Until an `ari` package has #883,
+  #896 and #900, it builds `ari` from libcvc master with those PRs merged in. Switch to
   the package once one has both.
 - **The browser path**: #887's xterm.js page with `"flags": ["--net"]`, served
   by C1. Untested: see L4.

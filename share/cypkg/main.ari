@@ -9,7 +9,8 @@
 # Requests run in on_tick, the action lane. Widgets only set a request flag (req.search) or name a
 # package to open (pkg.want); on_tick sends the request and writes the parsed reply into the state
 # tree with state-set-tree, where the rows bind to it. search.seq and pkg.seq count the requests
-# that have finished, so tests/logic.tests.yaml can wait for one.
+# that have finished, so tests/logic.tests.yaml can wait for one. The logic itself is functions in
+# lib.ari, unit-tested in tests/lib/; on_tick only moves values between them and the state tree.
 
 meta:
   name: cypkg
@@ -17,7 +18,7 @@ meta:
   description: Browse a cvcpkg registry in the terminal
   min_libcvc: 3.7.4
 
-import: views.ari
+import: [views.ari, lib.ari]
 
 requires:
   - net
@@ -62,18 +63,6 @@ init: |
 
 on_tick: |
   (begin
-    ;; Helpers for this program. A reply is untrusted: a field may be missing or null.
-    (defun field (d k) (try (get-attr d k) (catch (e) nil)))
-    (defun text (v) (if (= v nil) "" (if (is-string v) v (str v))))
-    (defun failure (r)
-      (if (= (get-attr r "status") 0)
-          (text (get-attr r "error"))
-          (str-concat "HTTP " (get-attr r "status"))))
-    ;; The reply's JSON object, or nil when the body isn't one.
-    (defun parse (r)
-      (try (let ((d (json-parse (get-attr r "body")))) (if (= (type-of d) "dict") d nil))
-        (catch (e) nil)))
-
     (if (= (state-get "app.started") "")
         (begin
           (state-set "app.started" "1")
@@ -93,45 +82,30 @@ on_tick: |
           (state-set "search.sent" filters)
           (state-set "req.search" "1")))
 
-    ;; A search: the filters as the web page sends them, one page of rows. facets=true, as the web
-    ;; page sends it: without it the server counts packages on the returned page only.
+    ;; A search: one page of rows.
     (if (= (state-get "req.search") "1")
         (begin
           (state-set "req.search" "0")
           (state-set "search.status" "searching...")
-          (set any (lambda (k) (if (= (state-get k) "all") "" (state-get k))))
           (set r (http-get (str-concat (state-get "args.server") "/v1/search")
-                   (dict "query" (dict "q" (state-get "search.q")
-                                       "platform" (any "search.platform")
-                                       "arch" (any "search.arch")
-                                       "link" (any "search.link")
-                                       "limit" (state-get "args.page")
-                                       "offset" (state-get "search.offset")
-                                       "facets" "true"))))
-          (set d (if (= (get-attr r "status") 200) (parse r) nil))
-          (set rows (if (= d nil) nil (field d "packages")))
+                   (dict "query" (search-query (state-get "search.q") (state-get "search.platform")
+                                               (state-get "search.arch") (state-get "search.link")
+                                               (state-get "args.page") (state-get "search.offset")))))
+          (set d (reply-object r))
+          (set rows (reply-rows d))
           (if (is-list rows)
               (begin
                 (state-set-tree "search.res" d)
                 (set n (length rows))
-                (set off (int (state-get "search.offset")))
                 (set total (if (= (field d "total") nil) n (int (field d "total"))))
-                (set pc (field d "package_count"))
                 (state-set "search.count" n)
                 (state-set "search.total" total)
                 (state-set "search.status"
-                  (if (= n 0)
-                      "no builds match"
-                      (str-concat "builds " (+ off 1) "-" (+ off n) " of " total
-                                  (if (= pc nil) ""
-                                      (str-concat ", " pc (if (= pc 1) " package" " packages")))))))
+                  (search-status (int (state-get "search.offset")) n total (field d "package_count"))))
               (begin
                 (state-set "search.count" 0)
                 (state-set "search.total" 0)
-                (state-set "search.status"
-                  (if (= (get-attr r "status") 200)
-                      "search failed: the registry's reply was not a search result"
-                      (str-concat "search failed: " (failure r))))))
+                (state-set "search.status" (search-failure r))))
           (state-set "search.seq" (+ (int (state-get "search.seq")) 1))))
 
     ;; Open a package: every build of it, shown a page at a time.
@@ -146,17 +120,13 @@ on_tick: |
           (state-set "pkg.total" 0)
           (state-set "pkg.status" "loading...")
           (state-set "view" "package")
-          (set r (http-get (str-concat (state-get "args.server") "/v1/packages/"
-                                       (url-encode name))))
-          (set d (if (= (get-attr r "status") 200) (parse r) nil))
-          (set rows (if (= d nil) nil (field d "packages")))
+          (set r (http-get (str-concat (state-get "args.server") "/v1/packages/" (url-encode name))))
+          (set rows (reply-rows (reply-object r)))
           (if (if (is-list rows) (> (length rows) 0) #f)
               (begin
                 (state-set-tree "pkg.all" rows)
                 (set p (nth rows 0))
-                (set desc (text (field p "description")))
-                (state-set "pkg.desc"
-                  (if (> (string.length desc) 92) (str-concat (string.substring desc 0 89) "...") desc))
+                (state-set "pkg.desc" (cut (text (field p "description")) 92))
                 (state-set "pkg.version" (text (field p "version")))
                 (state-set "pkg.license" (text (field p "license")))
                 (state-set "pkg.homepage" (text (field p "homepage")))
@@ -164,41 +134,26 @@ on_tick: |
                 (state-set "pkg.install" (str-concat "cvcpkg install " name))
                 (state-set "pkg.total" (length rows))
                 (state-set "req.pkgpage" "1"))
-              (state-set "pkg.status"
-                (if (is-list rows)
-                    (str-concat "no package named " name)
-                    (if (= (get-attr r "status") 404)
-                        (str-concat "no package named " name)
-                        (if (= (get-attr r "status") 200)
-                            "failed: the registry's reply was not a package"
-                            (str-concat "failed: " (failure r)))))))
-          (if (= (state-get "req.pkgpage") "0")
-              (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1)))))
+              (begin
+                (state-set "pkg.status" (package-failure r rows name))
+                (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1))))))
 
     ;; One page of the open package's builds, from the reply already held.
     (if (= (state-get "req.pkgpage") "1")
         (begin
           (state-set "req.pkgpage" "0")
           (set total (int (state-get "pkg.total")))
-          (set off (int (state-get "pkg.offset")))
-          (if (>= off total) (set off 0))
+          (set b (page-bounds (int (state-get "pkg.offset")) (int (state-get "args.page")) total))
+          (set off (nth b 0))
+          (set end (nth b 1))
           (state-set "pkg.offset" off)
-          (set end (+ off (int (state-get "args.page"))))
-          (if (> end total) (set end total))
           (set at (lambda (i k) (text (state-get (str-concat "pkg.all." i "." k)))))
           (set rows (list))
           (set i off)
           (while (< i end)
-            (set size (at i "size_bytes"))
-            (set rows (append rows (dict
-              "version" (at i "version")
-              "where" (str-concat (at i "platform") "/" (at i "arch"))
-              "kind" (str-concat (at i "build_type") " " (at i "link"))
-              "size" (if (= size "") ""
-                         (if (< (int size) 1024) (str-concat size " B")
-                             (str-concat (int (/ (int size) 1024)) " KB")))
-              "date" (let ((ts (at i "published_at")))
-                       (if (> (string.length ts) 10) (string.substring ts 0 10) ts)))))
+            (set rows (append rows (build-row (at i "version") (at i "platform") (at i "arch")
+                                              (at i "build_type") (at i "link") (at i "size_bytes")
+                                              (at i "published_at"))))
             (set i (+ i 1)))
           (state-set-tree "pkg.page" rows)
           (state-set "pkg.count" (- end off))

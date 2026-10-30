@@ -68,7 +68,8 @@ shows the same `cvcpkg install` lines to copy.
 ## Layout
 
 ```
-share/cypkg/      the documents: main.ari (requests, state) and views.ari (the views)
+share/cypkg/      the documents: main.ari (requests and state), lib.ari (the logic, as
+                  functions) and views.ari (the views)
 bin/              the launchers: cypkg (sh) and cypkg.cmd
 tests/            snapshot tests and a fixture registry
 recipe/           the cvcpkg recipe (M5)
@@ -97,7 +98,8 @@ the `ari` to run.
 |---|---|---|
 | 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units |
 | 2a. units | `tests/unit.sh` | Each view in `views.ari`, included in a test document over hand-seeded state, with no network: cut names, wide glyphs, empty results, hidden pagers, one view at a time |
-| 2b. logic | `tests/logic.sh` | 17 `ari test` tests of `main.ari`'s request logic against the fixture registry (`tests/logic.tests.yaml`). Each test sets state the way the views do, waits for `search.seq` or `pkg.seq` to count a finished request, and asserts on the result |
+| 2b. functions | `tests/lib.sh` | 15 `ari test` tests of `lib.ari`'s functions (`tests/lib/lib_test.ari`): values in, values out, no network or state |
+| 2c. logic | `tests/logic.sh` | 17 `ari test` tests of `main.ari`'s request logic against the fixture registry (`tests/logic.tests.yaml`). Each test sets state the way the views do, waits for `search.seq` or `pkg.seq` to count a finished request, and asserts on the result |
 | 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
 | 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, Ctrl-C |
 | 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
@@ -118,6 +120,11 @@ Snapshots are frame-for-frame text and fail on any warning. Layer 3b is the
 only one that checks input and the tvision backend, because `ari snapshot`
 can't send keys and always lays out with FTXUI.
 
+The logic lives in `lib.ari` as `functions:` (transfix/libcvc#900) that
+`main.ari` imports. Its `on_tick` only moves values between those functions and
+the state tree, so layer 2b tests each function directly. Binds can't call
+functions, so the views keep a few formatting expressions inline.
+
 `ari test` takes no document arguments, and the tests don't belong in the
 shipped document. So `tests/logic.sh` writes a copy of `main.ari` beside it,
 with the fixture as the server's default and `tests/logic.tests.yaml`
@@ -127,9 +134,9 @@ appended, then runs `ari test` on the copy.
 
 `.github/workflows/test.yml` runs `tests/run.sh` on every push and PR:
 
-- No `ari` package yet has transfix/libcvc#883 and #896, so the workflow
-  builds `ari` from libcvc master with those PRs merged on top, skipping any
-  that have already merged.
+- No `ari` package yet has transfix/libcvc#883, #896 and #900, so the
+  workflow builds `ari` from libcvc master with those PRs merged on top,
+  skipping any that have already merged.
 - libcvc's dependencies come from cvcpkg, as in libcvc's own CI.
 - The built `ari` is cached by its libcvc source tree, so an unchanged libcvc
   isn't rebuilt.
