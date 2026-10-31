@@ -9,9 +9,8 @@ orgs and the registry. The same documents run natively in a terminal and in
 the browser on xterm.js.
 
 > **Status: M0 in progress.** Search and package pages work in both terminal
-> backends and in the browser. They need an `ari` release newer than 3.7.5
-> (libcvc master has what they use; no release does yet), and no registry
-> serves `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> backends and in the browser. They need `ari` 3.7.6 or newer (the first
+> release with what they use), and no registry serves `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -119,7 +118,7 @@ root:
 cvcpkg build cypkg --local --platform any --prefix ./prefix
 ```
 
-It isn't published yet: no released `ari` has the libcvc features cypkg needs.
+It isn't published yet. `ari` 3.7.6 is the first release it runs on.
 
 ## Menus and windows
 
@@ -166,8 +165,8 @@ their window is open, and toggle it. F10 opens the menu bar from the keyboard.
 
 ## Running from a checkout
 
-`CYPKG_ARI` names the `ari` to run: the cvcpkg package, from a release newer
-than 3.7.5 (`cvcpkg install ari --prefix P`, then `CYPKG_ARI=P/bin/ari`).
+`CYPKG_ARI` names the `ari` to run: the cvcpkg package, 3.7.6 or newer
+(`cvcpkg install ari --prefix P`, then `CYPKG_ARI=P/bin/ari`).
 
 ```bash
 CYPKG_ARI=/path/to/ari bin/cypkg --q zlib
@@ -245,12 +244,12 @@ How the pieces fit:
 
 - The test job installs the `ari` package from cvcpkg.org
   (`cvcpkg install ari`), as a person would, and checks it has what cypkg
-  uses. ari 3.7.5, the latest release, predates json-parse, `ari test`,
-  functions:, the ws-* verbs and sha256-hex, so the job fails there until the
-  next libcvc release.
-- No package ships ari's single-threaded wasm page yet, so the browser job
-  builds it from libcvc master, with cvcpkg's emsdk and wasm deps, assembles
-  the site and runs `tests/browser.mjs` in the runner's Chrome.
+  uses (json-parse, `ari test`, functions:, the ws-* verbs, sha256-hex): 3.7.6
+  is the first release with them all.
+- No package ships ari's single-threaded wasm page yet (arigl-web will), so
+  the browser job builds it from libcvc at the same release tag
+  (`LIBCVC_REF`, v3.7.6), with cvcpkg's emsdk and wasm deps, assembles the
+  site and runs `tests/browser.mjs` in the runner's Chrome.
   `tools/libcvc.sh` fetches libcvc for it and can merge open PRs on top
   (`LIBCVC_PRS`, `LIBCVC_WEB_PRS`; none today), resolving the conflicts
   `tools/libcvc-resolve.py` knows.

@@ -5,14 +5,14 @@ name: test
 # (tests/integration.sh): cypkg against a local cvcpkg-server, installed from cy-pca/cvcpkg.
 #
 # The test job runs the ari package from cvcpkg.org, as a person installs it: cypkg targets a
-# stock, packaged ari. It needs an ari release with json-parse (transfix/libcvc#883), `ari test`
-# and functions: (#896, #900), the ws-* verbs (#923) and sha256-hex/random-token (#911). All are on
-# libcvc master; ari 3.7.5, the latest release, predates them, so the job fails at "Check the ari"
-# until the next libcvc release publishes an ari that has them.
+# stock, packaged ari. It needs json-parse (transfix/libcvc#883), `ari test` and functions: (#896,
+# #900), the ws-* verbs (#923) and sha256-hex/random-token (#911); ari 3.7.6 is the first release
+# with them all, and "Check the ari" stops an older one.
 #
-# The browser job still builds ari's single-threaded wasm page from libcvc (LIBCVC_REF, with any
-# open PRs in LIBCVC_PRS and LIBCVC_WEB_PRS merged on top by tools/libcvc.sh; none today): no
-# cvcpkg package ships that page yet. Install it from cvcpkg too once one does.
+# No cvcpkg package ships ari's single-threaded wasm page yet (arigl-web will), so the browser job
+# builds it from libcvc at the same release tag (LIBCVC_REF), with any open PRs in LIBCVC_PRS and
+# LIBCVC_WEB_PRS merged on top by tools/libcvc.sh (none today). Move LIBCVC_REF to each new
+# release, and install the page from cvcpkg once a package has it.
 
 on:
   push:
@@ -23,8 +23,8 @@ on:
   workflow_dispatch:
     inputs:
       libcvc_ref:
-        description: libcvc branch or commit to build the browser job's ari page from
-        default: master
+        description: libcvc tag, branch or commit to build the browser job's ari page from
+        default: v3.7.6
       libcvc_prs:
         description: libcvc PR numbers to merge on top, space-separated
         default: ""
@@ -33,7 +33,7 @@ on:
         default: ""
 
 env:
-  LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
+  LIBCVC_REF: ${{ inputs.libcvc_ref || 'v3.7.6' }}
   LIBCVC_PRS: ${{ inputs.libcvc_prs || '' }}
   LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '' }}
 
