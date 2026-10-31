@@ -9,9 +9,9 @@ orgs and the registry. The same documents run natively in a terminal and in
 the browser on xterm.js.
 
 > **Status: M0 in progress.** Search and package pages work in both terminal
-> backends and in the browser. They need an `ari` built with open libcvc PRs
-> (`.github/workflows/test.yml` lists them), and no registry serves
-> `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> backends and in the browser. They need an `ari` built from libcvc master
+> (no release has what they use yet), and no registry serves `/apps/cypkg/`
+> yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -119,7 +119,7 @@ root:
 cvcpkg build cypkg --local --platform any --prefix ./prefix
 ```
 
-It isn't published yet: no released `ari` has the libcvc PRs cypkg needs.
+It isn't published yet: no released `ari` has the libcvc features cypkg needs.
 
 ## Menus and windows
 
@@ -166,8 +166,7 @@ their window is open, and toggle it. F10 opens the menu bar from the keyboard.
 
 ## Running from a checkout
 
-`CYPKG_ARI` names the `ari` to run: one built from libcvc master with the PRs
-`.github/workflows/test.yml` lists merged in.
+`CYPKG_ARI` names the `ari` to run: one built from libcvc master.
 
 ```bash
 CYPKG_ARI=/path/to/ari bin/cypkg --q zlib
@@ -243,18 +242,19 @@ How the pieces fit:
 
 `.github/workflows/test.yml` runs `tests/run.sh` on every push and PR:
 
-- No `ari` package yet has the libcvc PRs cypkg needs, so the workflow builds
-  `ari` from libcvc master with them merged on top (`LIBCVC_PRS`: currently
-  #883, #896, #900, #902, #904 and #905), skipping any that have merged.
+- No `ari` package yet has the libcvc features cypkg needs, so the workflow
+  builds `ari` from libcvc master. `LIBCVC_PRS` can list open libcvc PRs to
+  merge on top (none today: they had all merged by 2026-10-31); any that have
+  merged are skipped.
 - libcvc's dependencies come from cvcpkg, as in libcvc's own CI.
 - The built `ari` is cached by its libcvc source tree, so an unchanged libcvc
   isn't rebuilt.
-- A second job builds ari's single-threaded wasm page the same way (with
-  #887 too, from cvcpkg's emsdk and wasm deps), assembles the site and runs
+- A second job builds ari's single-threaded wasm page the same way (from
+  cvcpkg's emsdk and wasm deps; `LIBCVC_WEB_PRS` adds PRs for it alone), assembles the site and runs
   `tests/browser.mjs` in the runner's Chrome.
-- `tools/libcvc.sh` does the fetching and merging for both jobs. When two of
-  the PRs conflict in a way `tools/libcvc-resolve.py` knows (today, #887 and
-  #896 in `src/ari/main.cpp`), it resolves it; any other conflict fails.
+- `tools/libcvc.sh` does the fetching and merging for both jobs. When two
+  listed PRs conflict in a way `tools/libcvc-resolve.py` knows, it resolves
+  it; any other conflict fails.
 - `tests/run.sh` runs the integration layer too, installing cvcpkg-server from
   cy-pca/cvcpkg. In CI a failed install fails the job instead of skipping it.
 - A daily job runs the contract check against cvcpkg.org.
