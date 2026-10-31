@@ -129,15 +129,21 @@ their window is open, and toggle it. F10 opens the menu bar from the keyboard.
 | Window | Shows | Refreshes |
 |---|---|---|
 | Search | The search and package pages | On request; Next and Prev come from pages already fetched |
-| Builders | The fleet: platform, status, load, version, last heartbeat | About every 10 s while open |
-| Builds | Build jobs, newest first, by status, a page at a time | The newest page, about every 10 s while open |
-| Activity | What was published and yanked | About every 10 s while open |
+| Builders | The fleet: platform, status, load, version, last heartbeat | Live: each builder as it changes |
+| Builds | Build jobs, newest first, by status, a page at a time | Live: jobs on the page change in place; a new one reloads the first page |
+| Activity | What was published and yanked | Live: reloads when an event comes in |
 | Account | Who the registry says you are; sign out | When opened |
 
 - **Modules:** each window is its own module (`share/cypkg/<window>.ari`). A
   closed window's module doesn't start until the window is first opened.
 - **Progress:** each window draws a progress bar at its bottom while a request
   is in flight.
+- **Live updates:** while open, the Builders, Builds and Activity windows
+  follow the registry's `/v1/live/ws` feed, with libcvc's `ws-*` verbs
+  (transfix/libcvc#923), natively and in the browser. The status line ends in
+  `· live`. Without a feed they poll about every 10 s and try the feed again,
+  and say `· polling`. Without the verbs, with `--live off`, or when the
+  server closes with 4004 (no live updates), they only poll.
 - **Signing in with an API token:** pass `--token-env VAR`, where `VAR` holds a
   `cvctok_` token (default `CYPKG_TOKEN`, if it's set).
   - The launcher hands it to `ari` with `--credential-env`, bound to the
@@ -172,7 +178,8 @@ Document flags: `--q`, `--platform`, `--arch`, `--link`, `--offset`,
 `--package`, `--pkg-offset`, `--page` and `--open` (windows to open at start,
 e.g. `--open builders,activity`). `--progress off` waits for replies without
 a progress bar, for a browser `ari` without libcvc's async fetch
-(transfix/libcvc#914). The launcher adds `--server`, `--tvision` and
+(transfix/libcvc#914). `--live off` polls instead of following the live feed.
+The launcher adds `--server`, `--tvision` and
 `--token-env`. `bin/cypkg --help` lists them.
 
 ## Tests

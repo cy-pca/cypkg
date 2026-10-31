@@ -75,6 +75,7 @@ for backend in "$@"; do
     keys Enter
     wait_for "View > Builders opens the builders window" '14 of 20 online'
     wait_for "... and it lists the fleet" 'star-00 +linux/x86_64'
+    wait_for "... and follows the live feed" 'online · live'
     keys C-c
     n=0
     while [ ! -s "$tmp/exit" ]; do

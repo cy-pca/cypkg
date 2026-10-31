@@ -41,6 +41,7 @@ args:
   page: {type: int, default: 10, help: Rows per page}
   open: {type: string, default: "", help: "Windows to open at start, comma-separated: builders, builds, activity, account"}
   progress: {type: string, default: "on", help: "off: wait for replies without a progress bar (the browser build passes it)"}
+  live: {type: string, default: "on", help: "off: poll the builders, builds and activity windows instead of following the live feed"}
 
 init: |
   (begin
@@ -52,6 +53,9 @@ init: |
     (state-set "auth.recheck" "0")
     ;; Signing in with a browser (pairing) needs a hash and a CSPRNG in the DSL.
     (state-set "auth.can_pair" (if (if (has? "sha256-hex") (has? "random-token") #f) "1" "0"))
+    ;; The windows follow the live feed (/v1/live/ws) with the host's WebSocket verbs; a host
+    ;; without them polls.
+    (if (not (has? "ws-open")) (state-set "args.live" "off"))
     ;; The fleet and account windows start closed (a window's open state is tree.<id>.open)
     ;; unless --open names them. A closed window's module doesn't start until it's opened.
     ;; The search window starts open. Set it, rather than rely on the default: the View menu's

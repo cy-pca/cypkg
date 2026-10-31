@@ -95,7 +95,7 @@ const page = async () => {
   return (s && JSON.parse(s)) || {state: 'none', log: [], text: '', csp: []};
 };
 // Keys go to xterm.js's input, as typing would.
-const KEYS = {Tab: 9, Enter: 13};
+const KEYS = {Tab: 9, Enter: 13, F10: 121, ArrowRight: 39, ArrowDown: 40};
 const key = async name => {
   await evaluate('document.querySelector(".xterm-helper-textarea").focus()');
   for (const type of ['keyDown', 'keyUp'])
@@ -157,6 +157,10 @@ await step('Next pages its builds', has('builds 11-20 of 25'));
 await key('Tab'); await key('Enter');
 await step('Back returns to the search', t => t.includes('Search: [zstd]') &&
                                               !t.includes('package: zstd'));
+// The menu bar: View > Builders, whose window follows the registry's live feed (a WebSocket from
+// the page, under the page's CSP).
+await key('F10'); await key('ArrowRight'); await key('ArrowDown'); await key('Enter');
+await step('View > Builders follows the live feed', has('14 of 20 online · live'));
 
 console.log(failed ? `${failed} of ${n} steps failed` : `all ${n} steps passed`);
 ws.close();

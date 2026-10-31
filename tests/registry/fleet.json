@@ -11,7 +11,18 @@
    "max_jobs": 4,
    "version": "2.5.10",
    "last_heartbeat": "2026-10-30T21:05:30.732681Z",
-   "org_slug": ""
+   "org_slug": "",
+   "capabilities": {
+    "cross_platforms": [
+     {
+      "platform": "wasm",
+      "arch": "wasm32"
+     }
+    ],
+    "glibc2.35": true,
+    "glibc2.39": true,
+    "source_packages": true
+   }
   },
   {
    "id": 2,

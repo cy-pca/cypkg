@@ -155,3 +155,37 @@ tests:
       (assert (= (str (b 99 10 25)) (str (list 0 10))) "past the end")
       (assert (= (str (b 25 10 25)) (str (list 0 10))) "at the end")
       (assert (= (str (b 0 10 0)) (str (list 0 0))) "nothing"))
+
+  live-url maps a server to its feed: |
+    (begin
+      (assert (= (live-url "https://cvcpkg.org") "wss://cvcpkg.org/v1/live/ws"))
+      (assert (= (live-url "http://127.0.0.1:8765") "ws://127.0.0.1:8765/v1/live/ws")))
+
+  live-final is 4004 and 4001 only: |
+    (begin
+      (assert (live-final 4004))
+      (assert (live-final 4001))
+      (assert (not (live-final 1006)))
+      (assert (not (live-final 0)))
+      (assert (not (live-final nil))))
+
+  live-note says where rows come from: |
+    (begin
+      (assert (= (live-note "live") " · live"))
+      (assert (= (live-note "offline") " · polling"))
+      (assert (= (live-note "off") ""))
+      (assert (= (live-note "idle") "")))
+
+  hello-text asks for its topics: |
+    (begin
+      (set h (json-parse (hello-text (list "builders" "builds"))))
+      (assert (= (get-attr h "type") "hello"))
+      (assert (= (str (get-attr h "topics")) (str (list "builders" "builds")))))
+
+  builder-row keeps what the window shows, not the capabilities: |
+    (begin
+      (set r (builder-row (dict "id" 3 "name" "star-00" "status" "online" "capabilities"
+                                (dict "glibc2.35" #t))))
+      (assert (= (get-attr r "name") "star-00"))
+      (assert (= (get-attr r "id") 3))
+      (assert (= (field r "capabilities") nil)))

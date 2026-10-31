@@ -167,3 +167,37 @@ functions: |
   ;; Whether a window's open state (tree.<id>.open) says closed.
   (defun closed (v) (let ((t2 (text v))) (if (= t2 "0") #t (= t2 "false"))))
 
+
+  ;; ── Live updates ──
+
+  ;; The live feed of a server: ws:// for http://, wss:// for https://.
+  (defun live-url (server)
+    (str-concat (string.replace (string.replace (text server) "https://" "wss://") "http://" "ws://")
+                "/v1/live/ws"))
+
+  ;; Whether a feed's close code means it won't come back: 4004 (the server has no live
+  ;; updates) or 4001 (it wants a token for reads).
+  (defun live-final (code) (let ((c (int-or code 0))) (if (= c 4004) #t (= c 4001))))
+
+  ;; How a window's status line says where its rows come from.
+  (defun live-note (mode)
+    (if (= mode "live") " · live"
+        (if (= mode "connecting") " · connecting"
+            (if (= mode "offline") " · polling" ""))))
+
+  ;; The hello a feed starts with: the topics it wants (a list of strings).
+  (defun hello-text (topics) (json-encode (dict "type" "hello" "topics" topics)))
+
+  ;; The fields of a builder the Builders window shows. Its capabilities stay behind: their keys
+  ;; ("glibc2.35") can't name state nodes.
+  (defun builder-row (b)
+    (dict "id" (field b "id") "name" (text (field b "name")) "platform" (text (field b "platform"))
+          "arch" (text (field b "arch")) "status" (text (field b "status"))
+          "current_jobs" (field b "current_jobs") "max_jobs" (field b "max_jobs")
+          "version" (text (field b "version")) "last_heartbeat" (text (field b "last_heartbeat"))))
+
+  ;; builder-row of each of `rows`.
+  (defun builder-rows (rows)
+    (set out (list))
+    (for b rows (set out (append out (builder-row b))))
+    out)

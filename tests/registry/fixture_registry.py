@@ -15,10 +15,16 @@ the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
 - POST /v1/auth/device and /v1/auth/device/token: device pairing (client_id cvcpkg-cli); GET
   /_approve?code=CODE[&deny] approves or denies a code, as a person would at /link.
 - POST /v1/auth/revoke: ends a paired session.
+- GET /v1/live/ws: the live feed, a WebSocket. After {"type":"hello","topics":[...]} it sends
+  ready (and the builders snapshot for that topic), then whatever /_live publishes.
 - GET /healthz.
 
 For tests: GET /_requests lists the /v1 requests served so far (path, q, offset, facets), and
-/_requests?reset=1 clears the list. A query or package name starting "slow:" is answered after a
+/_requests?reset=1 clears the list. GET /_live?msg=JSON publishes a live message (builder,
+builders, builder_removed, builds, activity or resync) to the feeds subscribed to its topic and
+applies it to what the REST endpoints serve; /_live?close=CODE closes every feed with CODE;
+/_live?off=1 (or 0) makes new feeds close with 4004, as a server without live updates does; /_live
+alone counts the open feeds. A query or package name starting "slow:" is answered after a
 second, as if for the rest of the name, so a test can watch a request in flight.
 
 With --port 0 it picks a free port and writes it to --port-file. With --site DIR it also serves
@@ -27,6 +33,9 @@ share one origin, as on a real registry. Stdlib only.
 """
 
 import argparse
+import base64
+import hashlib
+import struct
 import threading
 import time
 import collections
@@ -239,9 +248,127 @@ def static(path):
     return 200, ctype, f.read_bytes()
 
 
+# ── The live feed (/v1/live/ws): a minimal RFC 6455 server, text messages only ──
+
+WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+TOPIC_OF = {"builder": "builders", "builders": "builders", "builder_removed": "builders",
+            "builds": "builds", "activity": "activity"}
+LIVE = []  # the open feeds
+LIVE_LOCK = threading.Lock()
+LIVE_OFF = [False]
+
+
+class Feed:
+    def __init__(self, wfile, topics):
+        self.wfile = wfile
+        self.topics = topics
+        self.lock = threading.Lock()
+
+    def frame(self, opcode, payload):
+        n = len(payload)
+        head = bytes([0x80 | opcode])
+        if n < 126:
+            head += bytes([n])
+        elif n < 65536:
+            head += bytes([126]) + struct.pack("!H", n)
+        else:
+            head += bytes([127]) + struct.pack("!Q", n)
+        with self.lock:
+            try:
+                self.wfile.write(head + payload)
+                self.wfile.flush()
+            except OSError:
+                pass
+
+    def send(self, msg):
+        self.frame(0x1, json.dumps(msg).encode())
+
+    def close(self, code, reason=""):
+        self.frame(0x8, struct.pack("!H", code) + reason.encode())
+
+
+def ws_read(rfile):
+    """The next whole message from a client as (opcode, payload); None at the end."""
+    first, parts = None, b""
+    while True:
+        h = rfile.read(2)
+        if len(h) < 2:
+            return None
+        fin, op, n = h[0] & 0x80, h[0] & 0x0F, h[1] & 0x7F
+        if n == 126:
+            n = struct.unpack("!H", rfile.read(2))[0]
+        elif n == 127:
+            n = struct.unpack("!Q", rfile.read(8))[0]
+        mask = rfile.read(4) if h[1] & 0x80 else b"\0\0\0\0"
+        data = bytes(b ^ mask[i % 4] for i, b in enumerate(rfile.read(n)))
+        if op >= 0x8:
+            return op, data  # a control frame: close, ping or pong
+        first = op if first is None else first
+        parts += data
+        if fin:
+            return first, parts
+
+
+def apply_live(msg):
+    """What a published message changes in the REST endpoints' rows."""
+    t = msg.get("type")
+    if t == "builder":
+        rows = FLEET["builders"]
+        b = msg["builder"]
+        at = next((i for i, x in enumerate(rows) if x["id"] == b["id"]), None)
+        if at is None:
+            rows.append(b)
+        else:
+            rows[at] = b
+    elif t == "builders":
+        FLEET["builders"] = list(msg["builders"])
+    elif t == "builder_removed":
+        FLEET["builders"] = [x for x in FLEET["builders"] if x["id"] != msg["id"]]
+    elif t == "builds":
+        rows = FLEET["builds"]
+        for j in msg["jobs"]:
+            at = next((i for i, x in enumerate(rows) if x["id"] == j["id"]), None)
+            if at is None:
+                rows.insert(0, j)
+            else:
+                rows[at] = j
+    elif t == "activity":
+        FLEET["activity"][:0] = msg["events"]
+
+
+def publish(qs):
+    one = lambda k: qs.get(k, [""])[0]
+    with LIVE_LOCK:
+        feeds = list(LIVE)
+    if one("off"):
+        LIVE_OFF[0] = one("off") == "1"
+    if one("close"):
+        for f in feeds:
+            f.close(int(one("close")), "closed by /_live")
+        return 200, {"closed": len(feeds)}
+    if one("msg"):
+        msg = json.loads(one("msg"))
+        apply_live(msg)
+        topic = TOPIC_OF.get(msg.get("type"))
+        sent = 0
+        for f in feeds:
+            if topic is None or topic in f.topics:
+                f.send(msg)
+                sent += 1
+        return 200, {"sent": sent}
+    return 200, {"feeds": len(feeds), "topics": sorted({t for f in feeds for t in f.topics}),
+                 "off": LIVE_OFF[0]}
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
+    # HTTP/1.1: a WebSocket handshake needs it. Every reply sends its Content-Length.
+    protocol_version = "HTTP/1.1"
+
     def do_GET(self):
         u = urllib.parse.urlsplit(self.path)
+        if u.path == "/v1/live/ws":
+            self.live()
+            return
         if not u.path.startswith("/v1/") and u.path != "/healthz":
             hit = static(u.path)
             if hit:
@@ -251,7 +378,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(data)))
                 # A strict policy, as a registry should serve the page with: no inline code or
                 # style, no eval, nothing from another origin. ari's page runs under it (#887).
-                self.send_header("Content-Security-Policy", CSP)
+                # The live feed is this origin's too: name its ws:// form, which not every
+                # browser counts as 'self'.
+                self.send_header("Content-Security-Policy", CSP.replace(
+                    "connect-src 'self'",
+                    "connect-src 'self' ws://" + self.headers.get("Host", "127.0.0.1")))
                 self.end_headers()
                 self.wfile.write(data)
                 return
@@ -278,6 +409,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             status, body = whoami(self.headers.get("Authorization", ""))
         elif u.path == "/_approve":
             status, body = approve(urllib.parse.parse_qs(u.query))
+        elif u.path == "/_live":
+            status, body = publish(urllib.parse.parse_qs(u.query))
         elif u.path.startswith("/v1/packages/"):
             status, body = package(urllib.parse.unquote(u.path[len("/v1/packages/"):]))
         elif u.path == "/healthz":
@@ -315,6 +448,62 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+
+    def live(self):
+        key = self.headers.get("Sec-WebSocket-Key")
+        if self.headers.get("Upgrade", "").lower() != "websocket" or not key:
+            data = b'{"detail":"a WebSocket endpoint"}'
+            self.send_response(400)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        accept = base64.b64encode(hashlib.sha1((key + WS_GUID).encode()).digest()).decode()
+        self.send_response(101, "Switching Protocols")
+        self.send_header("Upgrade", "websocket")
+        self.send_header("Connection", "Upgrade")
+        self.send_header("Sec-WebSocket-Accept", accept)
+        self.end_headers()
+        self.close_connection = True
+        feed = Feed(self.wfile, [])
+        m = ws_read(self.rfile)
+        try:
+            hello = json.loads(m[1]) if m and m[0] == 0x1 else {}
+        except ValueError:
+            hello = {}
+        topics = [t for t in hello.get("topics") or [] if t in ("activity", "builders", "builds")]
+        with REQUESTS_LOCK:
+            REQUESTS.append({"path": "/v1/live/ws", "q": ",".join(topics), "offset": "",
+                             "facets": ""})
+        if hello.get("type") != "hello" or not topics:
+            feed.close(4000, "expected a hello")
+            return
+        if LIVE_OFF[0]:
+            feed.close(4004, "this server has no live updates")
+            return
+        feed.topics = topics
+        feed.send({"type": "ready", "topics": topics, "latest_id": len(FLEET["activity"])})
+        if "builders" in topics:
+            feed.send({"type": "builders", "builders": FLEET["builders"]})
+        with LIVE_LOCK:
+            LIVE.append(feed)
+        try:
+            while True:
+                m = ws_read(self.rfile)
+                if m is None:
+                    break
+                if m[0] == 0x8:
+                    feed.frame(0x8, m[1][:2])
+                    break
+                if m[0] == 0x9:
+                    feed.frame(0xA, m[1])
+        except OSError:
+            pass
+        finally:
+            with LIVE_LOCK:
+                if feed in LIVE:
+                    LIVE.remove(feed)
 
     def log_message(self, *args):
         pass
