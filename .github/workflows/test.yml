@@ -40,7 +40,7 @@ on:
 
 env:
   LIBCVC_REF: ${{ inputs.libcvc_ref || 'master' }}
-  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905 911 912' }}
+  LIBCVC_PRS: ${{ inputs.libcvc_prs || '883 896 900 902 904 905 911 912 923' }}
   LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '887 914' }}
 
 concurrency:

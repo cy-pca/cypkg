@@ -30,7 +30,7 @@ work on cvcpkg is tracked as C-items in
 | L3 | `json-parse` / `json-encode`, so documents can read REST replies | transfix/libcvc#883 open | M0 |
 | L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP. #895's CI runs a sign-in, a refresh and a fetch from the single-threaded wasm `ari` under node.  Now run in headless Chrome through #887's page by `tests/browser.mjs` | works in Chrome; tested in CI | M0 (browser) |
 | L5 | A scrolling, virtualized list or table, wrapped text, and a filter box, in **both terminal backends** and FTXUI on wasm | open | M0 |
-| L6 | A general WebSocket verb whose frames arrive as `on_signal`, natively and in wasm | open | M1 |
+| L6 | A general WebSocket client, natively and in wasm: `ws-open`, `ws-send`, `ws-poll`, `ws-recv`, `ws-close` (async verbs, not signals) | transfix/libcvc PR open | M1 |
 | L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 open; cypkg's browser job uses it | M0 (browser) |
 | L10 | ari's xterm.js page as a cvcpkg package, so a registry can serve it (#887 ships it in `arigl-web`) | transfix/libcvc#887 open | M5 |
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
@@ -66,11 +66,12 @@ transfix/libcvc#710.
 - **M1, live:** builders, the paged build list, a build's details with a live
   log tail, and the activity feed, all over `/v1/live/ws`. Fall back to
   polling on close code 4004. Also orgs, tags and the recipe list.
-  - **Started:** the menu bar's View menu opens Builders, Builds (by status,
-    paged) and Activity windows, each a module that polls about every 10 s
-    while its window is open.
-  - **Still to do:** a build's details and log tail, and `/v1/live/ws`, which
-    needs L6.
+  - **Done:** the menu bar's View menu opens Builders, Builds (by status,
+    paged) and Activity windows. Each module follows `/v1/live/ws` while its
+    window is open: builders and jobs change in place, a new job or event
+    reloads. Without a feed (no `ws-*` verbs, `--live off`, or close 4004/4001)
+    it polls about every 10 s, and tries the feed again then.
+  - **Still to do:** a build's details and log tail (the `log` topic).
 - **M2, sign in:** a pairing code (`/v1/auth/device`), shown as a URL, a code
   and a QR code. Also: a pasted `cvctok_` token, `whoami`, private orgs, and
   refresh when a session expires. Persistence is native only; in the browser

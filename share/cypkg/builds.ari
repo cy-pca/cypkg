@@ -1,8 +1,12 @@
 # builds.ari: the build jobs, newest first, a page at a time, filtered by status.
 #
 # A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
-# window's tree.<id>.open, read-only: it refreshes only while open) and view/nav where it needs
-# them. A closed window's module doesn't start until the window is first opened.
+# window's tree.<id>.open, read-only) and auth. A closed window's module doesn't start until the
+# window is first opened.
+#
+# While the window is open it follows the registry's live feed (the builds topic): a job on the
+# page changes in place, and a new one (on the first page) or one leaving the filter reloads the
+# page. Without a feed it polls the first page about every 10 s, and tries the feed again.
 
 meta:
   name: cypkg-builds
@@ -11,6 +15,26 @@ meta:
 needs: [args, shown, auth]
 
 import: [views.ari, lib.ari, net.ari]
+
+functions: |
+  ;; Apply a builds message's jobs to the page: a job shown here changes in place while it still
+  ;; passes the filter; one that doesn't, or a new one when the page is the first, reloads.
+  (defun apply-jobs (jobs)
+    (set n (int (state-get "builds.count")))
+    (set filter (state-get "builds.filter"))
+    (for j jobs
+      (set id (text (field j "id")))
+      (set fits (if (= filter "all") #t (= (field j "status") filter)))
+      (set at -1)
+      (set i 0)
+      (while (if (< i n) (= at -1) #f)
+        (if (= (text (state-get (str-concat "builds.res.jobs." i ".id"))) id) (set at i))
+        (set i (+ i 1)))
+      (if (= at -1)
+          (if (if fits (= (int (state-get "builds.offset")) 0) #f) (state-set "req.refresh" "1"))
+          (if fits
+              (state-set-tree (str-concat "builds.res.jobs." at) j)
+              (state-set "req.refresh" "1")))))
 
 init: |
   (begin
@@ -23,10 +47,25 @@ init: |
     (state-set "builds.busy" 0)
     (state-set "builds.bar" "")
     (state-set "builds.seq" 0)
+    (live-init "builds")
     (state-set "req.refresh" "1"))
 
 on_tick: |
   (begin
+    (if (closed (state-get "shown"))
+        (begin
+          (live-stop "builds")
+          (state-set "builds.retry" "1"))
+        (begin
+          (set msgs (live-pump "builds" (list "builds") (= (state-get "builds.retry") "1")))
+          (state-set "builds.retry" "0")
+          (for m msgs
+            (set ty (field m "type"))
+            (if (= ty "builds") (apply-jobs (field m "jobs")))
+            (if (= ty "resync") (state-set "req.refresh" "1")))
+          (if (> (length msgs) 0)
+              (state-set "builds.seq" (+ (int (state-get "builds.seq")) 1)))))
+
     ;; A new status filter starts again from the newest job.
     (if (!= (state-get "builds.filter") (state-get "builds.sent"))
         (begin
@@ -51,16 +90,17 @@ on_tick: |
                 (set total (if (= (field d "total") nil) n (int (field d "total"))))
                 (state-set "builds.count" n)
                 (state-set "builds.total" total)
-                (state-set "builds.status"
+                (state-set "builds.base"
                   (if (= n 0) "no jobs" (str-concat "jobs " (+ off 1) "-" (+ off n) " of " total))))
               (begin
                 (state-set "builds.count" 0)
                 (state-set "builds.total" 0)
-                (state-set "builds.status" (str-concat "failed: " (failure r)))))
+                (state-set "builds.base" (str-concat "failed: " (failure r)))))
           (state-set "builds.seq" (+ (int (state-get "builds.seq")) 1))))
 
-    ;; Refresh the newest page about every 10 s while the window is open.
-    (if (not (idle-wait 10 (list "req.refresh")))
+    (live-status "builds")
+    ;; No feed: poll the newest page about every 10 s while the window is open.
+    (if (live-idle "builds")
         (if (if (not (closed (state-get "shown"))) (= (int (state-get "builds.offset")) 0) #f)
             (state-set "req.refresh" "1"))))
 

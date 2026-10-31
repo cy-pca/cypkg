@@ -4,6 +4,9 @@
 # finished request and asserts on what its view reads. tests/modules.sh puts the fixture's URL in
 # place of @SERVER@. The fixture serves fleet.json: 20 builders (14 online), 30 build jobs,
 # 30 activity events.
+#
+# The live tests publish through the fixture's /_live (as the registry would on a change) and
+# check that the windows change without asking /v1 again (/_requests), or reload when they must.
 
 meta:
   name: cypkg-fleet-test
@@ -12,6 +15,27 @@ meta:
 requires: [net]
 
 import: ../../share/cypkg/lib.ari
+
+functions: |
+  ;; Wait (up to 10 s) until state `path` reads `want`.
+  (defun wait-for (path want)
+    (set i 0)
+    (while (if (!= (text (state-get path)) want) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
+    (text (state-get path)))
+
+  ;; Publish a live message through the fixture.
+  (defun publish (msg)
+    (http-get (str-concat (state-get "args.server") "/_live")
+              (dict "query" (dict "msg" (json-encode msg)))))
+
+  ;; The /v1 requests to `path` since the last reset.
+  (defun asked (path)
+    (set d (reply-object (http-get (str-concat (state-get "args.server") "/_requests"))))
+    (set n 0)
+    (for r (field d "requests") (if (= (field r "path") path) (set n (+ n 1))))
+    n)
+
+  (defun reset-asked () (http-get (str-concat (state-get "args.server") "/_requests?reset=1")))
 
 args:
   server: {type: string, default: "@SERVER@"}
@@ -59,7 +83,7 @@ tests:
       (set i 0)
       (while (if (< (int (state-get "includes.b.builders.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
       (assert (= (state-get "includes.b.builders.count") "20") (state-get "includes.b.builders.count"))
-      (assert (= (state-get "includes.b.builders.status") "14 of 20 online") (state-get "includes.b.builders.status"))
+      (assert (= (state-get "includes.b.builders.base") "14 of 20 online") (state-get "includes.b.builders.base"))
       (assert (= (state-get "includes.b.builders.res.builders.0.name") "star-00")))
 
   Refresh asks again at once: |
@@ -74,14 +98,14 @@ tests:
     (begin
       (set i 0)
       (while (if (< (int (state-get "includes.j.builds.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
-      (assert (= (state-get "includes.j.builds.status") "jobs 1-10 of 30") (state-get "includes.j.builds.status"))
+      (assert (= (state-get "includes.j.builds.base") "jobs 1-10 of 30") (state-get "includes.j.builds.base"))
       (assert (= (state-get "includes.j.builds.res.jobs.0.id") "24252"))
       (set n (int (state-get "includes.j.builds.seq")))
       (state-set "includes.j.builds.offset" 20)
       (state-set "includes.j.req.refresh" "1")
       (set i 0)
       (while (if (<= (int (state-get "includes.j.builds.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
-      (assert (= (state-get "includes.j.builds.status") "jobs 21-30 of 30") (state-get "includes.j.builds.status")))
+      (assert (= (state-get "includes.j.builds.base") "jobs 21-30 of 30") (state-get "includes.j.builds.base")))
 
   a status filter starts again from the newest matching job: |
     (begin
@@ -99,5 +123,81 @@ tests:
     (begin
       (set i 0)
       (while (if (< (int (state-get "includes.a.activity.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
-      (assert (= (state-get "includes.a.activity.status") "the latest 20 events") (state-get "includes.a.activity.status"))
+      (assert (= (state-get "includes.a.activity.base") "the latest 20 events") (state-get "includes.a.activity.base"))
       (assert (= (state-get "includes.a.activity.res.events.0.kind") "yank")))
+
+  the windows follow the live feed: |
+    (begin
+      (assert (= (wait-for "includes.b.builders.live" "live") "live") "builders: no feed")
+      (assert (= (wait-for "includes.j.builds.live" "live") "live") "builds: no feed")
+      (assert (= (wait-for "includes.a.activity.live" "live") "live") "activity: no feed")
+      (assert (string.ends-with (state-get "includes.b.builders.status") " · live")
+              (state-get "includes.b.builders.status")))
+
+  a builder that changes changes in place: |
+    (begin
+      (reset-asked)
+      (set b (reply-object (http-get (str-concat (state-get "args.server") "/v1/builders"))))
+      (set one (nth (field b "builders") 0))
+      (set-attr one "status" "offline")
+      (set-attr one "current_jobs" 3)
+      (reset-asked)
+      (publish (dict "type" "builder" "builder" one))
+      (assert (= (wait-for "includes.b.builders.res.builders.0.status" "offline") "offline"))
+      (assert (= (state-get "includes.b.builders.res.builders.0.current_jobs") "3"))
+      (assert (= (wait-for "includes.b.builders.base" "13 of 20 online") "13 of 20 online")
+              (state-get "includes.b.builders.base"))
+      (assert (= (asked "/v1/builders") 0) "the window asked /v1/builders again"))
+
+  a new builder is added at the end: |
+    (begin
+      (set b (dict "id" 9001 "name" "fixture-new" "platform" "linux" "arch" "aarch64"
+                   "status" "online" "current_jobs" 0 "max_jobs" 2 "version" "2.5.10"
+                   "last_heartbeat" "2026-10-30T12:00:00Z"))
+      (publish (dict "type" "builder" "builder" b))
+      (assert (= (wait-for "includes.b.builders.res.builders.20.name" "fixture-new") "fixture-new"))
+      (assert (= (state-get "includes.b.builders.count") "21")))
+
+  a job on the page changes in place: |
+    (begin
+      (set n (int (state-get "includes.j.builds.seq")))
+      (state-set "includes.j.builds.filter" "all")
+      (wait-for "includes.j.builds.base" "jobs 1-10 of 30")
+      (set id (state-get "includes.j.builds.res.jobs.3.id"))
+      (set d (reply-object (http-get (str-concat (state-get "args.server") "/v1/builds")
+                                     (dict "query" (dict "limit" 10)))))
+      (set job (nth (field d "jobs") 3))
+      (set-attr job "status" "cancelled")
+      (reset-asked)
+      (publish (dict "type" "builds" "jobs" (list job)))
+      (assert (= (wait-for "includes.j.builds.res.jobs.3.status" "cancelled") "cancelled"))
+      (assert (= (state-get "includes.j.builds.res.jobs.3.id") id))
+      (assert (= (asked "/v1/builds") 0) "the window asked /v1/builds again"))
+
+  a new job reloads the first page: |
+    (begin
+      (set d (reply-object (http-get (str-concat (state-get "args.server") "/v1/builds")
+                                     (dict "query" (dict "limit" 1)))))
+      (set job (nth (field d "jobs") 0))
+      (set-attr job "id" 99999)
+      (set-attr job "status" "queued")
+      (publish (dict "type" "builds" "jobs" (list job)))
+      (assert (= (wait-for "includes.j.builds.base" "jobs 1-10 of 31") "jobs 1-10 of 31")
+              (state-get "includes.j.builds.base"))
+      (assert (= (state-get "includes.j.builds.res.jobs.0.id") "99999")))
+
+  an activity event reloads the feed: |
+    (begin
+      (set ev (dict "id" 777777 "kind" "publish" "name" "fixture-pkg" "version" "1.0"
+                    "platform" "linux" "arch" "x86_64" "created_at" "2026-10-30T12:00:00Z"))
+      (publish (dict "type" "activity" "events" (list ev)))
+      (assert (= (wait-for "includes.a.activity.res.events.0.name" "fixture-pkg") "fixture-pkg")))
+
+  a server without live updates leaves the windows polling: |
+    (begin
+      (http-get (str-concat (state-get "args.server") "/_live?close=4004"))
+      (assert (= (wait-for "includes.b.builders.live" "off") "off"))
+      (assert (= (wait-for "includes.j.builds.live" "off") "off"))
+      (assert (= (wait-for "includes.a.activity.live" "off") "off"))
+      (assert (= (wait-for "includes.b.builders.status" "14 of 21 online") "14 of 21 online")
+              (state-get "includes.b.builders.status")))

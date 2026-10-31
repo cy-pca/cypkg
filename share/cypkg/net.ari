@@ -51,3 +51,107 @@ functions: |
   (defun with-auth (opts)
     (if (signed-in) (begin (set-attr opts "auth" "cvcpkg") opts) opts))
 
+
+  ;; ── Live updates: the registry's /v1/live/ws feed ──
+  ;;
+  ;; Each window module keeps its own feed, in its own state: <p>.ws (the handle, "" for none) and
+  ;; <p>.live, one of
+  ;;   idle        no feed yet, or its window is closed;
+  ;;   connecting  connected, waiting for the server's ready;
+  ;;   live        messages are coming in, so the module needn't poll;
+  ;;   offline     the feed dropped or never came up: the module polls, and tries again;
+  ;;   off         no feed here (args.live off, the host has no ws verbs, or the server closed
+  ;;               with 4004, no live updates, or 4001): polling only.
+
+  ;; Whether <p>'s feed is live.
+  (defun live? (p) (= (state-get (str-concat p ".live")) "live"))
+
+  ;; Close <p>'s feed (its window closed). The next pump with try set opens a new one.
+  (defun live-stop (p)
+    (set h (state-get (str-concat p ".ws")))
+    (if (!= h "") (ws-close h))
+    (state-set (str-concat p ".ws") "")
+    (if (!= (state-get (str-concat p ".live")) "off") (state-set (str-concat p ".live") "idle")))
+
+  ;; <p>'s feed has ended, with close code `code` (0 for an error).
+  (defun live-ended (p code)
+    (set h (state-get (str-concat p ".ws")))
+    (if (!= h "") (ws-close h))
+    (state-set (str-concat p ".ws") "")
+    (state-set (str-concat p ".live") (if (live-final code) "off" "offline")))
+
+  ;; One pump of <p>'s feed of `topics` (a list of strings): when there is no feed and `try`
+  ;; says to, open one and say hello; then take every message already in, without waiting.
+  ;; Returns the messages, parsed, oldest first. A ready after an earlier one (a reconnect) comes
+  ;; back as a resync, since what changed meanwhile was missed.
+  (defun live-pump (p topics try)
+    (set out (list))
+    (set kw (str-concat p ".ws"))
+    (set kl (str-concat p ".live"))
+    (if (!= (state-get kl) "off")
+        (begin
+          (if (if (= (state-get kw) "") try #f)
+              (begin
+                (state-set kl "connecting")
+                (set r (ws-open (live-url (state-get "args.server")) (dict "timeout" 10)))
+                (if (= (field r "ok") #t)
+                    (begin
+                      (state-set kw (field r "handle"))
+                      (ws-send (field r "handle") (hello-text topics)))
+                    (state-set kl "offline"))))
+          (set h (state-get kw))
+          (set more (!= h ""))
+          (while more
+            (set e (ws-poll h))
+            (if (= e nil)
+                (begin
+                  (set more #f)
+                  (if (not (ws-open? h)) (live-ended p 1006)))
+                (begin
+                  (set ty (field e "type"))
+                  (if (= ty "text")
+                      (begin
+                        (set m (try (json-parse (field e "data")) (catch (x) nil)))
+                        (if (!= m nil)
+                            (if (= (field m "type") "ready")
+                                (begin
+                                  (if (= (text (state-get (str-concat p ".everlive"))) "1")
+                                      (set out (append out (dict "type" "resync"))))
+                                  (state-set (str-concat p ".everlive") "1")
+                                  (state-set kl "live"))
+                                (set out (append out m))))))
+                  (if (= ty "close") (begin (live-ended p (field e "code")) (set more #f)))
+                  (if (= ty "error") (begin (live-ended p 0) (set more #f))))))))
+    out)
+
+  ;; <p>.status: <p>.base (what the module last showed) and where its rows come from.
+  (defun live-status (p)
+    (state-set (str-concat p ".status")
+               (str-concat (text (state-get (str-concat p ".base")))
+                           (live-note (state-get (str-concat p ".live"))))))
+
+  ;; The end of a window module's tick: wait about 0.3 s (less once req.refresh is set). While
+  ;; the feed isn't live it counts these waits, and about every 10 s it returns #t: time for the
+  ;; module to poll, and for the feed to be tried again (<p>.retry).
+  (defun live-idle (p)
+    (set due #f)
+    (if (not (idle-wait 0.25 (list "req.refresh")))
+        (if (not (live? p))
+            (begin
+              (set k (+ (int-or (state-get (str-concat p ".ticks")) 0) 1))
+              (if (>= k 33)
+                  (begin
+                    (set k 0)
+                    (set due #t)
+                    (state-set (str-concat p ".retry") "1")))
+              (state-set (str-concat p ".ticks") k))))
+    due)
+
+  ;; The live state a window module starts with: idle, or off when args.live says so.
+  (defun live-init (p)
+    (state-set (str-concat p ".ws") "")
+    (state-set (str-concat p ".live") (if (= (text (state-get "args.live")) "off") "off" "idle"))
+    (state-set (str-concat p ".everlive") "0")
+    (state-set (str-concat p ".retry") "1")
+    (state-set (str-concat p ".ticks") 0)
+    (state-set (str-concat p ".base") ""))

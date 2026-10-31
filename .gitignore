@@ -6,3 +6,6 @@ deps/
 
 # tests/modules.sh writes a copy of each module test here while it runs
 tests/modules/.*_test.*.ari
+
+# Python bytecode (the fixture registry)
+__pycache__/

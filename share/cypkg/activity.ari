@@ -1,8 +1,11 @@
 # activity.ari: what was published and yanked, newest first.
 #
 # A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
-# window's tree.<id>.open, read-only: it refreshes only while open) and view/nav where it needs
-# them. A closed window's module doesn't start until the window is first opened.
+# window's tree.<id>.open, read-only) and auth. A closed window's module doesn't start until the
+# window is first opened.
+#
+# While the window is open it follows the registry's live feed (the activity topic) and reloads
+# when an event comes in. Without a feed it polls about every 10 s, and tries the feed again.
 
 meta:
   name: cypkg-activity
@@ -19,10 +22,23 @@ init: |
     (state-set "activity.busy" 0)
     (state-set "activity.bar" "")
     (state-set "activity.seq" 0)
+    (live-init "activity")
     (state-set "req.refresh" "1"))
 
 on_tick: |
   (begin
+    (if (closed (state-get "shown"))
+        (begin
+          (live-stop "activity")
+          (state-set "activity.retry" "1"))
+        (begin
+          (set msgs (live-pump "activity" (list "activity") (= (state-get "activity.retry") "1")))
+          (state-set "activity.retry" "0")
+          (for m msgs
+            (set ty (field m "type"))
+            (if (= ty "activity") (state-set "req.refresh" "1"))
+            (if (= ty "resync") (state-set "req.refresh" "1")))))
+
     (if (= (state-get "req.refresh") "1")
         (begin
           (state-set "req.refresh" "0")
@@ -35,15 +51,16 @@ on_tick: |
               (begin
                 (state-set-tree "activity.res" d)
                 (state-set "activity.count" (length rows))
-                (state-set "activity.status"
+                (state-set "activity.base"
                   (if (= (length rows) 0) "nothing yet" (str-concat "the latest " (length rows) " events"))))
               (begin
                 (state-set "activity.count" 0)
-                (state-set "activity.status" (str-concat "failed: " (failure r)))))
+                (state-set "activity.base" (str-concat "failed: " (failure r)))))
           (state-set "activity.seq" (+ (int (state-get "activity.seq")) 1))))
 
-    ;; Refresh about every 10 s while the window is open; a click is answered at once.
-    (if (not (idle-wait 10 (list "req.refresh")))
+    (live-status "activity")
+    ;; No feed: poll about every 10 s while the window is open. A click is answered at once.
+    (if (live-idle "activity")
         (if (not (closed (state-get "shown"))) (state-set "req.refresh" "1"))))
 
 root:
