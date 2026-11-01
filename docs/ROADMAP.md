@@ -31,8 +31,8 @@ work on cvcpkg is tracked as C-items in
 | L4 | The HTTP verbs work on the single-threaded wasm page (`-sASYNCIFY`, no pthreads), so the browser needs no COOP/COEP. #895's CI runs a sign-in, a refresh and a fetch from the single-threaded wasm `ari` under node.  Now run in headless Chrome through #887's page by `tests/browser.mjs` | works in Chrome; tested in CI | M0 (browser) |
 | L5 | A scrolling, virtualized list or table, wrapped text, and a filter box, in **both terminal backends** and FTXUI on wasm | open | M0 |
 | L6 | A general WebSocket client, natively and in wasm: `ws-open`, `ws-send`, `ws-poll`, `ws-recv`, `ws-close` (async verbs, not signals) | transfix/libcvc PR open | M1 |
-| L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 open; cypkg's browser job uses it | M0 (browser) |
-| L10 | ari's xterm.js page as a cvcpkg package, so a registry can serve it (#887 ships it in `arigl-web`) | transfix/libcvc#887 open | M5 |
+| L8 | ari's xterm.js page runs `?src=<same-origin .ari URL>`, with host flags taken from `ariadne.config.json` | transfix/libcvc#887 merged; cypkg's browser job uses it | M0 (browser) |
+| L10 | ari's xterm.js page as a cvcpkg package, so a registry can serve it | done: the single-threaded `arigl-web` package ships it from 3.7.8 (transfix/libcvc#952); cypkg's browser job installs it | M5 |
 | L11 | Terminal helpers: copy to the clipboard with OSC 52, OSC 8 hyperlinks, and a half-block QR code for the pairing URL | open | M2 |
 | L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | transfix/libcvc#896 open (issue #894) | M0 tests |
 | L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | transfix/libcvc#900 open (on #896) | M0 tests |
@@ -135,23 +135,22 @@ What the tests found and fixed:
 
 To do for M0:
 
-- **CI: `.github/workflows/test.yml`.** Until an `ari` package has them, it
-  builds `ari` from libcvc master with #883, #896, #900, #902, #904 and #905
-  merged in. All pass the suite unchanged locally. Switch to
-  the package once one has both.
+- **CI: `.github/workflows/test.yml`.** It runs the packages from cvcpkg.org:
+  `ari` (3.7.6 is the first with what cypkg uses) and, for the browser,
+  `arigl-web` (3.7.8 is the first).
 - **The browser path: works.**
   - `tools/site.sh` assembles `/apps/cypkg/`; `web/ariadne.config.json` sets
     `--net` and `--server {origin}`.
   - `tests/browser.mjs` passes 7 steps in headless Chrome under a strict CSP,
-    and CI's browser job builds the page and runs it.
-  - Measured locally: `ari.wasm` is 8.8 MB raw, 3.1 MB gzipped; `ari.js` is
-    26 KB gzipped; xterm.js is 0.4 MB. The first search results show 3.7 s
-    after navigation (headless Chrome, localhost, cold).
+    and CI's browser job runs it on the `arigl-web` package's page.
+  - Measured locally: `arigl-web` 3.7.8's `ari.wasm` is 23.8 MB raw, 7.7 MB
+    gzipped. It's the full build, with image and mesh I/O cypkg doesn't use;
+    the lean page CI built before was 8.8 MB raw, 3.1 MB gzipped. xterm.js is
+    0.4 MB. On that lean page the first search results showed 3.7 s after
+    navigation (headless Chrome, localhost, cold).
   - GitHub Pages hosts it for now: CI deploys `main`'s tested page to
     https://cy-pca.github.io/cypkg/ with `web/ariadne.config.pages.json`.
     It needs cvcpkg.org's CORS to allow that origin (C5).
-  - Left: C5, #887 merging, and later a registry serving it (C1). #887 conflicts with
-    #896 in `src/ari/main.cpp`; `tools/libcvc-resolve.py` resolves that until
-    one of them is rebased.
+  - Left: C5, and later a registry serving it (C1).
 - **Wrapped text (L5).** Until it lands, long descriptions are cut at 89
   characters.

@@ -10,7 +10,8 @@ the browser on xterm.js.
 
 > **Status: M0 in progress.** Search and package pages work in both terminal
 > backends and in the browser. They need `ari` 3.7.6 or newer (the first
-> release with what they use), and no registry serves `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> release with what they use), and in the browser the `arigl-web` package's
+> page, 3.7.8 or newer. No registry serves `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -40,12 +41,13 @@ Running in `arigl` (ImGui) is a possible later extra, not a goal; see M6 in
 the roadmap.
 
 **In the browser**, the same documents run in ari's xterm.js page, the FTXUI
-backend built for wasm (transfix/libcvc#887). A registry serves both at
+backend built for wasm (transfix/libcvc#887). The single-threaded `arigl-web`
+package ships it, in `share/arigl-web/`. A registry serves both at
 `https://<registry>/apps/cypkg/`. Because that is the registry's own origin,
 it needs no CORS.
 
-- `tools/site.sh ARI_WEB OUT` assembles that directory from ari's page files
-  and `share/cypkg/`.
+- `tools/site.sh ARI_WEB OUT` assembles that directory from the package's
+  page files and `share/cypkg/`.
 - `web/ariadne.config.json` pins the document to `main.ari` and turns the
   network on for the page's own origin only (`--net`).
 - The config also passes `--server {origin}`, so cypkg browses the registry
@@ -68,7 +70,8 @@ To try it, serve a site with the fixture registry and open
 `http://127.0.0.1:8766/apps/cypkg/`:
 
 ```bash
-tools/site.sh /path/to/ari-web site
+cvcpkg install arigl-web --platform wasm --arch wasm32 --link static --prefix ./web
+tools/site.sh ./web/share/arigl-web site
 python3 tests/registry/fixture_registry.py --port 8766 --site site
 ```
 
@@ -246,18 +249,13 @@ How the pieces fit:
   (`cvcpkg install ari`), as a person would, and checks it has what cypkg
   uses (json-parse, `ari test`, functions:, the ws-* verbs, sha256-hex): 3.7.6
   is the first release with them all.
-- No package ships ari's single-threaded wasm page yet (arigl-web will), so
-  the browser job builds it from libcvc at the same release tag
-  (`LIBCVC_REF`, v3.7.6), with cvcpkg's emsdk and wasm deps, assembles the
-  site and runs `tests/browser.mjs` in the runner's Chrome.
-  `tools/libcvc.sh` fetches libcvc for it and can merge open PRs on top
-  (`LIBCVC_PRS`, `LIBCVC_WEB_PRS`; none today), resolving the conflicts
-  `tools/libcvc-resolve.py` knows.
+- The browser job installs the single-threaded `arigl-web` package the same
+  way, assembles the site from its page and runs `tests/browser.mjs` in the
+  runner's Chrome.
 - `tests/run.sh` runs the integration layer too, installing cvcpkg-server from
   cy-pca/cvcpkg. In CI a failed install fails the job instead of skipping it.
-- A daily job runs the contract check against cvcpkg.org.
-- `workflow_dispatch` takes another libcvc ref or list of PRs for the browser
-  job.
+- A daily job runs the contract check against cvcpkg.org; `workflow_dispatch`
+  runs it too, with the test and browser jobs.
 
 ## License
 
