@@ -9,10 +9,8 @@ name: test
 # #900), the ws-* verbs (#923) and sha256-hex/random-token (#911); ari 3.7.6 is the first release
 # with them all, and "Check the ari" stops an older one.
 #
-# No cvcpkg package ships ari's single-threaded wasm page yet (arigl-web will), so the browser job
-# builds it from libcvc at the same release tag (LIBCVC_REF), with any open PRs in LIBCVC_PRS and
-# LIBCVC_WEB_PRS merged on top by tools/libcvc.sh (none today). Move LIBCVC_REF to each new
-# release, and install the page from cvcpkg once a package has it.
+# The browser job serves ari's single-threaded wasm page from the arigl-web package (3.7.8 is the
+# first release with it), as a site installs it: cvcpkg.org's page, not one built here.
 
 on:
   push:
@@ -21,21 +19,6 @@ on:
   schedule:
     - cron: "17 6 * * *"
   workflow_dispatch:
-    inputs:
-      libcvc_ref:
-        description: libcvc tag, branch or commit to build the browser job's ari page from
-        default: v3.7.6
-      libcvc_prs:
-        description: libcvc PR numbers to merge on top, space-separated
-        default: ""
-      libcvc_web_prs:
-        description: more libcvc PRs for the browser build
-        default: ""
-
-env:
-  LIBCVC_REF: ${{ inputs.libcvc_ref || 'v3.7.6' }}
-  LIBCVC_PRS: ${{ inputs.libcvc_prs || '' }}
-  LIBCVC_WEB_PRS: ${{ inputs.libcvc_web_prs || '' }}
 
 concurrency:
   group: test-${{ github.ref }}
@@ -43,9 +26,9 @@ concurrency:
 
 jobs:
   test:
-    # The name is the required check main-protect (ruleset 26235456) lists; keep it until the
-    # ruleset changes with it.
-    name: tests/run.sh (ari ${{ inputs.libcvc_ref || 'master' }} + PRs)
+    # The name is the required check main-protect (ruleset 26235456) lists, from when this job
+    # built ari from libcvc master; keep it until the ruleset changes with it.
+    name: tests/run.sh (ari master + PRs)
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
@@ -107,80 +90,28 @@ jobs:
     name: browser build in headless Chrome
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check out libcvc and merge the PRs the browser build needs
-        id: libcvc
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          # shellcheck disable=SC2086 # the PR lists are words
-          tools/libcvc.sh _libcvc "$LIBCVC_REF" $LIBCVC_PRS $LIBCVC_WEB_PRS | tee libcvc.log
-          tail -1 libcvc.log >>"$GITHUB_OUTPUT"
-
-      # ari's wasm page (ari.html, ari.js, ari.wasm, ari-web.*, xterm/), keyed by its source tree.
-      - name: Restore a built ari page
-        id: page-cache
-        uses: actions/cache/restore@v4
-        with:
-          path: _libcvc/build-wasm/bin
-          key: ari-wasm-${{ steps.libcvc.outputs.tree }}
-
-      # As libcvc's ari-wasm job does: cvcpkg, then its emsdk and the wasm deps ari needs.
-      - name: Install cvcpkg, the build tools, emsdk and the wasm deps
-        if: steps.page-cache.outputs.cache-hit != 'true'
+      # ari's wasm page is the single-threaded arigl-web package, as a site installs it: its
+      # share/arigl-web/ has ari.html, ari.js, ari.wasm, ari-web.* and xterm/. The install also
+      # lays down the static wasm libraries the page was linked from (the bundle lists them as its
+      # deps), which the site doesn't use.
+      - name: Install cvcpkg and arigl-web (cvcpkg)
         run: |
           set -euo pipefail
           curl -fsSL https://cvcpkg.org/install.sh | sh
           export PATH="$HOME/.local/bin:$PATH"
-          cvcpkg install cmake ninja --prefix "$RUNNER_TEMP/tools" --config release --link shared
-          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
-          cvcpkg install emsdk --platform linux --prefix "$RUNNER_TEMP/emsdk" \
-            --config release --link shared --no-fallback-to-source
-          test -f "$RUNNER_TEMP/emsdk/emsdk_env.sh"
-          deps="$RUNNER_TEMP/wasm-deps"
-          for p in zlib bzip2 xz zstd boost pegtl yaml-cpp ftxui; do
-            cvcpkg install "$p" --prefix "$deps" --platform wasm --arch wasm32 \
-              --config release --link static --no-fallback-to-source
-          done
-          echo "WASM_DEPS=$deps" >>"$GITHUB_ENV"
-
-      - name: Build ari's page (wasm, single-threaded)
-        if: steps.page-cache.outputs.cache-hit != 'true'
-        run: |
-          set -euo pipefail
-          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
-          emcmake cmake -G Ninja -S _libcvc -B _libcvc/build-wasm \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_FIND_ROOT_PATH="$WASM_DEPS" -DCMAKE_PREFIX_PATH="$WASM_DEPS" \
-            -DCVC_BUILD_ARI=ON -DCVC_ARI_WASM_DEFAULT_SRC=main.ari \
-            -DCVC_BUILD_ARIGL=OFF -DCVC_BUILD_ARISRV=OFF -DCVC_BUILD_CVCGL=OFF \
-            -DCVC_BUILD_EXAMPLES=OFF -DCVC_BUILD_TESTS=OFF -DCVC_BUILD_CLI=OFF \
-            -DCVC_ENABLE_CUDA=OFF -DCVC_ENABLE_OPENMP=OFF -DDISABLE_CGAL=ON \
-            -DCVC_USING_HDF5=OFF -DCVC_USING_IMOD_MRC=OFF -DCVC_ENABLE_IMAGEMAGICK=OFF \
-            -DCVC_ENABLE_FFTW=OFF -DCVC_FFT_PROVIDER=none -DCVC_ENABLE_ASSIMP=OFF \
-            -DCVC_ENABLE_MESHER=OFF -DCVC_ENABLE_SDF=OFF -DCVC_ENABLE_LIBIGL=OFF \
-            -DCVC_WITH_JOLT=OFF -DCVC_WASM_PTHREADS=OFF \
-            | tee configure.log
-          for want in "Ariadne: .ari YAML loader ENABLED" "Ariadne: FTXUI terminal backend ENABLED"; do
-            grep -qF "$want" configure.log || { echo "::error::configure did not print '$want'"; exit 1; }
-          done
-          ninja -C _libcvc/build-wasm ari
-          ls -la _libcvc/build-wasm/bin
-
-      - name: Save the built ari page
-        if: steps.page-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: _libcvc/build-wasm/bin
-          key: ${{ steps.page-cache.outputs.cache-primary-key }}
+          prefix="$RUNNER_TEMP/arigl-web"
+          cvcpkg install arigl-web --platform wasm --arch wasm32 --prefix "$prefix" \
+            --config release --link static --no-fallback-to-source
+          sed -n '/^- name: arigl-web$/{n;p;}' "$prefix/share/libcvc-deps/lockfile.yaml"
+          echo "ARI_WEB=$prefix/share/arigl-web" >>"$GITHUB_ENV"
 
       - name: Assemble the site
         run: |
-          tools/site.sh _libcvc/build-wasm/bin site
+          tools/site.sh "$ARI_WEB" site
           du -sh site/apps/cypkg site/apps/cypkg/ari.wasm
 
       # Node 22 for its built-in WebSocket; the runner image has Chrome.
@@ -203,7 +134,7 @@ jobs:
       # https://cvcpkg.org. Only main's tested build is published (the pages job deploys it).
       - name: Assemble the GitHub Pages site
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: tools/site.sh _libcvc/build-wasm/bin pages web/ariadne.config.pages.json
+        run: tools/site.sh "$ARI_WEB" pages web/ariadne.config.pages.json
 
       - name: Upload the GitHub Pages site
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

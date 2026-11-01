@@ -5,7 +5,7 @@
 #   tools/site.sh ARI_WEB OUT [CONFIG]
 #
 # ARI_WEB holds ari's wasm page: ari.html, ari.js, ari.wasm, ari-web.js, ari-web.css and xterm/
-# (transfix/libcvc#887 builds them; the arigl-web package will ship them). OUT/apps/cypkg/ gets
+# (share/arigl-web/ of the single-threaded arigl-web package, 3.7.8 or newer). OUT/apps/cypkg/ gets
 # those, share/cypkg/*.ari and web/ariadne.config.json, which pins the document to main.ari, turns
 # the network on for the page's own origin only, and passes --server {origin}: cypkg talks to the
 # registry that serves it. index.html is a copy of ari.html, so /apps/cypkg/ opens the terminal.
