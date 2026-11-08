@@ -57,7 +57,8 @@ it needs no CORS.
   style, no eval, nothing from another origin.
 
 **GitHub Pages, for now.** Until a registry serves it, CI publishes the page
-from `main` to https://cy-pca.github.io/cypkg/.
+from `main` to https://cy-pca.github.io/cypkg/, on each push and on a `test` run
+started by hand on `main` (which moves the page to the newest `arigl-web`).
 - That build uses `web/ariadne.config.pages.json`, which browses
   https://cvcpkg.org: `--net-allow https://cvcpkg.org` and
   `--server https://cvcpkg.org`.

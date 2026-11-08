@@ -131,13 +131,15 @@ jobs:
           if-no-files-found: ignore
 
       # GitHub Pages: the same page with web/ariadne.config.pages.json, which browses
-      # https://cvcpkg.org. Only main's tested build is published (the pages job deploys it).
+      # https://cvcpkg.org. Only main's tested build is published (the pages job deploys it): on a
+      # push, or on a run started by hand on main, which moves the page to the newest arigl-web
+      # release without a commit.
       - name: Assemble the GitHub Pages site
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: tools/site.sh "$ARI_WEB" pages web/ariadne.config.pages.json
 
       - name: Upload the GitHub Pages site
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: pages/apps/cypkg
@@ -145,7 +147,7 @@ jobs:
   pages:
     name: deploy to GitHub Pages
     needs: browser
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       pages: write
