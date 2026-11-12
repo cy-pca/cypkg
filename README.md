@@ -122,7 +122,8 @@ root:
 cvcpkg build cypkg --local --platform any --prefix ./prefix
 ```
 
-It isn't published yet. `ari` 3.7.6 is the first release it runs on.
+It needs `ari` 3.7.6 or later. `.github/workflows/publish.yml`, started by hand on
+main, packs it and publishes it to cvcpkg.org under the cy-pca organisation.
 
 ## Menus and windows
 
