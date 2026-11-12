@@ -1,0 +1,81 @@
+name: publish
+
+# Publish the cypkg recipe to cvcpkg.org, under the cy-pca organisation. Started by hand, on main
+# only: bump upstream_version in recipes/cypkg/recipe.yaml (cvc_revision for a packaging-only
+# change), merge, then run this. cypkg is documents and a launcher (platform any, arch noarch), so
+# one GitHub-hosted runner packs the one bundle every platform installs.
+#
+# The token is the CVCPKG_PUBLISHER_TOKEN repository secret: a cvcpkg.org publisher that is a
+# member of the cy-pca organisation. Only the publish step sees it. Without it the run builds,
+# packs and checks the bundle, then fails before publishing anything. Nothing is uploaded as an
+# artifact. cvcpkg publish skips a bundle the registry already has, so a second run is harmless.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: cypkg-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: pack and publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cvcpkg
+        run: |
+          curl -fsSL https://cvcpkg.org/install.sh | sh
+          echo "$HOME/.local/bin" >>"$GITHUB_PATH"
+
+      # The same build the test workflow's recipe job checks, then the bundle from that prefix.
+      - name: Build and pack
+        run: |
+          set -euo pipefail
+          prefix="$RUNNER_TEMP/prefix"
+          cvcpkg build cypkg --local --platform any --prefix "$prefix"
+          cvcpkg pack cypkg --recipes-dir recipes --no-default-recipes --from-prefix "$prefix" \
+            --platform any --output-dir dist/
+          ls -l dist/
+          # Documents are data: platform any, arch noarch, so a request for any target matches
+          # them. An any/x86_64 pack would never resolve for wasm32 or arm64.
+          n=0
+          for f in dist/*.tar.gz; do
+            case "$(basename "$f")" in
+              cypkg-*-any-noarch-*) n=$((n + 1)) ;;
+              *) echo "::error::$(basename "$f") is not a cypkg any/noarch bundle; publishing nothing"; exit 1 ;;
+            esac
+          done
+          [ "$n" = 1 ] || { echo "::error::expected one cypkg bundle, packed $n"; exit 1; }
+
+      - name: Publish
+        env:
+          CVCPKG_TOKEN: ${{ secrets.CVCPKG_PUBLISHER_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CVCPKG_TOKEN:-}" ]; then
+            echo "::error::no CVCPKG_PUBLISHER_TOKEN secret: the bundle packed but was not published"
+            exit 1
+          fi
+          cvcpkg publish dist/*.tar.gz --server https://cvcpkg.org --org cy-pca
+          # The server-side recipe row (the package page, the dependency graph), under the same org.
+          # An upsert: it never deletes anything.
+          cvcpkg recipe push cypkg --recipes-dir recipes --no-default-recipes \
+            --server https://cvcpkg.org --org cy-pca
+
+      # As a person installs it: the published bundle and its ari, from the registry, then the
+      # launcher.
+      - name: Install it from cvcpkg.org
+        run: |
+          set -euo pipefail
+          check="$RUNNER_TEMP/check"
+          cvcpkg install cypkg --prefix "$check" --config release --link shared \
+            --no-fallback-to-source
+          "$check/bin/cypkg" --help
+          test -x "$check/bin/ari" || { echo "::error::the install has no ari beside cypkg"; exit 1; }

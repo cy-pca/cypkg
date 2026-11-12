@@ -19,10 +19,10 @@ recipe:
 # Documents and a launcher, nothing compiled, so one build serves every platform. The launcher
 # runs the ari beside it in the prefix (the runtime dependency), else ari on PATH.
 #
-# Not published yet. No released ari has what cypkg needs: json-parse (transfix/libcvc#883),
-# functions: (#900) and module on_tick (#904); .github/workflows/test.yml lists the open PRs.
-# Publish once an ari release has them, with `version: ">=<that release>"` on the ari dependency
-# below. Until then an older ari stops at main.ari's requires: and says what it lacks.
+# Published to cvcpkg.org under the cy-pca organisation by .github/workflows/publish.yml, started
+# by hand on main: bump upstream_version (or cvc_revision for a packaging-only change), merge, run
+# it. ari 3.7.6 is the first release with what cypkg needs (json-parse, transfix/libcvc#883;
+# functions:, #900; module on_tick, #904); an older one stops at main.ari's requires:.
 source:
   # This repository: recipes/cypkg/../.. is its root.
   type: vendored
@@ -34,6 +34,7 @@ depends:
   build: []
   runtime:
     - name: ari
+      version: ">=3.7.6"
   host_tools: []
 
 build:
