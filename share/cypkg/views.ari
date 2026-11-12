@@ -40,14 +40,17 @@ units:
             label: "Platform"
             bind: search.platform
             options: [all, linux, macos, windows, freebsd, openbsd, netbsd, haiku, wasm, wasm-mt, wasi, cosmo, any]
+            on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
           - type: combo
             label: "Arch"
             bind: search.arch
             options: [all, x86_64, arm64, wasm32, noarch]
+            on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
           - type: combo
             label: "Link"
             bind: search.link
             options: [all, shared, static]
+            on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
       - text: ""
         bind: search.status
       - separator

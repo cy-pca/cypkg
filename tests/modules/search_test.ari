@@ -142,10 +142,14 @@ tests:
               (state-get "includes.s.search.status"))
       (assert (= (count) before) "Prev made a request"))
 
+  # A pick in a filter's combo does what its on: does (views.ari): from the first row, search again.
+  # tests/interactive.sh picks one with the keyboard in both terminal backends.
   a filter change searches again from the first row: |
     (begin
       (set n (int (state-get "includes.s.search.seq")))
       (state-set "includes.s.search.platform" "linux")
+      (state-set "includes.s.search.offset" 0)
+      (state-set "includes.s.req.search" "1")
       (set i 0)
       (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
       (assert (= (state-get "includes.s.search.offset") "0") (state-get "includes.s.search.offset"))
@@ -156,6 +160,8 @@ tests:
     (begin
       (set n (int (state-get "includes.s.search.seq")))
       (state-set "includes.s.search.platform" "all")
+      (state-set "includes.s.search.offset" 0)
+      (state-set "includes.s.req.search" "1")
       (set i 0)
       (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
       (assert (= (state-get "includes.s.search.total") "25") (state-get "includes.s.search.total")))

@@ -28,7 +28,6 @@ init: |
     (state-set "search.count" 0)
     (state-set "search.total" 0)
     (state-set "search.status" "")
-    (state-set "search.sent" "")
     (state-set "search.seq" 0)
     (state-set "search.key" "")
     (state-set "search.pc" "")
@@ -41,20 +40,8 @@ init: |
 # search.seq counts the searches that have finished, so a test can wait for one.
 on_tick: |
   (begin
-    ;; A filter changed since the last search: search again from the first row. (A combo's on: is
-    ;; dropped by libcvc today, so the combos can't ask for it themselves.)
-    (set filters (str-concat (state-get "search.platform") "|" (state-get "search.arch") "|"
-                             (state-get "search.link")))
-    (if (!= filters (state-get "search.sent"))
-        (begin
-          (if (!= (state-get "search.sent") "") (state-set "search.offset" 0))
-          (state-set "search.sent" filters)
-          (state-set "req.search" "1")))
-
     (set url (str-concat (state-get "args.server") "/v1/search"))
     (set page (int-or (state-get "args.page") 10))
-    (set key (search-key (state-get "search.q") (state-get "search.platform")
-                         (state-get "search.arch") (state-get "search.link")))
     ;; A page kept in slot (next or prev) for this search at offset off, as reply text, or nil.
     (defun kept (slot off)
       (if (if (= (state-get (str-concat "search." slot ".key")) key)
@@ -72,6 +59,13 @@ on_tick: |
     (if (= (state-get "req.search") "1")
         (begin
           (state-set "req.search" "0")
+          ;; The search this request asks for, read once as it is taken: a tick can run over frames,
+          ;; and a query typed meanwhile must not be searched under the key from before it.
+          (set q (state-get "search.q"))
+          (set pf (state-get "search.platform"))
+          (set ar (state-get "search.arch"))
+          (set ln (state-get "search.link"))
+          (set key (search-key q pf ar ln))
           (set off (int (state-get "search.offset")))
           (set fresh (!= key (state-get "search.key")))
           (set body (if fresh nil (kept "next" off)))
@@ -80,9 +74,7 @@ on_tick: |
                      (begin
                        (state-set "search.status" "searching...")
                        (fetch url (with-auth (dict "query"
-                                    (search-query (state-get "search.q") (state-get "search.platform")
-                                                  (state-get "search.arch") (state-get "search.link")
-                                                  page off fresh)))
+                                    (search-query q pf ar ln page off fresh)))
                               "search"))
                      (dict "status" 200 "body" body "error" "")))
           (set d (reply-object r))
@@ -120,9 +112,7 @@ on_tick: |
               (if (= (kept "next" (+ off page)) nil)
                   (begin
                     (set nf (http-get-async url (dict "query"
-                              (search-query (state-get "search.q") (state-get "search.platform")
-                                            (state-get "search.arch") (state-get "search.link")
-                                            page (+ off page) #f))))
+                              (search-query q pf ar ln page (+ off page) #f))))
                     (set nr (await nf))
                     (if (= (get-attr nr "status") 200)
                         (keep "next" (+ off page) (body-text nr)))))))))
