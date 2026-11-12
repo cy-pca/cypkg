@@ -37,7 +37,7 @@ work on cvcpkg is tracked as C-items in
 | L12 | Testing: `(quit code)` sets the host's exit status, `(assert cond [message])`, and an `ari test` command | transfix/libcvc#896 open (issue #894) | M0 tests |
 | L13 | Functions a document defines once and hands to the documents it loads, so logic can live in modules and be unit-tested | transfix/libcvc#900 open (on #896) | M0 tests |
 | L14 | A `load:`ed module runs its own `on_tick` (today only its `init` runs), and a `link:` hole exposes the subtree under the node it names (today only that node) | transfix/libcvc#904 and #905 open; cypkg's views and request loops are modules on them | M1 |
-| L15 | A combo's `on:` fires after a change. Today the loader drops it silently; cypkg's `on_tick` compares the filters with the ones it last sent instead | transfix/libcvc#902 open | none (worked around) |
+| L15 | A combo's `on:` fires after a change | transfix/libcvc#902, merged; the filter combos ask for the search in their `on:` | none (done) |
 | L16 | (agenda, not planned) file descriptors as state channels or streams | agenda | |
 | L17 | `(sha256-hex x)` and `(random-token n)` (OS CSPRNG) builtins, for device pairing's verifier | transfix/libcvc#911 open; cypkg pairs with it | M2 (pairing) |
 | L18 | `has?` inside a `load:`ed module (today a NameError), so a module can guard an optional host function itself. cypkg asks in `main.ari` and passes the answers through an `auth` hole | transfix/libcvc#912 open | none (worked around) |

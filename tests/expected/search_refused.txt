@@ -1,5 +1,5 @@
  cypkg  View
-╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+╭ cypkg [↑]────────────────────────────────────────────────────────────────────────────────────────╮
 │registry: http://127.0.0.1:1                                                                      │
 │Search: [zlib]                       Platform: < all >     Arch: < all >      Link: < all >       │
 │search failed: cvc::net: Could not connect to server                                              │
