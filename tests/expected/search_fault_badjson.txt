@@ -1,5 +1,5 @@
  cypkg  View
-╭ cypkg ───────────────────────────────────────────────────────────────────────────────────────────╮
+╭ cypkg [↑]────────────────────────────────────────────────────────────────────────────────────────╮
 │registry: http://registry                                                                         │
 │Search: [fault-badjson]              Platform: < all >     Arch: < all >      Link: < all >       │
 │search failed: the registry's reply was not a search result                                       │
