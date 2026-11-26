@@ -442,6 +442,15 @@ units:
             label: "Sign in with a browser"
             enabled_when: (= (state-get "account.can_pair") "1")
             on: (state-set "req.pair" "1")
+          # OpenID Connect: the registry's own sign-in, in a browser, with the host keeping the
+          # session (Ariadne's oidc-sign-in; a registry with cy-pca/cvcpkg#639's OAuth metadata).
+          - type: button
+            label: "Sign in with OIDC"
+            visible_when: (= (state-get "account.can_oidc") "1")
+            on: (state-set "req.oidc" "1")
+          - text: "sign in at"
+            bind: account.oidc_url
+            visible_when: (!= (state-get "account.oidc_url") "")
           - text: "code"
             bind: account.code
             visible_when: (!= (state-get "account.code") "")
@@ -450,7 +459,7 @@ units:
             visible_when: (!= (state-get "account.url") "")
           - type: button
             label: "Cancel"
-            visible_when: (!= (state-get "account.code") "")
+            visible_when: (or (!= (state-get "account.code") "") (!= (state-get "account.oidc_url") ""))
             on: (state-set "req.cancel" "1")
           - text: "Or with an API token: cypkg --token-env VAR, where VAR holds a cvctok_ token."
       - text: ""

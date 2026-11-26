@@ -22,8 +22,9 @@
 #   cfg     the arguments, with defaults (each module's args hole)
 #   view    "search" or "package": which module the main window shows
 #   nav     nav.open: the package the search view opens; nav.start: its first build
-#   auth    auth.signed_in, auth.can_pair, auth.signout, auth.recheck (modules read it; the account
-#           module asks to sign out or to check again)
+#   auth    auth.signed_in, auth.cred (the credential requests send), auth.can_pair, auth.can_oidc,
+#           auth.signout, auth.recheck (modules read it; the account module asks to sign out or to
+#           check again)
 #   pick    pick.builder: the builder the Builder window shows (the Builders window's Details)
 #   tree    each window's open state (tree.<id>.open), which the menu's items bind
 
@@ -52,9 +53,21 @@ functions: |
   ;; v as text: (str "x") would quote a string.
   (defun as-text (v) (if (is-string v) v (str v)))
 
-  ;; Whether the host has a cvcpkg credential (an API token, or a session pairing captured).
-  (defun has-credential ()
-    (if (has? "net-auth-has?") (if (net-auth-has? "cvcpkg") "1" "0") "0"))
+  ;; The credential requests send: "cvcpkg" (an API token, or a session pairing captured),
+  ;; else "cvcpkg.oidc" (an OpenID Connect sign-in's, kept apart: its refresh token is the
+  ;; cypkg client's, which the registry won't redeem for pairing's), else "".
+  (defun credential ()
+    (if (has? "net-auth-has?")
+        (if (net-auth-has? "cvcpkg") "cvcpkg" (if (net-auth-has? "cvcpkg.oidc") "cvcpkg.oidc" ""))
+        ""))
+  (defun has-credential () (if (= (credential) "") "0" "1"))
+
+  ;; Signing in with OpenID Connect (Ariadne's oidc-sign-in): the registry is the issuer, cypkg
+  ;; its public client (cy-pca/cvcpkg#639). The scope names the role the session gets. The host
+  ;; keeps the tokens as cvcpkg.oidc (and .refresh), and refreshes them itself.
+  (defun oidc-opts (interactive status)
+    (dict "issuer" (state-get "cfg.server") "client_id" "cypkg" "scopes" (list "publisher")
+          "credential" "cvcpkg.oidc" "interactive" interactive "status" status))
 
 init: |
   (begin
@@ -80,7 +93,15 @@ init: |
     ;; Signed in when the host holds a cvcpkg credential: a token the launcher handed it
     ;; (--token-env), or a session that pairing or an earlier run left in its store.
     (state-set "auth.signed_in" (has-credential))
+    (state-set "auth.cred" (credential))
     (state-set "auth.signout" "0")
+    ;; An OpenID Connect sign-in an earlier run kept (--credential-store): resumed without a
+    ;; browser, the host refreshing it. Asked only when one was kept, so a registry without the
+    ;; OAuth metadata (before cy-pca/cvcpkg#639) is never asked.
+    (state-set "auth.can_oidc" (if (has? "oidc") "1" "0"))
+    (if (if (has? "oidc") (= (state-get "auth.signed_in") "0") #f)
+        (if (net-auth-has? "cvcpkg.oidc.refresh")
+            (oidc-sign-in (oidc-opts #f "auth.oidc"))))
     (state-set "auth.recheck" "0")
     ;; Signing in with a browser (pairing) needs a hash and a CSPRNG in the DSL.
     (state-set "auth.can_pair" (if (if (has? "sha256-hex") (has? "random-token") #f) "1" "0"))
@@ -109,7 +130,13 @@ on_tick: |
           (state-set "auth.signout" "0")
           (if (has? "net-auth-forget")
               (begin (net-auth-forget "cvcpkg") (net-auth-forget "cvcpkg.refresh")))
-          (state-set "auth.signed_in" "0")))
+          ;; An OpenID Connect sign-in is revoked at the registry and forgotten here.
+          (if (has? "oidc") (if (net-auth-has? "cvcpkg.oidc") (oidc-sign-out "cvcpkg.oidc")))
+          (state-set "auth.signed_in" "0")
+          (state-set "auth.cred" "")))
+    ;; A kept OpenID Connect sign-in came back (auth.oidc, resumed at start): signed in.
+    (if (= (state-get "auth.oidc.phase") "signed_in")
+        (if (= (state-get "auth.signed_in") "0") (state-set "auth.recheck" "1")))
     ;; The Builders window's Details: bring the Builder window to the front (the host clears
     ;; tree.<id>.raise once it is drawn, so the module asks here instead of writing it).
     (if (= (state-get "pick.raise") "1")
@@ -118,7 +145,8 @@ on_tick: |
     (if (= (state-get "auth.recheck") "1")
         (begin
           (state-set "auth.recheck" "0")
-          (state-set "auth.signed_in" (has-credential)))))
+          (state-set "auth.signed_in" (has-credential))
+          (state-set "auth.cred" (credential)))))
 
 # The menu: its items are ticked while their window is open, and toggle it (they bind the
 # window's tree.<id>.open, as the window's close button does). Loaded, these are the items of

@@ -163,7 +163,7 @@ the component (Windows > Applications brings it back). F10 opens the menu bar fr
 | Builder | One builder: id, version, jobs, heartbeat, org, namespaces, affinity, who registered it; its host (cores, load, memory, disk, OS, Python, uptimes); labels, cross-platform targets and flags; its active and recent jobs | Live: redrawn when the builder changes; its jobs reload when one of them changes |
 | Builds | Build jobs, newest first, by status, a page at a time | Live: jobs on the page change in place; a new one reloads the first page |
 | Activity | What was published, yanked, unyanked, deleted and nuked, as the web app's page: when, the package, the platform and link, the org, who and why, a publish's size. Filter by kind and name, Pause, page back | Live: a new event goes in at the top; paused, filtered or on an older page, they're counted ("Show 3 new") |
-| Account | Who the registry says you are; sign out | When opened |
+| Account | Who the registry says you are; sign in (a browser pairing, or OpenID Connect) and out | When opened |
 
 - **Modules:** each window is its own module (`share/cypkg/<window>.ari`). A
   closed window's module doesn't start until the window is first opened.
@@ -175,6 +175,12 @@ the component (Windows > Applications brings it back). F10 opens the menu bar fr
   `· live`. Without a feed they poll about every 10 s and try the feed again,
   and say `· polling`. Without the verbs, with `--live off`, or when the
   server closes with 4004 (no live updates), they only poll.
+- **Signing in with OpenID Connect:** the Account window's **Sign in with OIDC** uses Ariadne's
+  `oidc-sign-in`, with the registry as the issuer and `cypkg` its public client
+  (cy-pca/cvcpkg#639). The registry's own sign-in opens in a browser (a loopback redirect
+  natively, the page's redirect in a browser); the host keeps the session as the credential
+  `cvcpkg.oidc` and refreshes it, and with `--credential-store` (the launcher's default) the next
+  start resumes it without a browser. It asks for the `publisher` role. Sign out revokes it.
 - **Signing in with an API token:** pass `--token-env VAR`, where `VAR` holds a
   `cvctok_` token (default `CYPKG_TOKEN`, if it's set).
   - The launcher hands it to `ari` with `--credential-env`, bound to the
