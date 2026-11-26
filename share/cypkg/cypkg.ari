@@ -99,9 +99,11 @@ init: |
     ;; browser, the host refreshing it. Asked only when one was kept, so a registry without the
     ;; OAuth metadata (before cy-pca/cvcpkg#639) is never asked.
     (state-set "auth.can_oidc" (if (has? "oidc") "1" "0"))
-    (if (if (has? "oidc") (= (state-get "auth.signed_in") "0") #f)
-        (if (net-auth-has? "cvcpkg.oidc.refresh")
-            (oidc-sign-in (oidc-opts #f "auth.oidc"))))
+    (if (if (has? "oidc") (= (state-get "auth.cred") "cvcpkg.oidc") #f)
+        (begin
+          ;; Until the host writes it: the account window waits for the resume (refresh) to end.
+          (state-set "auth.oidc.phase" "discovering")
+          (oidc-sign-in (oidc-opts #f "auth.oidc"))))
     (state-set "auth.recheck" "0")
     ;; Signing in with a browser (pairing) needs a hash and a CSPRNG in the DSL.
     (state-set "auth.can_pair" (if (if (has? "sha256-hex") (has? "random-token") #f) "1" "0"))

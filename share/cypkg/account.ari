@@ -190,6 +190,16 @@ on_tick: |
     (if (= (state-get "req.refresh") "1")
         (begin
           (state-set "req.refresh" "0")
+          ;; A kept OpenID Connect sign-in is being resumed (cypkg.ari's init): wait for its
+          ;; refresh, so whoami does not go out with an expired token the host can't renew yet.
+          (set k 0)
+          (while (if (= (text (state-get "auth.cred")) "cvcpkg.oidc")
+                     (if (< k 1000)
+                         (let ((ph (text (state-get "auth.oidc.phase"))))
+                           (if (= ph "discovering") #t (= ph "refreshing")))
+                         #f)
+                     #f)
+            (sleep 0.02) (set k (+ k 1)))
           (if (signed-in)
               (begin
                 (set r (fetch (str-concat (state-get "args.server") "/v1/auth/whoami")
