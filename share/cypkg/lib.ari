@@ -201,3 +201,208 @@ functions: |
     (set out (list))
     (for b rows (set out (append out (builder-row b))))
     out)
+
+
+  ;; ── Time, as the web app shows it: how long ago ──
+
+  ;; a // b for whole a, b >= 0.
+  (defun idiv (a b) (int (/ (float a) (float b))))
+
+  ;; Days from 1970-01-01 to the date y-m-d (the proleptic Gregorian calendar, y >= 1970).
+  (defun epoch-days (y m d)
+    (let ((yy (if (<= m 2) (- y 1) y)))
+      (let ((era (idiv yy 400)))
+        (let ((yoe (- yy (* era 400)))
+              (mp (if (> m 2) (- m 3) (+ m 9))))
+          (let ((doy (+ (idiv (+ (* 153 mp) 2) 5) (- d 1))))
+            (- (+ (* era 146097) (* yoe 365) (idiv yoe 4) doy) (idiv yoe 100) 719468))))))
+
+  ;; A timestamp as the server sends it ("2026-11-26T09:11:29.88Z", UTC) in seconds since the
+  ;; Unix epoch, or nil when it isn't one.
+  (defun iso-epoch (ts)
+    (let ((s (text ts)))
+      (if (< (string.length s) 19) nil
+          (try
+            (+ (* 86400 (epoch-days (int (string.substring s 0 4)) (int (string.substring s 5 2))
+                                    (int (string.substring s 8 2))))
+               (* 3600 (int (string.substring s 11 2))) (* 60 (int (string.substring s 14 2)))
+               (int (string.substring s 17 2)))
+            (catch (e) nil)))))
+
+  ;; How long ago `secs` seconds is: "just now", "12 s ago", "5 min ago", "3 h ago", "2 d ago".
+  (defun ago-text (secs)
+    (let ((s (int secs)))
+      (if (< s 1) "just now"
+          (if (< s 60) (str-concat s " s ago")
+              (if (< s 3600) (str-concat (idiv s 60) " min ago")
+                  (if (< s 86400) (str-concat (idiv s 3600) " h ago")
+                      (str-concat (idiv s 86400) " d ago")))))))
+
+  ;; How long ago timestamp ts was, seen at `now` (seconds since the epoch), or the timestamp
+  ;; itself when it can't be read.
+  (defun ago (ts now)
+    (let ((t0 (iso-epoch ts)))
+      (if (= t0 nil) (when-text ts) (ago-text (- now t0)))))
+
+  ;; A span of seconds as days and hours ("10 d 6 h"), hours and minutes, or minutes.
+  (defun span-text (secs)
+    (let ((s (int (float (text-or-0 secs)))))
+      (if (>= s 86400) (str-concat (idiv s 86400) " d " (idiv (- s (* 86400 (idiv s 86400))) 3600) " h")
+          (if (>= s 3600) (str-concat (idiv s 3600) " h " (idiv (- s (* 3600 (idiv s 3600))) 60) " min")
+              (str-concat (idiv s 60) " min")))))
+  (defun text-or-0 (v) (if (= (text v) "") "0" (text v)))
+
+
+  ;; ── A builder, as the web app's card and detail show it ──
+
+  ;; A meter `width` cells wide, full to the fraction f (0 to 1): ▕████░░░░▏.
+  (defun meter (f width)
+    (let ((n (int (+ 0.5 (* width (if (< f 0) 0 (if (> f 1) 1 f)))))))
+      (begin
+        (set out "")
+        (set i 0)
+        (while (< i width) (begin (set out (str-concat out (if (< i n) "█" "░"))) (set i (+ i 1))))
+        (str-concat "▕" out "▏"))))
+
+  ;; A count of bytes as GB with one decimal ("31.2 GB").
+  (defun gb-text (b)
+    (let ((g (/ (float (text-or-0 b)) 1073741824.0)))
+      (str-concat (int g) "." (int (* 10 (- g (int g)))) " GB")))
+
+  ;; A fraction as a whole percentage ("28%").
+  (defun pct-text (f) (str-concat (int (+ 0.5 (* 100 f))) "%"))
+
+  ;; The fraction used of a total, from what's left: 1 - left/total, or 0 without a total.
+  (defun used (left total)
+    (let ((t1 (float (text-or-0 total))))
+      (if (<= t1 0) 0 (- 1 (/ (float (text-or-0 left)) t1)))))
+
+  ;; A list as text, ", " between, or "—" when empty or not a list.
+  (defun list-text (xs)
+    (if (is-list xs)
+        (if (= (length xs) 0) "—" (string.join (collections.map xs text) ", "))
+        "—"))
+
+  ;; What a builder builds beyond its own platform (its capabilities' cross_platforms, as
+  ;; "wasm/wasm32, wasi/wasm32"), and the flags it has (its true keys: "glibc2.35, incus").
+  (defun cross-text (caps)
+    (let ((xs (field caps "cross_platforms")))
+      (if (is-list xs)
+          (list-text (collections.map xs (lambda (x) (where (field x "platform") (field x "arch")))))
+          "—")))
+  (defun flags-text (caps)
+    (try
+      (list-text (collections.filter (collections.dict-keys caps)
+                   (lambda (k) (= (get-attr caps k) #t))))
+      (catch (e) "—")))
+
+  (defun org-text (b) (if (= (text (field b "org_slug")) "") "—" (text (field b "org_slug"))))
+  (defun cpu-of (sys) (/ (float (text-or-0 (field sys "cpu_percent"))) 100.0))
+
+  ;; A builder as a card, seen at `now`: the lines the Builders window draws (head, load, seen),
+  ;; and its status, which colours the head (online, busy, offline).
+  (defun builder-card (b now)
+    (let ((sys (field b "system")))
+      (let ((cpu (cpu-of sys))
+            (mem (used (field sys "mem_available_bytes") (field sys "mem_total_bytes")))
+            (disk (used (field sys "disk_free_bytes") (field sys "disk_total_bytes"))))
+        (dict "id" (field b "id") "name" (text (field b "name")) "status" (text (field b "status"))
+              ;; the heartbeat as sent, and the seen line's tail: the window ages the line
+              ;; (seen-text) every few seconds, between the feed's messages
+              "hb" (text (field b "last_heartbeat"))
+              "seen_tail" (str-concat "  ·  org " (org-text b) "  ·  " (list-text (field b "labels")))
+              "head" (str-concat (cut (text (field b "name")) 22) "  " (text (field b "status")) "  "
+                                 (where (field b "platform") (field b "arch"))
+                                 (if (= (text (field b "version")) "") ""
+                                     (str-concat "  v" (text (field b "version")))))
+              "load" (str-concat "jobs " (jobs-text (field b "current_jobs") (field b "max_jobs"))
+                                 (if (= sys nil) "  ·  no host report"
+                                     (str-concat "  cpu " (meter cpu 6) " " (pct-text cpu)
+                                                 "  mem " (meter mem 6) " " (pct-text mem)
+                                                 "  disk " (meter disk 6) " " (pct-text disk))))
+              "seen" (str-concat "heartbeat " (ago (field b "last_heartbeat") now)
+                                 "  ·  org " (org-text b) "  ·  " (list-text (field b "labels")))))))
+
+  ;; A card's seen line again, at `now`, from its hb and seen_tail.
+  (defun seen-text (hb tail now) (str-concat "heartbeat " (ago hb now) tail))
+
+  ;; builder-card of each of `rows`.
+  (defun builder-cards (rows now)
+    (set out (list))
+    (for b rows (set out (append out (builder-card b now))))
+    out)
+
+  ;; A builder's detail, seen at `now`: a title, and lines in three groups: the builder, its
+  ;; host (its last report), and what it builds.
+  (defun builder-detail (b now)
+    (let ((sys (field b "system")) (caps (field b "capabilities")))
+      (dict
+        "title" (str-concat (text (field b "name")) "  ·  " (text (field b "status")))
+        "builder" (list
+          (str-concat "id " (text (field b "id")) "  ·  version " (text (field b "version"))
+                      "  ·  " (where (field b "platform") (field b "arch")))
+          (str-concat "jobs " (jobs-text (field b "current_jobs") (field b "max_jobs"))
+                      "  ·  heartbeat " (ago (field b "last_heartbeat") now))
+          (str-concat "org " (org-text b) "  ·  serves " (list-text (field b "served_namespaces"))
+                      "  ·  affinity " (if (= (field b "prefer_affinity") #t) "yes" "no"))
+          (str-concat "registered " (when-text (field b "created_at"))
+                      (if (= (text (field b "registered_by")) "") ""
+                          (str-concat " by " (text (field b "registered_by"))))))
+        "host" (if (= sys nil) (list "no host report yet")
+                 (list
+                   (str-concat "cpu " (text (field sys "cpu_count")) " cores, "
+                               (pct-text (cpu-of sys)) " busy  ·  load " (list-text (field sys "load_avg")))
+                   (str-concat "memory " (gb-text (field sys "mem_available_bytes")) " free of "
+                               (gb-text (field sys "mem_total_bytes")))
+                   (str-concat "disk " (gb-text (field sys "disk_free_bytes")) " free of "
+                               (gb-text (field sys "disk_total_bytes")))
+                   (str-concat (text (field sys "os")) "  ·  Python " (text (field sys "python")))
+                   (str-concat "up " (span-text (field sys "uptime_seconds"))
+                               "  ·  agent up " (span-text (field sys "agent_uptime_seconds")))))
+        "builds" (list
+                   (str-concat "labels " (list-text (field b "labels")))
+                   (str-concat "cross " (cross-text caps))
+                   (str-concat "flags " (flags-text caps))))))
+
+  ;; A job as a line of the detail's lists: #id, status, recipe and version, how long it ran
+  ;; (or has run), and when it was submitted, seen at `now`.
+  (defun job-row (j now)
+    (let ((t0 (iso-epoch (field j "started_at"))) (t1 (iso-epoch (field j "finished_at"))))
+      (str-concat "#" (text (field j "id")) "  " (text (field j "status")) "  "
+                  (cut (str-concat (text (field j "recipe_name")) " " (text (field j "recipe_version"))) 34)
+                  (if (= t0 nil) "" (str-concat "  " (span-text (- (if (= t1 nil) now t1) t0))))
+                  "  " (ago (field j "submitted_at") now))))
+
+
+  ;; ── Activity, as the web app's page shows it ──
+
+  ;; An event (/v1/activity, or the feed's activity message) as a row, seen at `now`: when (how
+  ;; long ago; at is the timestamp, for aging), what happened, to which package and version, for
+  ;; which platform (with its link, and "debug" for a debug build), in which org, by whom and
+  ;; why, and how big (a publish's size).
+  (defun event-row (e now)
+    (let ((bt (text (field e "build_type"))) (ln (text (field e "link"))))
+      (dict "id" (field e "id") "at" (text (field e "created_at"))
+            "when" (ago (field e "created_at") now)
+            "kind" (text (field e "kind"))
+            "what" (cut (str-concat (text (field e "name")) " " (text (field e "version"))) 25)
+            "where" (cut (str-concat (where (field e "platform") (field e "arch"))
+                                     (if (= ln "") "" (str-concat " " ln))
+                                     (if (= bt "debug") " debug" ""))
+                         26)
+            "org" (cut (if (= (text (field e "org_slug")) "") "—" (text (field e "org_slug"))) 5)
+            "who" (cut (str-concat (text (field e "actor"))
+                                   (if (= (text (field e "detail")) "") ""
+                                       (str-concat " · " (text (field e "detail")))))
+                       14)
+            "size" (if (= (text (field e "kind")) "publish") (size-text (field e "size_bytes")) ""))))
+
+  ;; event-row of each of `rows`.
+  (defun event-rows (rows now)
+    (collections.map rows (lambda (e) (event-row e now))))
+
+  ;; Whether event e passes the filters: kind ("all" or one kind) and name (a part of it, any
+  ;; case; "" for any).
+  (defun event-matches (e kind name)
+    (and (if (= kind "all") #t (= (text (field e "kind")) kind))
+         (if (= name "") #t (string.contains (string.lower (text (field e "name"))) (string.lower name)))))

@@ -95,7 +95,7 @@ def main():
 
     # The fixture's real rows must have only keys the live API still sends.
     catalog = json.loads(pathlib.Path(__file__).with_name("registry").joinpath(
-        "catalog.json").read_text())
+        "catalog.json").read_text(encoding="utf-8"))
     if live_keys:
         stale = sorted(set().union(*map(set, catalog)) - live_keys)
         if stale:

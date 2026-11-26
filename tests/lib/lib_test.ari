@@ -189,3 +189,86 @@ tests:
       (assert (= (get-attr r "name") "star-00"))
       (assert (= (get-attr r "id") 3))
       (assert (= (field r "capabilities") nil)))
+
+  iso-epoch reads the server's timestamps as seconds since the epoch: |
+    (begin
+      (assert (= (iso-epoch "2026-11-26T09:11:29.882561Z") 1795684289))
+      (assert (= (iso-epoch "1999-02-28T23:59:59") 920246399))
+      (assert (= (iso-epoch "2000-03-01T00:00:00Z") 951868800))
+      (assert (= (iso-epoch "") nil))
+      (assert (= (iso-epoch "not a time at all") nil)))
+
+  ago says how long ago, as the web app does: |
+    (begin
+      (assert (= (ago-text 0) "just now"))
+      (assert (= (ago-text 12) "12 s ago"))
+      (assert (= (ago-text 300) "5 min ago"))
+      (assert (= (ago-text 7200) "2 h ago"))
+      (assert (= (ago-text 172800) "2 d ago"))
+      (assert (= (ago "2026-11-26T09:11:29Z" (+ 1795684289 7200)) "2 h ago"))
+      (assert (= (ago "garbage" 0) "garbage"))
+      (assert (= (span-text 887396.9) "10 d 6 h"))
+      (assert (= (span-text 5400) "1 h 30 min")))
+
+  meters, sizes and percentages: |
+    (begin
+      (assert (= (meter 0.5 4) "▕██░░▏"))
+      (assert (= (meter 2 2) "▕██▏"))
+      (assert (= (gb-text 33508810752) "31.2 GB"))
+      (assert (= (pct-text 0.283) "28%"))
+      (assert (= (used 25 100) 0.75))
+      (assert (= (used 1 0) 0))
+      (assert (= (list-text (list)) "—"))
+      (assert (= (list-text (list "a" "b")) "a, b")))
+
+  builder-card draws a builder as the web app's card: |
+    (begin
+      (set b (dict "id" 1 "name" "star-00" "platform" "linux" "arch" "x86_64" "status" "online"
+                   "org_slug" "" "labels" (list "cvcpkg=2.5.15") "current_jobs" 0 "max_jobs" 4
+                   "version" "2.5.15" "last_heartbeat" "2026-11-26T09:11:29Z"
+                   "system" (dict "cpu_count" 4 "cpu_percent" 28.3 "mem_total_bytes" 100
+                                  "mem_available_bytes" 28 "disk_total_bytes" 100 "disk_free_bytes" 73)
+                   "capabilities" (dict "cross_platforms" (list (dict "platform" "wasm" "arch" "wasm32"))
+                                        "glibc2.35" #t "docker" #f)))
+      (set c (builder-card b (+ 1795684289 12)))
+      (assert (= (get-attr c "head") "star-00  online  linux/x86_64  v2.5.15") (get-attr c "head"))
+      (assert (= (get-attr c "load") "jobs 0/4  cpu ▕██░░░░▏ 28%  mem ▕████░░▏ 72%  disk ▕██░░░░▏ 27%")
+              (get-attr c "load"))
+      (assert (= (get-attr c "seen") "heartbeat 12 s ago  ·  org —  ·  cvcpkg=2.5.15") (get-attr c "seen"))
+      (assert (= (seen-text (get-attr c "hb") (get-attr c "seen_tail") (+ 1795684289 120))
+                 "heartbeat 2 min ago  ·  org —  ·  cvcpkg=2.5.15"))
+      (assert (= (field c "capabilities") nil))
+      (set off (builder-card (dict "id" 9 "name" "netbsd" "status" "offline" "platform" "netbsd"
+                                   "arch" "x86_64" "current_jobs" 0 "max_jobs" 2) 0))
+      (assert (= (get-attr off "head") "netbsd  offline  netbsd/x86_64") (get-attr off "head"))
+      (assert (= (get-attr off "load") "jobs 0/2  ·  no host report") (get-attr off "load")))
+
+  builder-detail lists what a builder builds: |
+    (begin
+      (set b (dict "id" 1 "name" "star-00" "status" "online"
+                   "capabilities" (dict "cross_platforms" (list (dict "platform" "wasm" "arch" "wasm32"))
+                                        "glibc2.35" #t "docker" #f)))
+      (set d (builder-detail b 0))
+      (assert (= (get-attr d "title") "star-00  ·  online"))
+      (assert (= (nth (get-attr d "host") 0) "no host report yet"))
+      (assert (= (nth (get-attr d "builds") 1) "cross wasm/wasm32"))
+      (assert (= (nth (get-attr d "builds") 2) "flags glibc2.35")))
+
+  job-row and event-row: |
+    (begin
+      (assert (= (job-row (dict "id" 7 "status" "running" "recipe_name" "zlib" "recipe_version" "1.3.1"
+                                "started_at" "2026-11-26T09:00:00Z" "submitted_at" "2026-11-26T08:59:00Z")
+                          1795684289)
+                 "#7  running  zlib 1.3.1  11 min  12 min ago"))
+      (set e (event-row (dict "id" 1 "kind" "publish" "name" "zlib" "version" "1.3.1+cvc.6"
+                              "platform" "linux" "arch" "x86_64" "build_type" "release" "link" "shared"
+                              "org_slug" "" "actor" "ci" "detail" "" "size_bytes" 165000
+                              "created_at" "2026-11-26T09:06:29Z")
+                        1795684289))
+      (assert (= (get-attr e "when") "5 min ago"))
+      (assert (= (get-attr e "what") "zlib 1.3.1+cvc.6"))
+      (assert (= (get-attr e "where") "linux/x86_64 shared"))
+      (assert (= (get-attr e "org") "—"))
+      (assert (= (get-attr e "size") "161 KB"))
+      (assert (event-matches (dict "kind" "yank" "name" "LibGLVND") "yank" "glvnd"))
+      (assert (not (event-matches (dict "kind" "yank" "name" "zlib") "publish" ""))))

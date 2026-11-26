@@ -1,11 +1,16 @@
-# activity.ari: what was published and yanked, newest first.
+# activity.ari: what was published, yanked, unyanked, deleted and nuked, newest first, as the web
+# app's Activity page shows it: how long ago, what happened, the package and version, the
+# platform (with its build type and link), the org, who did it and why, and a publish's size.
+# Filter by kind and by a part of the name; pause the feed; page back through older events.
 #
-# A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
+# A module mounted in its own window by cypkg.ari, through the holes args (read-only), shown (its
 # window's tree.<id>.open, read-only) and auth. A closed window's module doesn't start until the
 # window is first opened.
 #
-# While the window is open it follows the registry's live feed (the activity topic) and reloads
-# when an event comes in. Without a feed it polls about every 10 s, and tries the feed again.
+# While the window is open it follows the registry's live feed (the activity topic): a new event
+# goes straight in at the top. While the feed is paused, a filter is set, or an older page is
+# shown, new events are counted instead ("3 new"), and Show new loads them. Without a feed it
+# polls about every 10 s, and tries the feed again. The rows' "5 min ago" ages every few seconds.
 
 meta:
   name: cypkg-activity
@@ -15,13 +20,73 @@ needs: [args, shown, auth]
 
 import: [views.ari, lib.ari, net.ari]
 
+functions: |
+  (defun page () (int-or (state-get "args.page") 10))
+  (defun kind-filter () (text (state-get "activity.kind")))
+  (defun name-filter () (string.trim (text (state-get "activity.name"))))
+
+  ;; Whether a new event can go straight in: the first page, not paused, no filter.
+  (defun takes-live ()
+    (and (= (int (state-get "activity.offset")) 0) (!= (state-get "activity.paused") "1")
+         (= (kind-filter) "all") (= (name-filter) "")))
+
+  ;; Show `rows` (events, newest first) as the page.
+  (defun show-events (rows)
+    (state-set-tree "activity.rows" (event-rows rows (now-secs)))
+    (state-set "activity.count" (length rows)))
+
+  ;; New events `evs` (newest first) from the feed: in at the top, the rows below moved down a
+  ;; place each (a field at a time: a program reads state a key at a time), and the page cut to
+  ;; its length.
+  (defun take-events (evs)
+    (set n (int (state-get "activity.count")))
+    (set k (if (> (length evs) (page)) (page) (length evs)))
+    (set keep (if (> (+ n k) (page)) (- (page) k) n))
+    (set i (- keep 1))
+    (while (>= i 0)
+      (for f (list "id" "at" "when" "kind" "what" "where" "org" "who" "size")
+        (state-set (str-concat "activity.rows." (+ i k) "." f)
+                   (state-get (str-concat "activity.rows." i "." f))))
+      (set i (- i 1)))
+    (set now (now-secs))
+    (set j 0)
+    (while (< j k)
+      (state-set-tree (str-concat "activity.rows." j) (event-row (nth evs j) now))
+      (set j (+ j 1)))
+    (state-set "activity.count" (+ keep k))
+    (state-set "activity.total" (+ (int (state-get "activity.total")) (length evs))))
+
+  ;; Each row's "5 min ago" again, at the clock's time now.
+  (defun age-rows ()
+    (set now (now-secs))
+    (set n (int (state-get "activity.count")))
+    (set i 0)
+    (while (< i n)
+      (set k (str-concat "activity.rows." i))
+      (state-set (str-concat k ".when") (ago (state-get (str-concat k ".at")) now))
+      (set i (+ i 1))))
+
+  ;; The status line: which events, and how many there are.
+  (defun page-text ()
+    (let ((o (int (state-get "activity.offset"))) (n (int (state-get "activity.count")))
+          (t1 (int (state-get "activity.total"))))
+      (if (= n 0) "nothing yet"
+          (str-concat "events " (+ o 1) "-" (+ o n) " of " t1))))
+
 init: |
   (begin
     (state-set "activity.count" 0)
+    (state-set "activity.total" 0)
+    (state-set "activity.offset" 0)
+    (state-set "activity.kind" "all")
+    (state-set "activity.name" "")
+    (state-set "activity.paused" "")
+    (state-set "activity.new" 0)
     (state-set "activity.status" "")
     (state-set "activity.busy" 0)
     (state-set "activity.bar" "")
     (state-set "activity.seq" 0)
+    (state-set "activity.aged" 0)
     (live-init "activity")
     (state-set "req.refresh" "1"))
 
@@ -36,29 +101,41 @@ on_tick: |
           (state-set "activity.retry" "0")
           (for m msgs
             (set ty (field m "type"))
-            (if (= ty "activity") (state-set "req.refresh" "1"))
+            (if (= ty "activity")
+                (let ((evs (let ((x (field m "events"))) (if (is-list x) x (list)))))
+                  (if (takes-live)
+                      (take-events evs)
+                      (state-set "activity.new" (+ (int (state-get "activity.new")) (length evs))))))
             (if (= ty "resync") (state-set "req.refresh" "1")))))
 
     (if (= (state-get "req.refresh") "1")
         (begin
           (state-set "req.refresh" "0")
+          (set q (dict "limit" (page) "offset" (int (state-get "activity.offset"))))
+          (if (!= (kind-filter) "all") (set-attr q "kind" (kind-filter)))
+          (if (!= (name-filter) "") (set-attr q "name" (name-filter)))
           (set r (fetch (str-concat (state-get "args.server") "/v1/activity")
-                        (with-auth (dict "query" (dict "limit" (* 2 (int-or (state-get "args.page") 10)))))
-                        "activity"))
+                        (with-auth (dict "query" q)) "activity"))
           (set d (reply-object r))
           (set rows (if (= d nil) nil (field d "events")))
           (if (is-list rows)
               (begin
-                (state-set-tree "activity.res" d)
-                (state-set "activity.count" (length rows))
-                (state-set "activity.base"
-                  (if (= (length rows) 0) "nothing yet" (str-concat "the latest " (length rows) " events"))))
+                (show-events rows)
+                (state-set "activity.total" (int-or (field d "total") (length rows)))
+                (state-set "activity.new" 0))
               (begin
                 (state-set "activity.count" 0)
                 (state-set "activity.base" (str-concat "failed: " (failure r)))))
           (state-set "activity.seq" (+ (int (state-get "activity.seq")) 1))))
 
+    (if (> (int (state-get "activity.count")) 0) (state-set "activity.base" (page-text)))
     (live-status "activity")
+    ;; Every ~5 s while open, age the rows' times.
+    (if (not (closed (state-get "shown")))
+        (begin
+          (state-set "activity.aged" (+ (int (state-get "activity.aged")) 1))
+          (if (>= (int (state-get "activity.aged")) 16)
+              (begin (state-set "activity.aged" 0) (age-rows)))))
     ;; No feed: poll about every 10 s while the window is open. A click is answered at once.
     (if (live-idle "activity")
         (if (not (closed (state-get "shown"))) (state-set "req.refresh" "1"))))

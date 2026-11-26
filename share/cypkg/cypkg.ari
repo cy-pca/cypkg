@@ -1,0 +1,225 @@
+# cypkg.ari — a cvcpkg registry client, as one component.
+#
+# Everything cypkg does is here: its windows (search and a package's page, the builder fleet and
+# a builder's detail, the builds, the activity feed, the account), its menu, and signing in and
+# out. Its host loads it once, as main.ari does, and any other document can load it the same way:
+#
+#   windows:
+#     - load: cypkg.ari
+#       as: cypkg
+#       name: (str-concat "cvcpkg: " ...)     # its menu's name in the outer bar
+#       link:
+#         args: { to: args, mode: ro }          # server, q, package, ... (below); any may be left out
+#
+# Loaded, its menu is one menu of the host's bar (ARIADNE.md §5.25), holding Search, Builders,
+# Builds, Activity and Account, which open its windows.
+#
+# The host's arguments (args, read-only, any of them absent) become cfg, filled in with defaults
+# and with live turned off where the host has no WebSocket verbs. Each window is a module (search,
+# package, builders, ...) that owns its state and requests and sees cfg as its own args.
+#
+# State, under this component's prefix:
+#   cfg     the arguments, with defaults (each module's args hole)
+#   view    "search" or "package": which module the main window shows
+#   nav     nav.open: the package the search view opens; nav.start: its first build
+#   auth    auth.signed_in, auth.can_pair, auth.signout, auth.recheck (modules read it; the account
+#           module asks to sign out or to check again)
+#   pick    pick.builder: the builder the Builder window shows (the Builders window's Details)
+#   tree    each window's open state (tree.<id>.open), which the menu's items bind
+
+meta:
+  name: cypkg
+  version: 0.2.0
+  description: A cvcpkg registry client
+  min_libcvc: 3.7.4
+
+requires:
+  - net
+  - json-parse
+  - state-set-tree
+
+# No needs: it takes args when its host links them, and runs with the defaults when none do (on
+# its own, or later as an application of libcvc's shell, docs/roadmap/ARIADNE_SHELL.md, whose
+# mounts get no link holes): a document runs the same mounted as on its own.
+
+functions: |
+  ;; The host's argument k, or dflt when the host gave none.
+  (defun arg (k dflt)
+    (if (state-exists (str-concat "args." k))
+        (let ((v (state-get (str-concat "args." k)))) (if (= v nil) dflt v))
+        dflt))
+
+  ;; v as text: (str "x") would quote a string.
+  (defun as-text (v) (if (is-string v) v (str v)))
+
+  ;; Whether the host has a cvcpkg credential (an API token, or a session pairing captured).
+  (defun has-credential ()
+    (if (has? "net-auth-has?") (if (net-auth-has? "cvcpkg") "1" "0") "0"))
+
+init: |
+  (begin
+    ;; The arguments, with the defaults main.ari's args: block declares.
+    (state-set-tree "cfg"
+      (dict "server" (arg "server" "https://cvcpkg.org")
+            "q" (arg "q" "")
+            "package" (arg "package" "")
+            "platform" (arg "platform" "all")
+            "arch" (arg "arch" "all")
+            "link" (arg "link" "all")
+            "offset" (int (arg "offset" 0))
+            "pkg-offset" (int (arg "pkg-offset" 0))
+            "page" (int (arg "page" 10))
+            "open" (arg "open" "")
+            "progress" (arg "progress" "on")
+            "live" (arg "live" "on")
+            "now" (arg "now" "")
+            "builder" (as-text (arg "builder" ""))))
+    ;; The windows follow the live feed (/v1/live/ws) with the host's WebSocket verbs; a host
+    ;; without them polls.
+    (if (not (has? "ws-open")) (state-set "cfg.live" "off"))
+    ;; Signed in when the host holds a cvcpkg credential: a token the launcher handed it
+    ;; (--token-env), or a session that pairing or an earlier run left in its store.
+    (state-set "auth.signed_in" (has-credential))
+    (state-set "auth.signout" "0")
+    (state-set "auth.recheck" "0")
+    ;; Signing in with a browser (pairing) needs a hash and a CSPRNG in the DSL.
+    (state-set "auth.can_pair" (if (if (has? "sha256-hex") (has? "random-token") #f) "1" "0"))
+    ;; The fleet and account windows start closed (a window's open state is tree.<id>.open)
+    ;; unless --open names them. A closed window's module doesn't start until it's opened. The
+    ;; search window starts open. Set it, rather than rely on the default: the menu's Search item
+    ;; binds the same key, and the tvision host reads an unset key as unticked.
+    (state-set "tree.main.open" 1)
+    ;; The Builder window: closed, unless --builder names one to open on.
+    (state-set "pick.builder" (state-get "cfg.builder"))
+    (state-set "pick.raise" "0")
+    (state-set "tree.builder.open" (if (= (state-get "cfg.builder") "") 0 1))
+    (for w (list "builders" "builds" "activity" "account")
+      (state-set (str-concat "tree." w ".open")
+        (if (string.contains (str-concat "," (state-get "cfg.open") ",") (str-concat "," w ",")) 1 0)))
+    (state-set "view" (if (= (state-get "cfg.package") "") "search" "package"))
+    (state-set "nav.open" (state-get "cfg.package"))
+    (state-set "nav.start" (int (state-get "cfg.pkg-offset"))))
+
+# Signing in and out: the account window asks (auth.recheck after pairing or a pasted token,
+# auth.signout), and this tick answers with the host's credential verbs.
+on_tick: |
+  (begin
+    (if (= (state-get "auth.signout") "1")
+        (begin
+          (state-set "auth.signout" "0")
+          (if (has? "net-auth-forget")
+              (begin (net-auth-forget "cvcpkg") (net-auth-forget "cvcpkg.refresh")))
+          (state-set "auth.signed_in" "0")))
+    ;; The Builders window's Details: bring the Builder window to the front (the host clears
+    ;; tree.<id>.raise once it is drawn, so the module asks here instead of writing it).
+    (if (= (state-get "pick.raise") "1")
+        (begin (state-set "pick.raise" "0") (state-set "tree.builder.raise" 1)))
+    ;; The account window signed in (pairing captured a token into the host): ask again.
+    (if (= (state-get "auth.recheck") "1")
+        (begin
+          (state-set "auth.recheck" "0")
+          (state-set "auth.signed_in" (has-credential)))))
+
+# The menu: its items are ticked while their window is open, and toggle it (they bind the
+# window's tree.<id>.open, as the window's close button does). Loaded, these are the items of
+# this component's one menu in the host's bar, after which the host adds Restart and Quit.
+menubar:
+  - menu_item: Search
+    bind: tree.main.open
+  - menu_item: Builders
+    bind: tree.builders.open
+  - menu_item: Builds
+    bind: tree.builds.open
+  - menu_item: Activity
+    bind: tree.activity.open
+  - menu_item: Account
+    bind: tree.account.open
+
+windows:
+  - window: cypkg
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - text: "registry"
+        bind: cfg.server
+      # A hidden mount doesn't start until it is first shown.
+      - load: search.ari
+        as: search
+        visible_when: (= (state-get "view") "search")
+        link: &holes
+          args: { to: cfg, mode: ro }
+          view: view
+          nav: nav
+          auth: { to: auth, mode: ro }
+      - load: package.ari
+        as: package
+        visible_when: (= (state-get "view") "package")
+        link: *holes
+
+  # The fleet and account windows, one module each. Each refreshes while its window is open.
+  - window: Builders
+    id: builders
+    pos: [24, 32]
+    size: [704, 320]
+    closable: true
+    children:
+      - load: builders.ari
+        as: builders
+        link:
+          args: { to: cfg, mode: ro }
+          shown: { to: tree.builders.open, mode: ro }
+          auth: { to: auth, mode: ro }
+          pick: pick.builder
+          detail: tree.builder.open
+          raise: pick.raise
+  # One builder, opened from a card's Details in the Builders window.
+  - window: Builder
+    id: builder
+    pos: [40, 40]
+    size: [704, 400]
+    closable: true
+    children:
+      - load: builder.ari
+        as: builder
+        link:
+          args: { to: cfg, mode: ro }
+          shown: { to: tree.builder.open, mode: ro }
+          auth: { to: auth, mode: ro }
+          pick: { to: pick.builder, mode: ro }
+  - window: Builds
+    id: builds
+    pos: [48, 48]
+    size: [736, 320]
+    closable: true
+    children:
+      - load: builds.ari
+        as: builds
+        link:
+          args: { to: cfg, mode: ro }
+          shown: { to: tree.builds.open, mode: ro }
+          auth: { to: auth, mode: ro }
+  - window: Activity
+    id: activity
+    pos: [0, 64]
+    size: [800, 352]
+    closable: true
+    children:
+      - load: activity.ari
+        as: activity
+        link:
+          args: { to: cfg, mode: ro }
+          shown: { to: tree.activity.open, mode: ro }
+          auth: { to: auth, mode: ro }
+  - window: Account
+    id: account
+    pos: [96, 80]
+    size: [640, 224]
+    closable: true
+    children:
+      - load: account.ari
+        as: account
+        link:
+          args: { to: cfg, mode: ro }
+          shown: { to: tree.account.open, mode: ro }
+          auth: auth

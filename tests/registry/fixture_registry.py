@@ -8,7 +8,8 @@ the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
 - GET /v1/search: q, platform, arch, build_type, link, tag, limit, offset,
   facets. Rows are builds, newest first within a name.
 - GET /v1/packages/{name}: every build of one package (none for an unknown name).
-- GET /v1/builders, /v1/builds (status, limit, offset), /v1/activity (limit): rows captured
+- GET /v1/builders, /v1/builders/{id}, /v1/builds (status, builder_id, limit, offset),
+  /v1/activity (kind, name, limit, offset): rows captured
   from cvcpkg.org (fleet.json).
 - GET /v1/auth/whoami: a reader named fixture-tester for "Bearer <TEST_TOKEN>" or a paired
   session, else 401.
@@ -54,11 +55,11 @@ TYPES = {".wasm": "application/wasm", ".js": "text/javascript", ".mjs": "text/ja
 
 HERE = pathlib.Path(__file__).parent
 # Real rows (capture.py), then synthetic edge cases (edge.json).
-CATALOG = json.loads((HERE / "catalog.json").read_text()) + json.loads(
-    (HERE / "edge.json").read_text())["rows"]
+CATALOG = json.loads((HERE / "catalog.json").read_text(encoding="utf-8")) + json.loads(
+    (HERE / "edge.json").read_text(encoding="utf-8"))["rows"]
 
 # Builders, builds and activity captured from cvcpkg.org (fleet.json), for those windows.
-FLEET = json.loads((HERE / "fleet.json").read_text())
+FLEET = json.loads((HERE / "fleet.json").read_text(encoding="utf-8"))
 # The API token tests sign in with (an env var the launcher hands to ari; never a real token).
 TEST_TOKEN = "cvctok_fixture-test-token-0123456789"
 
@@ -134,18 +135,29 @@ def builders():
     return 200, {"total": len(FLEET["builders"]), "builders": FLEET["builders"]}
 
 
+def builder(bid):
+    b = next((x for x in FLEET["builders"] if str(x["id"]) == bid), None)
+    return (200, b) if b else (404, {"detail": "builder not found"})
+
+
 def builds(qs):
     one = lambda k: qs.get(k, [""])[0]
     rows = [j for j in FLEET["builds"] if not one("status") or j["status"] == one("status")]
+    if one("builder_id"):
+        rows = [j for j in rows if str(j.get("builder_id")) == one("builder_id")]
     limit = max(1, min(1000, int(one("limit") or 100)))
     offset = max(0, int(one("offset") or 0))
     return 200, {"total": len(rows), "jobs": rows[offset:offset + limit]}
 
 
 def activity(qs):
-    limit = max(1, int(qs.get("limit", ["50"])[0] or 50))
-    ev = FLEET["activity"][:limit]
-    return 200, {"events": ev, "total": len(FLEET["activity"]),
+    one = lambda k: qs.get(k, [""])[0]
+    limit = max(1, int(one("limit") or 50))
+    offset = max(0, int(one("offset") or 0))
+    rows = [e for e in FLEET["activity"]
+            if (not one("kind") or e["kind"] == one("kind"))
+            and (not one("name") or one("name").lower() in e["name"].lower())]
+    return 200, {"events": rows[offset:offset + limit], "total": len(rows),
                  "max_id": max((e["id"] for e in FLEET["activity"]), default=0)}
 
 
@@ -401,6 +413,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             status, body = search(urllib.parse.parse_qs(u.query))
         elif u.path == "/v1/builders":
             status, body = builders()
+        elif u.path.startswith("/v1/builders/"):
+            status, body = builder(u.path[len("/v1/builders/"):])
         elif u.path == "/v1/builds":
             status, body = builds(urllib.parse.parse_qs(u.query))
         elif u.path == "/v1/activity":
