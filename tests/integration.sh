@@ -149,8 +149,9 @@ if [ -n "${ARIX:-}" ]; then
     "$here/integration/prefixes/prefixes_test.ari" >"$copy"
   copies="$copies $copy"
   mkdir -p "$tmp/config" "$tmp/cache"
+  # The timeout covers the document, all 10 tests: about 30 s, but over 120 s on a busy machine.
   PYTHONPATH=$purelib XDG_CONFIG_HOME=$tmp/config CVCPKG_CACHE=$tmp/cache \
-    "$ARIX" test --timeout 120 --net-allow "$server" "$copy"
+    "$ARIX" test --timeout 300 --net-allow "$server" "$copy"
 else
   echo "skip the Prefixes window: ARIX names an arix to run it"
 fi
