@@ -52,10 +52,15 @@ functions: |
   ;; the auth hole): only the top-level document can ask the host (has?) for its credential verbs.
   (defun signed-in () (= (text (state-get "auth.signed_in")) "1"))
 
-  ;; opts plus auth: "cvcpkg" when signed in, so the host adds the Bearer header (the document
-  ;; never sees the token). Private orgs' packages show up then.
+  ;; opts plus auth when signed in: the credential the component chose (auth.cred: "cvcpkg", or
+  ;; "cvcpkg.oidc" for an OpenID Connect sign-in), so the host adds the Bearer header (the
+  ;; document never sees the token). Private orgs' packages show up then.
   (defun with-auth (opts)
-    (if (signed-in) (begin (set-attr opts "auth" "cvcpkg") opts) opts))
+    (if (signed-in)
+        (begin
+          (set-attr opts "auth" (let ((c (text (state-get "auth.cred")))) (if (= c "") "cvcpkg" c)))
+          opts)
+        opts))
 
 
   ;; ── Live updates: the registry's /v1/live/ws feed ──

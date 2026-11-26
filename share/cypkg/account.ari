@@ -1,4 +1,6 @@
-# account.ari: who the registry says you are; signing out; signing in with a browser.
+# account.ari: who the registry says you are; signing out; signing in with a browser, through
+# cvcpkg's device pairing or OpenID Connect (Ariadne's oidc-sign-in, with the registry as the
+# issuer and cypkg its client: cy-pca/cvcpkg#639).
 #
 # A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
 # window's tree.<id>.open, read-only: it refreshes only while open) and view/nav where it needs
@@ -11,6 +13,23 @@ meta:
 needs: [args, shown, auth]
 
 import: [views.ari, lib.ari, net.ari]
+
+functions: |
+  ;; oidc-sign-in's options (as cypkg.ari's oidc-opts): the registry is the issuer, cypkg the
+  ;; client, publisher the role asked for, cvcpkg.oidc the credential; status in account.oidc.
+  (defun oidc-opts-here (interactive)
+    (dict "issuer" (state-get "args.server") "client_id" "cypkg" "scopes" (list "publisher")
+          "credential" "cvcpkg.oidc" "interactive" interactive "status" "account.oidc"))
+
+  ;; What a sign-in's phase means, for the status line.
+  (defun oidc-phase-text (ph)
+    (if (= ph "discovering") "Asking the registry how to sign in..."
+        (if (= ph "waiting_for_browser") "Sign in in the browser that opened (or open the URL below)."
+            (if (= ph "device_code_shown") "Open the URL below and enter the code."
+                (if (= ph "redirecting") "Going to the registry's sign-in..."
+                    (if (= ph "exchanging") "Finishing signing in..."
+                        (if (= ph "refreshing") "Refreshing the sign-in..."
+                            "Signing in...")))))))
 
 init: |
   (begin
@@ -26,6 +45,8 @@ init: |
     ;; Pairing (cvcpkg's OIDC route for a terminal) needs a hash and a CSPRNG in the DSL; main.ari
     ;; asks the host (auth.can_pair).
     (state-set "account.can_pair" (text (state-get "auth.can_pair")))
+    (state-set "account.can_oidc" (text (state-get "auth.can_oidc")))
+    (state-set "account.oidc_url" "")
     (state-set "account.pairing_note"
       (if (= (state-get "account.can_pair") "1") ""
           "A browser sign-in needs a newer ari (sha256-hex, random-token)."))
@@ -36,8 +57,11 @@ on_tick: |
     (if (= (state-get "req.signout") "1")
         (begin
           (state-set "req.signout" "0")
-          ;; A paired session is ended on the server too; an API token stays valid there.
-          (if (= (text (state-get "account.who.kind")) "session")
+          ;; A paired session is ended on the server too; an API token stays valid there. (An
+          ;; OpenID Connect sign-in, auth.cred cvcpkg.oidc, is revoked by the component's
+          ;; oidc-sign-out.)
+          (if (if (= (text (state-get "account.who.kind")) "session")
+                  (!= (text (state-get "auth.cred")) "cvcpkg.oidc") #f)
               (set rv (http-request "POST" (str-concat (state-get "args.server") "/v1/auth/revoke")
                         (with-auth (dict "headers" (dict "Content-Type" "application/json")
                                          "body" "{}")))))
@@ -119,9 +143,63 @@ on_tick: |
                 (state-set "account.url" ""))))
         (state-set "account.status" "This ari can't sign in with a browser: no random-token."))
         (state-set "account.status" "This ari can't sign in with a browser: no sha256-hex."))))
+    ;; Sign in with OpenID Connect: the host opens the registry's sign-in in a browser (the
+    ;; loopback redirect natively, the page's own redirect in a browser) and keeps the tokens as
+    ;; cvcpkg.oidc; this window shows where it is (account.oidc, the host's status) until it ends.
+    (if (= (state-get "req.oidc") "1")
+      (begin
+       (state-set "req.oidc" "0")
+       (state-set "req.cancel" "0")
+       (if (has? "oidc")
+        (begin
+          (oidc-sign-in (oidc-opts-here #t))
+          (set done #f)
+          (while (not done)
+            (if (idle-wait 0.25 (list "req.cancel"))
+                (begin
+                  (set done #t)
+                  (state-set "req.cancel" "0")
+                  (oidc-cancel "cvcpkg.oidc")
+                  (state-set "account.status" "Signing in was cancelled."))
+                (begin
+                  (set ph (text (state-get "account.oidc.phase")))
+                  (state-set "account.oidc_url"
+                    (let ((u (text (state-get "account.oidc.verification_uri_complete"))))
+                      (if (!= u "") u (text (state-get "account.oidc.browser_url")))))
+                  (state-set "account.code" (text (state-get "account.oidc.user_code")))
+                  (state-set "account.status" (oidc-phase-text ph))
+                  (if (= ph "signed_in")
+                      (begin
+                        (set done #t)
+                        (state-set "account.status" "Signed in.")
+                        (state-set "auth.recheck" "1")
+                        (set k 0)
+                        (while (if (= (state-get "auth.recheck") "1") (< k 50) #f)
+                          (sleep 0.02) (set k (+ k 1)))
+                        (state-set "req.refresh" "1")))
+                  (if (if (= ph "error") #t (= ph "cancelled"))
+                      (begin
+                        (set done #t)
+                        (state-set "account.status"
+                          (str-concat "Signing in failed: "
+                                      (let ((d (text (state-get "account.oidc.error_description"))))
+                                        (if (!= d "") d (text (state-get "account.oidc.error")))))))))))
+          (state-set "account.oidc_url" "")
+          (state-set "account.code" ""))
+        (state-set "account.status" "This ari can't sign in with OpenID Connect."))))
     (if (= (state-get "req.refresh") "1")
         (begin
           (state-set "req.refresh" "0")
+          ;; A kept OpenID Connect sign-in is being resumed (cypkg.ari's init): wait for its
+          ;; refresh, so whoami does not go out with an expired token the host can't renew yet.
+          (set k 0)
+          (while (if (= (text (state-get "auth.cred")) "cvcpkg.oidc")
+                     (if (< k 1000)
+                         (let ((ph (text (state-get "auth.oidc.phase"))))
+                           (if (= ph "discovering") #t (= ph "refreshing")))
+                         #f)
+                     #f)
+            (sleep 0.02) (set k (+ k 1)))
           (if (signed-in)
               (begin
                 (set r (fetch (str-concat (state-get "args.server") "/v1/auth/whoami")
@@ -149,7 +227,7 @@ on_tick: |
                 (state-set "account.signed_in" "0")
                 (state-set "account.status" "Not signed in.")))
           (state-set "account.seq" (+ (int (state-get "account.seq")) 1))))
-    (idle-wait 3600 (list "req.refresh" "req.signout" "req.pair")))
+    (idle-wait 3600 (list "req.refresh" "req.signout" "req.pair" "req.oidc")))
 
 root:
   - include: account_view
