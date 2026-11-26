@@ -100,11 +100,16 @@ shows the same `cvcpkg install` lines to copy.
 
 ```
 share/cypkg/      the documents:
-                    main.ari     composes the two modules and wires their holes
+                    main.ari     the app: its arguments, and the component, loaded once
+                    cypkg.ari    the component: its windows, menu, signing in and out;
+                                 another document loads it the same way (below)
                     search.ari   the search module: its state, view and requests
                     package.ari  the package module: its state, view and requests
+                    builders.ari the fleet, a card each; builder.ari one builder
+                    builds.ari, activity.ari, account.ari  the other windows' modules
                     lib.ari      the logic, as functions the modules import
-                    views.ari    the two views, as units the modules include
+                    net.ari      requests and the live feed, which the modules import
+                    views.ari    the views, as units the modules include
 bin/              the launchers: cypkg (sh) and cypkg.cmd
 tests/            snapshot tests and a fixture registry
 recipes/cypkg/    the cvcpkg recipe: documents and launchers, one noarch build
@@ -125,17 +130,39 @@ cvcpkg build cypkg --local --platform any --prefix ./prefix
 It needs `ari` 3.7.6 or later. `.github/workflows/publish.yml`, started by hand on
 main, packs it and publishes it to cvcpkg.org under the cy-pca organisation.
 
+## One component
+
+Everything cypkg does is in one component, `share/cypkg/cypkg.ari`: its windows, its menu, and
+signing in and out. `main.ari` only declares the command line and loads it, and any other
+document can load it the same way, as nicotina's site client is loaded:
+
+```yaml
+windows:
+  - load: cypkg.ari
+    as: cypkg
+    name: cvcpkg.org            # its menu's name in the host's bar
+    link:
+      args: { to: args, mode: ro }   # server, q, package, ...; any may be left out
+```
+
+It needs no link: with none it runs against https://cvcpkg.org with the defaults, so it runs the
+same loaded, on its own, and later as an application of libcvc's shell
+(`docs/roadmap/ARIADNE_SHELL.md`, whose mounts get no links).
+
 ## Menus and windows
 
-The menu bar has **cypkg** (Quit) and **View**. View's items are ticked while
-their window is open, and toggle it. F10 opens the menu bar from the keyboard.
+The menu bar has **cypkg** (Quit) and the component's menu, named by the registry's host
+(`cvcpkg.org`), with **Search**, **Builders**, **Builds**, **Activity** and **Account**. Its
+items are ticked while their window is open, and toggle it; Restart and Quit restart or close
+the component (Windows > Applications brings it back). F10 opens the menu bar from the keyboard.
 
 | Window | Shows | Refreshes |
 |---|---|---|
 | Search | The search and package pages | On request; Next and Prev come from pages already fetched |
-| Builders | The fleet: platform, status, load, version, last heartbeat | Live: each builder as it changes |
+| Builders | The fleet, a card each, as the web app's: name, status, platform, version; jobs and CPU, memory and disk meters; last heartbeat, org, labels. **Details** (or a click on the card, outside a terminal) opens the Builder window | Live: each builder as it changes; "12 s ago" ages between messages |
+| Builder | One builder: id, version, jobs, heartbeat, org, namespaces, affinity, who registered it; its host (cores, load, memory, disk, OS, Python, uptimes); labels, cross-platform targets and flags; its active and recent jobs | Live: redrawn when the builder changes; its jobs reload when one of them changes |
 | Builds | Build jobs, newest first, by status, a page at a time | Live: jobs on the page change in place; a new one reloads the first page |
-| Activity | What was published and yanked | Live: reloads when an event comes in |
+| Activity | What was published, yanked, unyanked, deleted and nuked, as the web app's page: when, the package, the platform and link, the org, who and why, a publish's size. Filter by kind and name, Pause, page back | Live: a new event goes in at the top; paused, filtered or on an older page, they're counted ("Show 3 new") |
 | Account | Who the registry says you are; sign out | When opened |
 
 - **Modules:** each window is its own module (`share/cypkg/<window>.ari`). A
@@ -179,8 +206,9 @@ CYPKG_ARI=/path/to/ari bin/cypkg --tvision --package zstd
 ```
 
 Document flags: `--q`, `--platform`, `--arch`, `--link`, `--offset`,
-`--package`, `--pkg-offset`, `--page` and `--open` (windows to open at start,
-e.g. `--open builders,activity`). `--progress off` waits for replies without
+`--package`, `--pkg-offset`, `--page`, `--open` (windows to open at start,
+e.g. `--open builders,activity`) and `--builder ID` (open that builder's window). `--now`
+pins the clock for "12 s ago" (the snapshot tests pass it). `--progress off` waits for replies without
 a progress bar, for a browser `ari` without libcvc's async fetch
 (transfix/libcvc#914). `--live off` polls instead of following the live feed.
 The launcher adds `--server`, `--tvision` and

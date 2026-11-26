@@ -1,6 +1,7 @@
-# The builders, builds and activity modules (share/cypkg/builders.ari, builds.ari, activity.ari),
-# each mounted alone in its own window against the fixture registry, through the holes main.ari
-# grants (args, shown, auth). Each test waits for the module's <name>.seq to count one more
+# The builders, builder, builds and activity modules (share/cypkg/builders.ari, builder.ari,
+# builds.ari, activity.ari), each mounted alone in its own window against the fixture registry,
+# through the holes cypkg.ari grants (args, shown, auth; pick, detail and raise for the Builders
+# window's Details, which open the Builder window). Each test waits for the module's <name>.seq to count one more
 # finished request and asserts on what its view reads. tests/modules.sh puts the fixture's URL in
 # place of @SERVER@. The fixture serves fleet.json: 20 builders (14 online), 30 build jobs,
 # 30 activity events.
@@ -40,11 +41,15 @@ functions: |
 args:
   server: {type: string, default: "@SERVER@"}
   page: {type: int, default: 10}
+  now: {type: string, default: "2026-10-30T21:06:00Z"}
 
 init: |
   (begin
     (state-set "auth.signed_in" "0")
     (state-set "tree.builders.open" 1)
+    (state-set "pick.builder" "1")
+    (state-set "pick.raise" "0")
+    (state-set "tree.builder.open" 1)
     (state-set "tree.builds.open" 1)
     (state-set "tree.activity.open" 1))
 
@@ -58,6 +63,19 @@ windows:
           args: { to: args, mode: ro }
           shown: { to: tree.builders.open, mode: ro }
           auth: { to: auth, mode: ro }
+          pick: pick.builder
+          detail: tree.builder.open
+          raise: pick.raise
+  - window: Builder
+    id: builder
+    children:
+      - load: ../../share/cypkg/builder.ari
+        as: d
+        link:
+          args: { to: args, mode: ro }
+          shown: { to: tree.builder.open, mode: ro }
+          auth: { to: auth, mode: ro }
+          pick: { to: pick.builder, mode: ro }
   - window: Builds
     id: builds
     children:
@@ -83,7 +101,7 @@ tests:
       (set i 0)
       (while (if (< (int (state-get "includes.b.builders.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
       (assert (= (state-get "includes.b.builders.count") "20") (state-get "includes.b.builders.count"))
-      (assert (= (state-get "includes.b.builders.base") "14 of 20 online") (state-get "includes.b.builders.base"))
+      (assert (= (state-get "includes.b.builders.base") "14 online, 0 busy, 6 offline") (state-get "includes.b.builders.base"))
       (assert (= (state-get "includes.b.builders.res.builders.0.name") "star-00")))
 
   Refresh asks again at once: |
@@ -123,8 +141,48 @@ tests:
     (begin
       (set i 0)
       (while (if (< (int (state-get "includes.a.activity.seq")) 1) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
-      (assert (= (state-get "includes.a.activity.base") "the latest 20 events") (state-get "includes.a.activity.base"))
-      (assert (= (state-get "includes.a.activity.res.events.0.kind") "yank")))
+      (assert (= (state-get "includes.a.activity.base") "events 1-10 of 30") (state-get "includes.a.activity.base"))
+      (assert (= (state-get "includes.a.activity.rows.0.kind") "yank"))
+      (assert (= (state-get "includes.a.activity.rows.0.what") "libglvnd 1.7.0+cvc.1")
+              (state-get "includes.a.activity.rows.0.what")))
+
+  activity filters by kind, and pages back: |
+    (begin
+      (set n (int (state-get "includes.a.activity.seq")))
+      (state-set "includes.a.activity.kind" "publish")
+      (state-set "includes.a.req.refresh" "1")
+      (wait-for "includes.a.activity.seq" (str (+ n 1)))
+      (assert (= (state-get "includes.a.activity.rows.0.kind") "publish"))
+      (assert (string.ends-with (state-get "includes.a.activity.rows.0.size") "KB")
+              (state-get "includes.a.activity.rows.0.size"))
+      (state-set "includes.a.activity.kind" "all")
+      (state-set "includes.a.activity.offset" 10)
+      (state-set "includes.a.req.refresh" "1")
+      (wait-for "includes.a.activity.seq" (str (+ n 2)))
+      (assert (= (state-get "includes.a.activity.base") "events 11-20 of 30")
+              (state-get "includes.a.activity.base"))
+      (state-set "includes.a.activity.offset" 0)
+      (state-set "includes.a.req.refresh" "1")
+      (wait-for "includes.a.activity.seq" (str (+ n 3))))
+
+  a builder's detail shows the builder, its host and its jobs: |
+    (begin
+      (assert (= (wait-for "includes.d.bd.id" "1") "1") "no builder")
+      (assert (= (state-get "includes.d.bd.info.title") "star-00  ·  online") (state-get "includes.d.bd.info.title"))
+      (assert (string.starts-with (state-get "includes.d.bd.info.builder.0") "id 1  ·  version ")
+              (state-get "includes.d.bd.info.builder.0"))
+      (assert (string.starts-with (state-get "includes.d.bd.info.host.0") "cpu ")
+              (state-get "includes.d.bd.info.host.0"))
+      (assert (string.starts-with (state-get "includes.d.bd.recent_head") "Recent jobs (")
+              (state-get "includes.d.bd.recent_head")))
+
+  a card's Details opens the Builder window on it: |
+    (begin
+      (state-set "includes.b.req.open" "2")
+      (assert (= (wait-for "pick.builder" "2") "2") "pick")
+      (assert (= (wait-for "includes.d.bd.id" "2") "2") "the Builder window didn't follow")
+      (assert (= (state-get "includes.d.bd.info.title") "star-01  ·  online")
+              (state-get "includes.d.bd.info.title")))
 
   the windows follow the live feed: |
     (begin
@@ -144,8 +202,10 @@ tests:
       (reset-asked)
       (publish (dict "type" "builder" "builder" one))
       (assert (= (wait-for "includes.b.builders.res.builders.0.status" "offline") "offline"))
-      (assert (= (state-get "includes.b.builders.res.builders.0.current_jobs") "3"))
-      (assert (= (wait-for "includes.b.builders.base" "13 of 20 online") "13 of 20 online")
+      (assert (string.starts-with (state-get "includes.b.builders.res.builders.0.load") "jobs 3/")
+              (state-get "includes.b.builders.res.builders.0.load"))
+      (assert (= (wait-for "includes.b.builders.base" "13 online, 0 busy, 7 offline")
+                 "13 online, 0 busy, 7 offline")
               (state-get "includes.b.builders.base"))
       (assert (= (asked "/v1/builders") 0) "the window asked /v1/builders again"))
 
@@ -186,12 +246,17 @@ tests:
               (state-get "includes.j.builds.base"))
       (assert (= (state-get "includes.j.builds.res.jobs.0.id") "99999")))
 
-  an activity event reloads the feed: |
+  an activity event goes in at the top, without asking again: |
     (begin
+      (reset-asked)
       (set ev (dict "id" 777777 "kind" "publish" "name" "fixture-pkg" "version" "1.0"
                     "platform" "linux" "arch" "x86_64" "created_at" "2026-10-30T12:00:00Z"))
       (publish (dict "type" "activity" "events" (list ev)))
-      (assert (= (wait-for "includes.a.activity.res.events.0.name" "fixture-pkg") "fixture-pkg")))
+      (assert (= (wait-for "includes.a.activity.rows.0.what" "fixture-pkg 1.0") "fixture-pkg 1.0"))
+      (assert (= (state-get "includes.a.activity.rows.1.what") "libglvnd 1.7.0+cvc.1")
+              (state-get "includes.a.activity.rows.1.what"))
+      (assert (= (state-get "includes.a.activity.count") "10"))
+      (assert (= (asked "/v1/activity") 0) "the window asked /v1/activity again"))
 
   a server without live updates leaves the windows polling: |
     (begin
@@ -199,5 +264,6 @@ tests:
       (assert (= (wait-for "includes.b.builders.live" "off") "off"))
       (assert (= (wait-for "includes.j.builds.live" "off") "off"))
       (assert (= (wait-for "includes.a.activity.live" "off") "off"))
-      (assert (= (wait-for "includes.b.builders.status" "14 of 21 online") "14 of 21 online")
+      (assert (= (wait-for "includes.b.builders.status" "14 online, 0 busy, 7 offline")
+                 "14 online, 0 busy, 7 offline")
               (state-get "includes.b.builders.status")))

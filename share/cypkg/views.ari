@@ -205,35 +205,42 @@ units:
           - text: ""
             bind: builders.status
       - separator
-      - type: group
-        layout: { kind: grid, col_widths: [152, 136, 64, 48, 64, 128] }
-        visible_when: (> (int (state-get "builders.count")) 0)
-        children:
-          - text: "name"
-          - text: "platform"
-          - text: "status"
-          - text: "jobs"
-          - text: "version"
-          - text: "heartbeat"
+      # A card each: name, status, platform and version (coloured by status: online green, busy
+      # amber, offline grey), then its jobs and its host's CPU, memory and disk, then its last
+      # heartbeat, org and labels. Details opens the Builder window on it; outside a terminal, a
+      # click anywhere on the card does too.
       - type: group
         repeat: (state-get "builders.count")
         children:
           - type: group
             id: builder{i}
-            layout: { kind: grid, col_widths: [152, 136, 64, 48, 64, 128] }
+            layout: { kind: grid, col_widths: ["100%"], borders: { show: outer } }
+            on_click: (if (has? "ui.group_click") (state-set "req.open" (str (state-get "builders.res.builders.{i}.id"))))
+            hover: highlight
             children:
+              - type: group
+                layout: { kind: horizontal }
+                children:
+                  - type: button
+                    label: "Details"
+                    on: (state-set "req.open" (str (state-get "builders.res.builders.{i}.id")))
+                  - text: ""
+                    bind: builders.res.builders.{i}.head
+                    color: [0.45, 0.8, 0.55]
+                    visible_when: (= (state-get "builders.res.builders.{i}.status") "online")
+                  - text: ""
+                    bind: builders.res.builders.{i}.head
+                    color: [0.95, 0.72, 0.3]
+                    visible_when: (= (state-get "builders.res.builders.{i}.status") "busy")
+                  - text: ""
+                    bind: builders.res.builders.{i}.head
+                    color: [0.6, 0.6, 0.6]
+                    visible_when: (and (!= (state-get "builders.res.builders.{i}.status") "online") (!= (state-get "builders.res.builders.{i}.status") "busy"))
               - text: ""
-                bind: '(let ((n (state-get "builders.res.builders.{i}.name"))) (if (> (string.length n) 18) (string.join (list (string.substring n 0 17) "…") "") n))'
+                bind: builders.res.builders.{i}.load
               - text: ""
-                bind: '(string.join (list (state-get "builders.res.builders.{i}.platform") (state-get "builders.res.builders.{i}.arch")) "/")'
-              - text: ""
-                bind: builders.res.builders.{i}.status
-              - text: ""
-                bind: '(string.join (list (state-get "builders.res.builders.{i}.current_jobs") (state-get "builders.res.builders.{i}.max_jobs")) "/")'
-              - text: ""
-                bind: '(let ((v (state-get "builders.res.builders.{i}.version"))) (if (> (string.length v) 7) (string.join (list (string.substring v 0 6) "…") "") v))'
-              - text: ""
-                bind: '(string.replace (string.substring (state-get "builders.res.builders.{i}.last_heartbeat") 0 16) "T" " ")'
+                bind: builders.res.builders.{i}.seen
+                color: [0.6, 0.6, 0.6]
       - text: ""
         bind: builders.bar
 
@@ -306,44 +313,102 @@ units:
       - text: ""
         bind: builds.bar
 
+  # The Activity window, as the web app's page: the filters (kind, a part of the name), Pause, and
+  # the status line; "N new" while new events wait (paused, filtered or an older page); then a
+  # row each: when, what happened, the package and version, the platform (build type/link), the
+  # org, who and why, and a publish's size; then paging.
   activity_view:
     type: group
     children:
       - type: group
         layout: { kind: horizontal }
         children:
+          - type: combo
+            label: "Kind"
+            bind: activity.kind
+            options: [all, publish, yank, unyank, delete, nuke]
+            on: (begin (state-set "activity.offset" 0) (state-set "req.refresh" "1"))
+          - type: input_text
+            label: "Name"
+            bind: activity.name
+            on: (begin (state-set "activity.offset" 0) (state-set "req.refresh" "1"))
+          - type: button
+            label: "Pause"
+            visible_when: (!= (state-get "activity.paused") "1")
+            on: (state-set "activity.paused" "1")
+          - type: button
+            label: "Resume"
+            visible_when: (= (state-get "activity.paused") "1")
+            on: (begin (state-set "activity.paused" "") (state-set "req.refresh" "1"))
           - type: button
             label: "Refresh"
             on: (state-set "req.refresh" "1")
+      - type: group
+        layout: { kind: horizontal }
+        children:
           - text: ""
             bind: activity.status
+          - type: button
+            label: '(string.join (list "Show" (str (state-get "activity.new")) "new") " ")'
+            visible_when: (> (int (state-get "activity.new")) 0)
+            on: |
+              (begin
+                (state-set "activity.offset" 0)
+                (state-set "activity.paused" "")
+                (state-set "req.refresh" "1"))
       - separator
       - type: group
-        layout: { kind: grid, col_widths: [136, 72, 176, 128, 136] }
+        layout: { kind: grid, col_widths: [80, 64, 208, 216, 48, 120, 56] }
         visible_when: (> (int (state-get "activity.count")) 0)
         children:
           - text: "when"
           - text: "event"
           - text: "package"
-          - text: "version"
           - text: "platform"
+          - text: "org"
+          - text: "by"
+          - text: "size"
       - type: group
         repeat: (state-get "activity.count")
         children:
           - type: group
             id: event{i}
-            layout: { kind: grid, col_widths: [136, 72, 176, 128, 136] }
+            layout: { kind: grid, col_widths: [80, 64, 208, 216, 48, 120, 56] }
             children:
               - text: ""
-                bind: '(string.replace (string.substring (state-get "activity.res.events.{i}.created_at") 0 16) "T" " ")'
+                bind: activity.rows.{i}.when
               - text: ""
-                bind: activity.res.events.{i}.kind
+                bind: activity.rows.{i}.kind
               - text: ""
-                bind: '(let ((n (state-get "activity.res.events.{i}.name"))) (if (> (string.length n) 22) (string.join (list (string.substring n 0 21) "…") "") n))'
+                bind: activity.rows.{i}.what
               - text: ""
-                bind: '(let ((v (state-get "activity.res.events.{i}.version"))) (if (> (string.length v) 15) (string.join (list (string.substring v 0 14) "…") "") v))'
+                bind: activity.rows.{i}.where
               - text: ""
-                bind: '(string.join (list (state-get "activity.res.events.{i}.platform") (state-get "activity.res.events.{i}.arch")) "/")'
+                bind: activity.rows.{i}.org
+              - text: ""
+                bind: activity.rows.{i}.who
+              - text: ""
+                bind: activity.rows.{i}.size
+      - separator
+      - type: group
+        layout: { kind: horizontal }
+        visible_when: (> (int (state-get "activity.total")) (int (state-get "args.page")))
+        children:
+          - type: button
+            label: "< Newer"
+            enabled_when: (> (int (state-get "activity.offset")) 0)
+            on: |
+              (begin
+                (state-set "activity.offset"
+                  (let ((o (- (int (state-get "activity.offset")) (int (state-get "args.page"))))) (if (< o 0) 0 o)))
+                (state-set "req.refresh" "1"))
+          - type: button
+            label: "Older >"
+            enabled_when: (< (+ (int (state-get "activity.offset")) (int (state-get "activity.count"))) (int (state-get "activity.total")))
+            on: |
+              (begin
+                (state-set "activity.offset" (+ (int (state-get "activity.offset")) (int (state-get "args.page"))))
+                (state-set "req.refresh" "1"))
       - text: ""
         bind: activity.bar
 
@@ -390,3 +455,58 @@ units:
           - text: "Or with an API token: cypkg --token-env VAR, where VAR holds a cvctok_ token."
       - text: ""
         bind: account.bar
+
+  # One builder, as the web app's builder detail shows it (builder.ari): the builder, its host's
+  # last report, what it builds, then its active jobs and its recent ones.
+  builder_view:
+    type: group
+    children:
+      - type: group
+        layout: { kind: horizontal }
+        children:
+          - type: button
+            label: "Refresh"
+            on: (state-set "req.refresh" "1")
+          - text: ""
+            bind: bd.status
+      - text: ""
+        bind: bd.info.title
+      - separator
+      - type: group
+        repeat: (state-get "bd.info.builder")
+        children:
+          - text: ""
+            bind: bd.info.builder.{i}
+      - separator
+      - text: "Host"
+        color: [0.6, 0.6, 0.6]
+      - type: group
+        repeat: (state-get "bd.info.host")
+        children:
+          - text: ""
+            bind: bd.info.host.{i}
+      - separator
+      - type: group
+        repeat: (state-get "bd.info.builds")
+        children:
+          - text: ""
+            bind: bd.info.builds.{i}
+      - separator
+      - text: ""
+        bind: bd.active_head
+        color: [0.6, 0.6, 0.6]
+      - type: group
+        repeat: (state-get "bd.active")
+        children:
+          - text: ""
+            bind: bd.active.{i}
+      - text: ""
+        bind: bd.recent_head
+        color: [0.6, 0.6, 0.6]
+      - type: group
+        repeat: (state-get "bd.recent")
+        children:
+          - text: ""
+            bind: bd.recent.{i}
+      - text: ""
+        bind: bd.bar

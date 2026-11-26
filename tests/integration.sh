@@ -113,12 +113,15 @@ package_bare|--package bare
 package_missing|--package no-such-package'
 # The port changes from run to run, and the dates are today's: name them, padded to the same width.
 placeholder=$(printf '%-*s' "${#server}" http://registry)
+# The component's menu is named by the server's host (127.0.0.1:PORT), padded the same way.
+host=${server#*://}
+host_placeholder=$(printf '%-*s' "${#host}" registry)
 printf '%s\n' "$cases" | while IFS='|' read -r name flags; do
   # shellcheck disable=SC2086 # flags are words
   "$ari" snapshot --width 100 --height 30 --frames 3 --net-allow "$server" \
     "$root/share/cypkg/main.ari" --server "$server" $flags >"$tmp/out" 2>"$tmp/err" || {
     echo "FAIL $name: ari exited $?"; cat "$tmp/err"; exit 1; }
-  sed -e "s#$server#$placeholder#" -e 's/20[0-9][0-9]-[01][0-9]-[0-3][0-9]/yyyy-mm-dd/g' \
+  sed -e "s#$server#$placeholder#" -e "s#$host#$host_placeholder#" -e 's/20[0-9][0-9]-[01][0-9]-[0-3][0-9]/yyyy-mm-dd/g' \
     "$tmp/out" >"$tmp/frame"
   expected=$here/integration/expected/$name.txt
   if [ $mode = update ]; then

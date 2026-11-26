@@ -1,0 +1,107 @@
+# builder.ari: one builder, as the web app's builder detail shows it. The builder (its id,
+# version, platform, jobs, heartbeat, org, the namespaces it serves, its affinity, who registered
+# it), its host's last report (CPU, load, memory, disk, OS, Python, uptimes), what it builds (its
+# labels, cross-platform targets and capability flags), and its jobs: those running now and the
+# recent ones.
+#
+# A module mounted in its own window by cypkg.ari, through the holes args (read-only), shown (its
+# window's tree.<id>.open, read-only), auth (read-only) and pick (the builder's id, read-only: the
+# Builders window's Details sets it).
+#
+# While the window is open it follows the registry's live feed (the builders and builds topics):
+# a message about this builder redraws it at once, and a builds message about a job that ran
+# here reloads its jobs. Without
+# a feed it polls about every 10 s, and tries the feed again.
+
+meta:
+  name: cypkg-builder
+  min_libcvc: 3.7.4
+
+needs: [args, shown, auth, pick]
+
+import: [views.ari, lib.ari, net.ari]
+
+functions: |
+  ;; Draw builder `b` (a dict, as /v1/builders/{id} and the feed send it).
+  (defun show-builder (b)
+    (begin
+      (state-set-tree "bd.info" (builder-detail b (now-secs)))
+      (state-set "bd.id" (text (field b "id")))))
+
+  ;; The jobs list `rows` as lines into bd.<k>, with its heading.
+  (defun show-jobs (k rows head)
+    (set now (now-secs))
+    (state-set-tree (str-concat "bd." k) (collections.map rows (lambda (j) (job-row j now))))
+    (state-set (str-concat "bd." k "_head") (str-concat head " (" (length rows) ")")))
+
+  ;; GET this builder's jobs: those running, then the latest ten.
+  (defun load-jobs (id)
+    (set base (str-concat (state-get "args.server") "/v1/builds"))
+    (set r (fetch base (with-auth (dict "query" (dict "builder_id" id "status" "running" "limit" 20))) "bd"))
+    (set d (reply-object r))
+    (show-jobs "active" (let ((j (field d "jobs"))) (if (is-list j) j (list))) "Active jobs")
+    (set r (fetch base (with-auth (dict "query" (dict "builder_id" id "limit" 10))) "bd"))
+    (set d (reply-object r))
+    (show-jobs "recent" (let ((j (field d "jobs"))) (if (is-list j) j (list))) "Recent jobs"))
+
+init: |
+  (begin
+    (state-set-tree "bd" (dict "id" "" "info" (dict "title" "" "builder" (list) "host" (list)
+                                                      "builds" (list))
+                               "active" (list) "recent" (list) "active_head" "" "recent_head" ""
+                               "status" "" "busy" 0 "bar" ""))
+    (live-init "bd")
+    (state-set "req.refresh" "1")
+    (state-set "req.jobs" "0"))
+
+on_tick: |
+  (begin
+    (set id (text (state-get "pick")))
+    (if (closed (state-get "shown"))
+        (begin
+          (live-stop "bd")
+          (state-set "bd.retry" "1"))
+        (begin
+          ;; Another builder picked: load it.
+          (if (!= id (text (state-get "bd.id"))) (state-set "req.refresh" "1"))
+          (set msgs (live-pump "bd" (list "builders" "builds") (= (state-get "bd.retry") "1")))
+          (state-set "bd.retry" "0")
+          (for m msgs
+            (set ty (field m "type"))
+            (if (= ty "builder")
+                (if (= (text (field (field m "builder") "id")) id) (show-builder (field m "builder"))))
+            (if (= ty "builders")
+                (for b (let ((bs (field m "builders"))) (if (is-list bs) bs (list)))
+                  (if (= (text (field b "id")) id) (show-builder b))))
+            ;; jobs changed: reload this builder's lists when one of them ran here
+            (if (= ty "builds")
+                (for j (let ((js (field m "jobs"))) (if (is-list js) js (list)))
+                  (if (= (text (field j "builder_id")) id) (state-set "req.jobs" "1"))))
+            (if (= ty "builder_removed") (state-set "req.refresh" "1"))
+            (if (= ty "resync") (state-set "req.refresh" "1")))))
+
+    (if (if (= (state-get "req.refresh") "1") (!= id "") #f)
+        (begin
+          (state-set "req.refresh" "0")
+          (set r (fetch (str-concat (state-get "args.server") "/v1/builders/" id) (with-auth (dict)) "bd"))
+          (set d (reply-object r))
+          (if (if (= d nil) #f (!= (field d "id") nil))
+              (begin (show-builder d) (state-set "bd.base" ""))
+              (begin
+                (state-set "bd.id" id)
+                (state-set "bd.info.title" (str-concat "builder " id))
+                (state-set "bd.base" (str-concat "failed: " (failure r)))))
+          (state-set "req.jobs" "1")))
+
+    (if (if (= (state-get "req.jobs") "1") (!= id "") #f)
+        (begin
+          (state-set "req.jobs" "0")
+          (load-jobs id)))
+
+    (live-status "bd")
+    ;; No feed: poll about every 10 s while the window is open. A click is answered at once.
+    (if (live-idle "bd")
+        (if (not (closed (state-get "shown"))) (state-set "req.refresh" "1"))))
+
+root:
+  - include: builder_view

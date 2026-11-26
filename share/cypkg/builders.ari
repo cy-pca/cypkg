@@ -1,29 +1,34 @@
-# builders.ari: the builder fleet: name, platform, status, load, version, last heartbeat.
+# builders.ari: the builder fleet, a card each, as the web app's Builders page shows it: its
+# name, status, platform and version; its jobs and its host's CPU, memory and disk; its last
+# heartbeat, org and labels. A card's Details (or a click on the card, outside a terminal) opens
+# the Builder window on it (builder.ari).
 #
-# A module mounted in its own window by main.ari, through the holes args (read-only), shown (its
-# window's tree.<id>.open, read-only) and auth. A closed window's module doesn't start until the
-# window is first opened.
+# A module mounted in its own window by cypkg.ari, through the holes args (read-only), shown (its
+# window's tree.<id>.open, read-only), auth, pick (which builder the Builder window shows),
+# detail (that window's open state) and raise (set to "1" to bring it to the front). A closed window's module doesn't start until the window is
+# first opened.
 #
 # While the window is open it follows the registry's live feed (the builders topic): the server
-# sends the whole fleet, then each builder as it changes, and the rows change in place. Without a
-# feed it polls /v1/builders about every 10 s, and tries the feed again.
+# sends the whole fleet, then each builder as it changes, and the cards change in place. Without
+# a feed it polls /v1/builders about every 10 s, and tries the feed again. The cards' "12 s ago"
+# ages every few seconds between messages.
 
 meta:
   name: cypkg-builders
   min_libcvc: 3.7.4
 
-needs: [args, shown, auth]
+needs: [args, shown, auth, pick, detail, raise]
 
 import: [views.ari, lib.ari, net.ari]
 
 functions: |
   ;; Show `rows` (a list of builders) as the whole fleet.
   (defun show-builders (rows)
-    (state-set-tree "builders.res" (dict "builders" (builder-rows rows)))
+    (state-set-tree "builders.res" (dict "builders" (builder-cards rows (now-secs))))
     (state-set "builders.count" (length rows))
     (count-online))
 
-  ;; Put builder `b` in its row, by id, or at the end when it's new.
+  ;; Put builder `b` in its card, by id, or at the end when it's new.
   (defun put-builder (b)
     (set n (int (state-get "builders.count")))
     (set id (text (field b "id")))
@@ -34,18 +39,33 @@ functions: |
       (set i (+ i 1)))
     (if (= at -1)
         (begin (set at n) (state-set "builders.count" (+ n 1))))
-    (state-set-tree (str-concat "builders.res.builders." at) (builder-row b))
+    (state-set-tree (str-concat "builders.res.builders." at) (builder-card b (now-secs)))
     (count-online))
 
+  ;; The status line: how many are online and busy, of how many.
   (defun count-online ()
     (set n (int (state-get "builders.count")))
     (set online 0)
+    (set busy 0)
     (set i 0)
     (while (< i n)
-      (if (= (state-get (str-concat "builders.res.builders." i ".status")) "online")
-          (set online (+ online 1)))
+      (set s (state-get (str-concat "builders.res.builders." i ".status")))
+      (if (= s "online") (set online (+ online 1)))
+      (if (= s "busy") (set busy (+ busy 1)))
       (set i (+ i 1)))
-    (state-set "builders.base" (str-concat online " of " n " online")))
+    (state-set "builders.base"
+      (str-concat online " online, " busy " busy, " (- n (+ online busy)) " offline")))
+
+  ;; Each card's "heartbeat 12 s ago" again, at the clock's time now.
+  (defun age-cards ()
+    (set now (now-secs))
+    (set n (int (state-get "builders.count")))
+    (set i 0)
+    (while (< i n)
+      (set k (str-concat "builders.res.builders." i))
+      (state-set (str-concat k ".seen")
+        (seen-text (state-get (str-concat k ".hb")) (state-get (str-concat k ".seen_tail")) now))
+      (set i (+ i 1))))
 
 init: |
   (begin
@@ -54,6 +74,7 @@ init: |
     (state-set "builders.busy" 0)
     (state-set "builders.bar" "")
     (state-set "builders.seq" 0)
+    (state-set "builders.aged" 0)
     (live-init "builders")
     (state-set "req.refresh" "1"))
 
@@ -89,7 +110,21 @@ on_tick: |
                 (state-set "builders.base" (str-concat "failed: " (failure r)))))
           (state-set "builders.seq" (+ (int (state-get "builders.seq")) 1))))
 
+    ;; A card's Details (or a click on it) asked for a builder: open the Builder window on it.
+    (if (!= (text (state-get "req.open")) "")
+        (begin
+          (state-set "pick" (text (state-get "req.open")))
+          (state-set "req.open" "")
+          (state-set "detail" 1)
+          (state-set "raise" "1")))
+
     (live-status "builders")
+    ;; Every ~5 s while open, age the cards' heartbeats.
+    (if (not (closed (state-get "shown")))
+        (begin
+          (state-set "builders.aged" (+ (int (state-get "builders.aged")) 1))
+          (if (>= (int (state-get "builders.aged")) 16)
+              (begin (state-set "builders.aged" 0) (age-cards)))))
     ;; No feed: poll about every 10 s while the window is open. A click is answered at once.
     (if (live-idle "builders")
         (if (not (closed (state-get "shown"))) (state-set "req.refresh" "1"))))

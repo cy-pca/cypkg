@@ -68,14 +68,16 @@ for backend in "$@"; do
     keys Tab; keys Enter
     wait_for "Back returns to the search" 'Search: \[zstd\]'
     wait_for "... with its filters kept" 'builds 1-5 of 5, 1 package([^s]|$)'
-    # F10 opens the menu bar. FTXUI opens View on Right, so one Down reaches Builders. tvision opens
-    # it on the first Down with nothing selected; Search is the second, Builders the third.
+    # F10 opens the menu bar: cypkg (Quit), then the component's menu, named by the registry's
+    # host, with Search, Builders, Builds, Activity and Account. FTXUI opens it on Right, so one
+    # Down reaches Builders. tvision opens it on the first Down with nothing selected; Search is
+    # the second, Builders the third.
     keys F10; keys Right; keys Down
     if [ "$backend" = tvision ]; then keys Down; keys Down; fi
     keys Enter
-    wait_for "View > Builders opens the builders window" '14 of 20 online'
-    wait_for "... and it lists the fleet" 'star-00 +linux/x86_64'
-    wait_for "... and follows the live feed" 'online · live'
+    wait_for "the registry's menu > Builders opens the builders window" '14 online, 0 busy, 6 offline'
+    wait_for "... and it lists the fleet, a card each" 'star-00 +online +linux/x86_64'
+    wait_for "... and follows the live feed" 'offline · live'
     keys C-c
     n=0
     while [ ! -s "$tmp/exit" ]; do

@@ -1,5 +1,5 @@
 {
- "_comment": "Captured from cvcpkg.org by hand on 2026-10-30 for the fixture registry's builders, builds and activity endpoints.",
+ "_comment": "Captured from cvcpkg.org by hand on 2026-10-30 for the fixture registry's builders, builds and activity endpoints. Builders' system/labels/namespaces/registration and publishes' sizes were added by hand on 2026-11-26 (deterministic, for the cards, the builder detail and the activity sizes).",
  "builders": [
   {
    "id": 1,
@@ -22,6 +22,30 @@
     "glibc2.35": true,
     "glibc2.39": true,
     "source_packages": true
+   },
+   "labels": [
+    "cvcpkg=2.5.10"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 8,
+    "cpu_percent": 27.0,
+    "load_avg": [
+     0.8,
+     0.7,
+     0.6
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 11338713661,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 370000000000,
+    "uptime_seconds": 176400.0,
+    "agent_uptime_seconds": 93600.0,
+    "os": "Linux 5.15.0-203-generic",
+    "python": "3.12.10"
    }
   },
   {
@@ -34,7 +58,31 @@
    "max_jobs": 2,
    "version": "2.5.10",
    "last_heartbeat": "2026-10-30T21:05:42.748518Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 12,
+    "cpu_percent": 44.0,
+    "load_avg": [
+     1.1,
+     1.0,
+     0.9
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 15805479649,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 440000000000,
+    "uptime_seconds": 266400.0,
+    "agent_uptime_seconds": 180000.0,
+    "os": "Linux 5.15.0-203-generic",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 3,
@@ -46,7 +94,12 @@
    "max_jobs": 2,
    "version": null,
    "last_heartbeat": "2026-08-12T04:54:21.731536Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z"
   },
   {
    "id": 4,
@@ -58,7 +111,31 @@
    "max_jobs": 2,
    "version": "2.5.10@65146b89e3",
    "last_heartbeat": "2026-10-30T21:05:38.094465Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10@65146b89e3"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 8,
+    "cpu_percent": 78.0,
+    "load_avg": [
+     1.7,
+     1.6,
+     0.3
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 24739011624,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 580000000000,
+    "uptime_seconds": 446400.0,
+    "agent_uptime_seconds": 352800.0,
+    "os": "netbsd",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 6,
@@ -70,7 +147,31 @@
    "max_jobs": 2,
    "version": "2.5.10@65146b89e3",
    "last_heartbeat": "2026-10-30T21:06:05.762900Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10@65146b89e3"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 4,
+    "cpu_percent": 32.0,
+    "load_avg": [
+     2.3,
+     0.7,
+     0.9
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 13056700579,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 720000000000,
+    "uptime_seconds": 626400.0,
+    "agent_uptime_seconds": 93600.0,
+    "os": "freebsd",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 7,
@@ -82,7 +183,12 @@
    "max_jobs": 2,
    "version": null,
    "last_heartbeat": "2026-08-12T04:46:12.429624Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z"
   },
   {
    "id": 8,
@@ -94,7 +200,31 @@
    "max_jobs": 2,
    "version": "2.5.10@65146b89e3",
    "last_heartbeat": "2026-10-30T21:05:44.857677Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10@65146b89e3"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 12,
+    "cpu_percent": 66.0,
+    "load_avg": [
+     0.8,
+     1.3,
+     0.3
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 21990232555,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 860000000000,
+    "uptime_seconds": 806400.0,
+    "agent_uptime_seconds": 266400.0,
+    "os": "openbsd",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 9,
@@ -106,7 +236,31 @@
    "max_jobs": 2,
    "version": "2.5.10",
    "last_heartbeat": "2026-10-30T21:05:54.875394Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 4,
+    "cpu_percent": 83.0,
+    "load_avg": [
+     1.1,
+     1.6,
+     0.6
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 26456998543,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 330000000000,
+    "uptime_seconds": 896400.0,
+    "agent_uptime_seconds": 352800.0,
+    "os": "windows",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 10,
@@ -118,7 +272,31 @@
    "max_jobs": 1,
    "version": "2.5.10",
    "last_heartbeat": "2026-10-30T21:05:43.376719Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 8,
+    "cpu_percent": 20.0,
+    "load_avg": [
+     1.4,
+     0.4,
+     0.9
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 10307921510,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 400000000000,
+    "uptime_seconds": 986400.0,
+    "agent_uptime_seconds": 7200.0,
+    "os": "Linux 5.15.0-203-generic",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 12,
@@ -130,7 +308,12 @@
    "max_jobs": 1,
    "version": null,
    "last_heartbeat": "2026-09-30T13:52:31.890792Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z"
   },
   {
    "id": 13,
@@ -142,7 +325,12 @@
    "max_jobs": 1,
    "version": null,
    "last_heartbeat": "2026-08-03T09:13:41.916365Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z"
   },
   {
    "id": 14,
@@ -154,7 +342,12 @@
    "max_jobs": 2,
    "version": null,
    "last_heartbeat": "2026-08-12T04:44:57.317799Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z"
   },
   {
    "id": 21,
@@ -166,7 +359,12 @@
    "max_jobs": 2,
    "version": null,
    "last_heartbeat": "2026-09-23T00:48:48.738472Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z"
   },
   {
    "id": 22,
@@ -178,7 +376,31 @@
    "max_jobs": 4,
    "version": "2.5.10",
    "last_heartbeat": "2026-10-30T21:05:43.252539Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 8,
+    "cpu_percent": 64.0,
+    "load_avg": [
+     0.8,
+     1.0,
+     0.9
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 22677427322,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 640000000000,
+    "uptime_seconds": 338400.0,
+    "agent_uptime_seconds": 180000.0,
+    "os": "Linux 5.15.0-203-generic",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 23,
@@ -190,7 +412,31 @@
    "max_jobs": 2,
    "version": "2.5.10@65146b89e3",
    "last_heartbeat": "2026-10-30T21:06:21.362386Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10@65146b89e3"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 12,
+    "cpu_percent": 81.0,
+    "load_avg": [
+     1.1,
+     1.3,
+     1.2
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 27144193310,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 710000000000,
+    "uptime_seconds": 428400.0,
+    "agent_uptime_seconds": 266400.0,
+    "os": "freebsd",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 24,
@@ -202,7 +448,31 @@
    "max_jobs": 2,
    "version": "2.5.10@65146b89e3",
    "last_heartbeat": "2026-10-30T21:05:51.247727Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10@65146b89e3"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 4,
+    "cpu_percent": 18.0,
+    "load_avg": [
+     1.4,
+     1.6,
+     0.3
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 10995116277,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 780000000000,
+    "uptime_seconds": 432000.0,
+    "agent_uptime_seconds": 352800.0,
+    "os": "openbsd",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 25,
@@ -214,7 +484,31 @@
    "max_jobs": 2,
    "version": "2.5.10@65146b89e3",
    "last_heartbeat": "2026-10-30T21:06:02.962441Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10@65146b89e3"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 8,
+    "cpu_percent": 35.0,
+    "load_avg": [
+     1.7,
+     0.4,
+     0.6
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 15461882265,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 850000000000,
+    "uptime_seconds": 522000.0,
+    "agent_uptime_seconds": 7200.0,
+    "os": "netbsd",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 26,
@@ -226,7 +520,31 @@
    "max_jobs": 2,
    "version": "2.5.8",
    "last_heartbeat": "2026-10-30T21:06:19.326825Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.8"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 12,
+    "cpu_percent": 52.0,
+    "load_avg": [
+     2.0,
+     0.7,
+     0.9
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 19928648253,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 320000000000,
+    "uptime_seconds": 612000.0,
+    "agent_uptime_seconds": 93600.0,
+    "os": "Linux 5.15.0-203-generic",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 27,
@@ -238,7 +556,31 @@
    "max_jobs": 1,
    "version": "2.5.10@65146b89e3",
    "last_heartbeat": "2026-10-30T21:05:36.150938Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10@65146b89e3"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 4,
+    "cpu_percent": 69.0,
+    "load_avg": [
+     2.3,
+     1.0,
+     1.2
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 24395414241,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 390000000000,
+    "uptime_seconds": 702000.0,
+    "agent_uptime_seconds": 180000.0,
+    "os": "Linux 5.15.0-203-generic",
+    "python": "3.12.10"
+   }
   },
   {
    "id": 28,
@@ -250,7 +592,31 @@
    "max_jobs": 2,
    "version": "2.5.10",
    "last_heartbeat": "2026-10-30T21:05:30.435671Z",
-   "org_slug": ""
+   "org_slug": "",
+   "labels": [
+    "cvcpkg=2.5.10"
+   ],
+   "served_namespaces": [],
+   "prefer_affinity": false,
+   "registered_by": "builders-2026-08-03",
+   "created_at": "2026-06-04T21:59:00Z",
+   "system": {
+    "cpu_count": 8,
+    "cpu_percent": 86.0,
+    "load_avg": [
+     0.5,
+     1.3,
+     0.3
+    ],
+    "mem_total_bytes": 34359738368,
+    "mem_available_bytes": 8246337208,
+    "disk_total_bytes": 1000000000000,
+    "disk_free_bytes": 460000000000,
+    "uptime_seconds": 792000.0,
+    "agent_uptime_seconds": 266400.0,
+    "os": "windows",
+    "python": "3.12.10"
+   }
   }
  ],
  "builds": [
@@ -807,7 +1173,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T20:36:22.633098Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 764000
   },
   {
    "id": 13624,
@@ -821,7 +1188,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T20:33:38.208609Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 763000
   },
   {
    "id": 13623,
@@ -835,7 +1203,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T20:03:08.349655Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 762000
   },
   {
    "id": 13622,
@@ -849,7 +1218,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T20:01:25.179033Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 761000
   },
   {
    "id": 13621,
@@ -863,7 +1233,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:53:01.246037Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 760000
   },
   {
    "id": 13620,
@@ -877,7 +1248,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:42:36.642182Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 759000
   },
   {
    "id": 13619,
@@ -891,7 +1263,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:40:11.895584Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 758000
   },
   {
    "id": 13618,
@@ -905,7 +1278,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:39:23.638294Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 757000
   },
   {
    "id": 13617,
@@ -919,7 +1293,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:38:48.344829Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 756000
   },
   {
    "id": 13616,
@@ -933,7 +1308,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:38:34.904511Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 755000
   },
   {
    "id": 13615,
@@ -947,7 +1323,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:38:18.400612Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 754000
   },
   {
    "id": 13614,
@@ -961,7 +1338,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:38:06.918354Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 753000
   },
   {
    "id": 13613,
@@ -975,7 +1353,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:38:05.098621Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 752000
   },
   {
    "id": 13612,
@@ -989,7 +1368,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T19:38:04.980384Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 751000
   },
   {
    "id": 13611,
@@ -1003,7 +1383,8 @@
    "actor": "main-publisher-2026-09-05",
    "created_at": "2026-10-30T12:07:54.795447Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 750000
   },
   {
    "id": 13610,
@@ -1017,7 +1398,8 @@
    "actor": "main-publisher-2026-09-05",
    "created_at": "2026-10-30T11:59:49.409450Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 749000
   },
   {
    "id": 13609,
@@ -1031,7 +1413,8 @@
    "actor": "main-publisher-2026-09-05",
    "created_at": "2026-10-30T11:51:08.413173Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 748000
   },
   {
    "id": 13608,
@@ -1045,7 +1428,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:42:14.425348Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 747000
   },
   {
    "id": 13607,
@@ -1059,7 +1443,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:39:42.844592Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 746000
   },
   {
    "id": 13606,
@@ -1073,7 +1458,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:34:24.852206Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 745000
   },
   {
    "id": 13605,
@@ -1087,7 +1473,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:33:54.429756Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 744000
   },
   {
    "id": 13604,
@@ -1101,7 +1488,8 @@
    "actor": "main-publisher-2026-09-05",
    "created_at": "2026-10-30T11:33:09.858287Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 743000
   },
   {
    "id": 13603,
@@ -1115,7 +1503,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:31:50.967212Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 742000
   },
   {
    "id": 13602,
@@ -1129,7 +1518,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:30:10.422275Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 741000
   },
   {
    "id": 13601,
@@ -1143,7 +1533,8 @@
    "actor": "main-publisher-2026-09-05",
    "created_at": "2026-10-30T11:27:14.124140Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 740000
   },
   {
    "id": 13600,
@@ -1157,7 +1548,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:26:43.223975Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 739000
   },
   {
    "id": 13599,
@@ -1171,7 +1563,8 @@
    "actor": "builders-2026-08-03",
    "created_at": "2026-10-30T11:26:25.950100Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 738000
   },
   {
    "id": 13598,
@@ -1185,7 +1578,8 @@
    "actor": "main-publisher-2026-09-05",
    "created_at": "2026-10-30T11:25:46.276756Z",
    "org_slug": "",
-   "detail": ""
+   "detail": "",
+   "size_bytes": 737000
   }
  ]
 }

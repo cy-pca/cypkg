@@ -157,10 +157,11 @@ await step('Next pages its builds', has('builds 11-20 of 25'));
 await key('Tab'); await key('Enter');
 await step('Back returns to the search', t => t.includes('Search: [zstd]') &&
                                               !t.includes('package: zstd'));
-// The menu bar: View > Builders, whose window follows the registry's live feed (a WebSocket from
-// the page, under the page's CSP).
+// The menu bar: the registry's menu (the component's, named by its host) > Builders, whose window
+// follows the registry's live feed (a WebSocket from the page, under the page's CSP).
 await key('F10'); await key('ArrowRight'); await key('ArrowDown'); await key('Enter');
-await step('View > Builders follows the live feed', has('14 of 20 online · live'));
+await step("the registry's menu > Builders follows the live feed",
+           has('14 online, 0 busy, 6 offline · live'));
 
 console.log(failed ? `${failed} of ${n} steps failed` : `all ${n} steps passed`);
 ws.close();

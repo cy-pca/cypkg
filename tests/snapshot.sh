@@ -44,9 +44,10 @@ package_missing|--package no-such-package
 package_fault_500|--package fault-500
 package_fault_badjson|--package fault-badjson
 package_fault_shape|--package fault-shape
-window_builders|--open builders --live off
+window_builders|--open builders --live off --now 2026-10-30T21:06:00Z
+window_builder|--builder 1 --live off --now 2026-10-30T21:06:00Z
 window_builds|--open builds --live off
-window_activity|--open activity --live off
+window_activity|--open activity --live off --now 2026-10-30T21:06:00Z
 window_account|--open account'
 
 tmp=$(mktemp -d)
@@ -71,7 +72,10 @@ printf '%s\n' "$cases" | while IFS='|' read -r name flags at; do
     echo "FAIL $name: ari exited $?"; cat "$tmp/err"; exit 1; }
   # The fixture's port changes from run to run: name it, padded to the same width.
   placeholder=$(printf '%-*s' "${#server}" http://registry)
-  sed "s#$server#$placeholder#" "$tmp/out" >"$tmp/frame"
+  # The component's menu is named by the server's host (127.0.0.1:PORT), padded the same way.
+  host=${server#*://}
+  host_placeholder=$(printf '%-*s' "${#host}" registry)
+  sed -e "s#$server#$placeholder#" -e "s#$host#$host_placeholder#" "$tmp/out" >"$tmp/frame"
   expected=$here/expected/$name.txt
   case $mode in
     show) cat "$tmp/frame"; cat "$tmp/err" >&2 ;;
