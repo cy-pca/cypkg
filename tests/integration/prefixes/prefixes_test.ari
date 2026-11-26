@@ -1,0 +1,121 @@
+# The Prefixes window (share/cypkg/prefixes.ari) against a real cvcpkg-server, in a scripting host.
+#
+# It installs and removes real bundles: the ones tests/integration/seed.py published (quill
+# 1.4.2+cvc.3 for linux/x86_64 release shared, and quill-tools for any/noarch), into an empty
+# temporary prefix, with cvcpkg's own installer in the host's Python. tests/integration.sh puts the
+# server's URL in place of @SERVER@, the prefix in place of @PREFIX@ and the host's own prefix in
+# place of @HOSTPREFIX@, and runs `arix test` with cvcpkg on PYTHONPATH and its own config and
+# cache directories (so no prefix used before is opened at start).
+
+meta:
+  name: cypkg-prefixes-integration-test
+  min_libcvc: 3.7.4
+
+requires: [net, python]
+
+args:
+  server: {type: string, default: "@SERVER@"}
+
+# The bridge, as mainx.ari carries it: only the top document's python: block runs.
+python:
+  path: [../../../share/cypkg/python, ../../../share/cypkg/python/site]
+  modules: [pkg_bridge]
+
+functions: |
+  ;; Wait for the module to finish one more request than it had (its px.seq), up to 60 s.
+  (defun wait-past (n)
+    (set i 0)
+    (while (if (<= (int (state-get "includes.x.px.seq")) n) (< i 3000) #f) (sleep 0.02) (set i (+ i 1))))
+  (defun ask (key value)
+    (set n (int (state-get "includes.x.px.seq")))
+    (state-set (str-concat "includes.x." key) value)
+    (wait-past n))
+
+windows:
+  - window: test
+    children:
+      - load: ../../../share/cypkg/prefixes.ari
+        as: x
+        link:
+          args: { to: args, mode: ro }
+
+tests:
+  the host has cvcpkg's client: |
+    (begin
+      (assert (string.starts-with (state-get "includes.x.px.client") "cvcpkg ") (state-get "includes.x.px.client"))
+      (assert (= (state-get "includes.x.px.path") "") (state-get "includes.x.px.path")))
+
+  an empty directory is an empty prefix: |
+    (begin
+      (state-set "includes.x.px.path" "@PREFIX@")
+      (ask "req.open" "1")
+      (assert (= (int (state-get "includes.x.px.count")) 0))
+      (assert (= (state-get "includes.x.px.info") "no such directory yet: Install makes it") (state-get "includes.x.px.info"))
+      (assert (= (state-get "includes.x.px.status") "") (state-get "includes.x.px.status")))
+
+  an unknown package is refused at the plan: |
+    (begin
+      (state-set "includes.x.px.add" "no-such-package")
+      (ask "req.plan" "1")
+      (assert (string.starts-with (state-get "includes.x.px.status") "Not in the catalog for linux/x86_64 release shared: no-such-package")
+              (state-get "includes.x.px.status"))
+      (assert (= (int (state-get "includes.x.px.plan_count")) 0)))
+
+  the plan names each package and what it would do: |
+    (begin
+      (state-set "includes.x.px.add" "quill, quill-tools")
+      (ask "req.plan" "1")
+      (assert (= (int (state-get "includes.x.px.plan_count")) 2) (state-get "includes.x.px.status"))
+      (assert (= (state-get "includes.x.px.plan.0.name") "quill"))
+      (assert (= (state-get "includes.x.px.plan.0.version") "1.4.2+cvc.3") (state-get "includes.x.px.plan.0.version"))
+      (assert (= (state-get "includes.x.px.plan.0.action") "install"))
+      (assert (= (state-get "includes.x.px.plan.1.name") "quill-tools"))
+      (assert (string.starts-with (state-get "includes.x.px.plan_info") "2 package(s) for linux/x86_64, ")
+              (state-get "includes.x.px.plan_info")))
+
+  install makes the prefix and records it: |
+    (begin
+      (ask "req.install" "1")
+      (assert (= (state-get "includes.x.px.status") "Installed 2 of 2 package(s).") (state-get "includes.x.px.status"))
+      (assert (= (int (state-get "includes.x.px.count")) 2))
+      (assert (= (state-get "includes.x.px.rows.0.name") "quill"))
+      (assert (= (state-get "includes.x.px.rows.1.name") "quill-tools"))
+      (assert (string.starts-with (state-get "includes.x.px.info") "linux/x86_64 release shared") (state-get "includes.x.px.info"))
+      (assert (= (int (state-get "includes.x.px.plan_count")) 0))
+      ;; Used before: the prefix is remembered.
+      (assert (= (state-get "includes.x.px.recent_opts") "@PREFIX@") (state-get "includes.x.px.recent_opts")))
+
+  planning what's there says it's the same: |
+    (begin
+      (state-set "includes.x.px.add" "quill")
+      (ask "req.plan" "1")
+      (assert (= (state-get "includes.x.px.plan.0.action") "same") (state-get "includes.x.px.plan.0.action"))
+      (assert (string.ends-with (state-get "includes.x.px.plan_info") ", 0 B to download") (state-get "includes.x.px.plan_info")))
+
+  remove with nothing ticked asks for a tick: |
+    (begin
+      (ask "req.remove" "1")
+      (assert (= (state-get "includes.x.px.status") "Tick the packages to remove.")))
+
+  remove takes the ticked package only: |
+    (begin
+      (state-set "includes.x.px.rows.1.sel" "1")
+      (ask "req.remove" "1")
+      (assert (string.starts-with (state-get "includes.x.px.status") "Removed quill-tools (") (state-get "includes.x.px.status"))
+      (assert (= (int (state-get "includes.x.px.count")) 1))
+      (assert (= (state-get "includes.x.px.rows.0.name") "quill")))
+
+  remove the last package: |
+    (begin
+      (state-set "includes.x.px.rows.0.sel" "1")
+      (ask "req.cascade" "1")
+      (assert (string.starts-with (state-get "includes.x.px.status") "Removed quill (") (state-get "includes.x.px.status"))
+      (assert (= (int (state-get "includes.x.px.count")) 0)))
+
+  the host's own prefix is shown, not changed: |
+    (begin
+      (state-set "includes.x.px.path" "@HOSTPREFIX@")
+      (ask "req.open" "1")
+      (assert (= (state-get "includes.x.px.host") "1"))
+      (assert (= (state-get "includes.x.px.status") "This is the prefix cypkg runs from: shown, not changed.")
+              (state-get "includes.x.px.status")))

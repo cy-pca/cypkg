@@ -1,0 +1,65 @@
+# cypkg for the scripting hosts (arix, ariglx): main.ari's app, plus the Prefixes window.
+#
+# The same command line and the same registry client (cypkg.ari), loaded beside the Prefixes
+# component (prefixes.ari), which installs and removes packages in any prefix with cvcpkg's own
+# installer, in the host's embedded Python. bin/cypkg runs this when it runs arix; the stock hosts
+# (ari, arigl), which have no Python, run main.ari.
+#
+#   arix run --net-allow https://cvcpkg.org share/cypkg/mainx.ari --server https://cvcpkg.org
+
+meta:
+  name: cypkg
+  version: 0.2.0
+  description: A cvcpkg registry client, with prefixes (scripting hosts)
+  min_libcvc: 3.7.4
+
+requires:
+  - net
+  - python
+  - json-parse
+  - state-set-tree
+
+args:
+  server: {type: string, default: "https://cvcpkg.org", help: The registry to browse}
+  q: {type: string, default: "", help: Search for this at start}
+  package: {type: string, default: "", help: Open this package at start}
+  platform: {type: string, default: all, help: "Only builds for this platform (all, linux, macos, windows, ...)"}
+  arch: {type: string, default: all, help: "Only builds for this architecture (all, x86_64, arm64, ...)"}
+  link: {type: string, default: all, help: "Only shared or static builds (all, shared, static)"}
+  offset: {type: int, default: 0, help: The first search row to show}
+  pkg-offset: {type: int, default: 0, help: The first build of the opened package to show}
+  page: {type: int, default: 10, help: Rows per page}
+  open: {type: string, default: "", help: "Windows to open at start, comma-separated: builders, builds, activity, account, prefixes"}
+  progress: {type: string, default: "on", help: "off: wait for replies without a progress bar (the browser build passes it)"}
+  live: {type: string, default: "on", help: "off: poll the builders, builds and activity windows instead of following the live feed"}
+  builder: {type: string, default: "", help: "Open this builder's window at start (its id)"}
+  now: {type: string, default: "", help: "Pin the clock at this time (2026-11-26T09:00:00Z) for \"12 s ago\": for tests"}
+
+# The Prefixes window's calls into cvcpkg (python/pkg_bridge.py), as prefixes.ari's own block.
+# Only the top document's python: block runs (ARIADNE.md §11: a load:ed module's doesn't yet), and
+# its exports are the host's functions, so the mounted prefixes.ari calls these. A document that
+# loads prefixes.ari carries this block too, until libcvc runs a module's own.
+python:
+  path: [python, python/site]
+  modules: [pkg_bridge]
+
+# A bar of the host's own: Quit leaves cypkg. The component's menu follows it.
+menubar:
+  - menu: cypkg
+    items:
+      - menu_item: Quit
+        on: quit
+
+windows:
+  - load: cypkg.ari
+    as: cypkg
+    # the registry's host: https://cvcpkg.org -> cvcpkg.org (a plain expression: a load's name:
+    # is worked out without the document's functions)
+    name: (string.replace (string.replace (state-get "args.server") "https://" "") "http://" "")
+    link:
+      args: { to: args, mode: ro }
+  # The Prefixes window: cvcpkg's own installer, in this host's Python.
+  - load: prefixes.ari
+    as: prefixes
+    link:
+      args: { to: args, mode: ro }

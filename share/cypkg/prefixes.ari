@@ -1,0 +1,338 @@
+# prefixes.ari — cypkg's Prefixes window: what a cvcpkg prefix holds, and installing and removing
+# packages there, with cvcpkg's own installer.
+#
+# The installer is cvcpkg's Python library, run in the scripting hosts' embedded Python (arix,
+# ariglx; ARIADNE.md §9.6): python/pkg_bridge.py drives it and exports its calls to this document
+# ((pkg-installed P), (pkg-plan-async P NAMES ...), (pkg-install-async ...), (pkg-remove-async
+# ...)). So a prefix cypkg changes is one the cvcpkg CLI reads, and the other way round. A stock
+# host (ari, arigl) has no Python, so this is its own component, which mainx.ari loads beside
+# cypkg.ari; main.ari, for the stock hosts, leaves it out.
+#
+# - Any prefix: type its path (or pick one used before) and Open. A directory with no lockfile is
+#   empty, and an install there makes the prefix.
+# - Installed: a row per package (its version and size), each with a box to tick; Remove the
+#   ticked ones, or Remove with dependents to take what needs them too.
+# - Add: name packages (spaces or commas), Plan shows what installing them brings (versions,
+#   sizes, install or upgrade), and Install installs the plan, a package at a time, with progress;
+#   Cancel stops after the package it is on.
+# - Never the prefix the running host was loaded from: replacing the libraries this process has
+#   loaded would crash it. That prefix shows, read-only.
+#
+# The long calls are async (the host's pool), awaited from this document's tick, which has no
+# total budget, so an install of many minutes runs while the window keeps drawing.
+#
+# Loading it: only the top document's python: block runs (ARIADNE.md §11), so a document that
+# loads this one carries the same block (mainx.ari does); this one's runs when it is run alone.
+#
+# Host's links: args (read-only; args.server, the registry; args.open, "prefixes" opens the window
+# at start; any may be left out).
+
+meta:
+  name: Prefixes
+  version: 0.2.0
+  description: cvcpkg prefixes, with cvcpkg's own installer
+  min_libcvc: 3.7.4
+
+requires:
+  - python
+  - json-parse
+  - state-set-tree
+
+python:
+  # pkg_bridge.py, then site: cvcpkg, PyYAML and click for a checkout (tools/stage-python.sh). A
+  # package would have them in the host's own site-packages (cvcpkg-cp312, not published yet).
+  # Runs when this document is the top one; mainx.ari carries the same block for it.
+  path: [python, python/site]
+  modules: [pkg_bridge]
+
+import: [lib.ari]
+
+functions: |
+  (defun server ()
+    (let ((s (text (if (state-exists "args.server") (state-get "args.server") ""))))
+      (if (= s "") "https://cvcpkg.org" s)))
+  (defun path () (string.trim (text (state-get "px.path"))))
+
+  ;; Words from a field: package names split on spaces and commas.
+  (defun words (s)
+    (collections.filter (string.split (string.replace (text s) "," " ") " ") (lambda (w) (!= w ""))))
+
+  ;; The prefix the field names: what it holds, as rows with a tick box each.
+  (defun load-prefix ()
+    (state-set "px.status" "Reading the prefix...")
+    (set d (try (pkg-installed (path)) (catch (e) (begin (state-set "px.status" (err-text e)) nil))))
+    (if (!= d nil)
+        (begin
+          (set rows (collections.map (field d "packages")
+                      (lambda (r) (dict "name" (text (field r "name")) "version" (text (field r "version"))
+                                        "size" (size-text (field r "size")) "sel" "0"))))
+          (state-set-tree "px.rows" rows)
+          (state-set "px.count" (length rows))
+          (state-set "px.host" (if (= (field d "host") #t) "1" "0"))
+          (state-set "px.info"
+            (if (= (field d "lockfile") #t)
+                (str-concat (text (field d "platform")) "/" (text (field d "arch")) " "
+                            (text (field d "config")) " " (text (field d "link")) "  ·  "
+                            (length rows) (if (= (length rows) 1) " package" " packages"))
+                (if (= (field d "exists") #t) "no cvcpkg packages here yet: Install makes the prefix"
+                    "no such directory yet: Install makes it")))
+          (state-set "px.status"
+            (if (= (state-get "px.host") "1")
+                "This is the prefix cypkg runs from: shown, not changed."
+                (if (= (text (state-get "px.client")) "")
+                    (text (field (pkg-client) "message"))
+                    "")))
+          (state-set "px.recent_opts" (string.join (pkg-remember (path)) "\n")))))
+
+  ;; A request finished (open, plan, install, remove): px.seq counts them, for the tests.
+  (defun finished () (state-set "px.seq" (+ (int-or (state-get "px.seq") 0) 1)))
+
+  ;; The ticked rows' names.
+  (defun ticked ()
+    (set out (list))
+    (set i 0)
+    (while (< i (int-or (state-get "px.count") 0))
+      (if (= (text (state-get (str-concat "px.rows." i ".sel"))) "1")
+          (set out (append out (state-get (str-concat "px.rows." i ".name")))))
+      (set i (+ i 1)))
+    out)
+
+  ;; An exception's message for the window: a Python call's comes as "python DSL fn 'NAME': ...".
+  (defun err-text (e)
+    (set m (text (get-attr e "message")))
+    (if (string.starts-with m "python DSL fn '") (string.join (cdr (string.split m "': ")) "': ") m))
+
+  ;; Wait for future f, copying the call's progress (<name>.progress) into px.progress and
+  ;; passing Cancel on. Returns (list value "") or (list nil message). The try returns a tagged
+  ;; list: a set in a catch handler binds in the handler's own scope, not here.
+  (defun wait-for (f progress-key)
+    (set r (list "wait"))
+    (while (= (nth r 0) "wait")
+      (set r (try (list "ok" (await f 0.25))
+                  (catch (TimeoutError e) (list "wait"))
+                  (catch (e) (list "err" (err-text e)))))
+      (state-set "px.progress" (text (state-get progress-key)))
+      (if (= (state-get "req.cancel") "1")
+          (begin (state-set "req.cancel" "0") (pkg-cancel (path)) (state-set "px.status" "Stopping after this package..."))))
+    (state-set "px.progress" "")
+    (if (= (nth r 0) "ok") (list (nth r 1) "") (list nil (nth r 1))))
+
+init: |
+  (begin
+    (state-set-tree "px" (dict "path" "" "rows" (list) "count" 0 "info" "" "status" "" "busy" "0"
+                               "host" "0" "add" "" "plan" (list) "plan_count" 0 "plan_info" ""
+                               "progress" "" "recent" "" "recent_opts" "" "client" "" "seq" 0))
+    ;; Open at start with --open prefixes (as cypkg.ari's windows), else from the menu.
+    (set opens (text (if (state-exists "args.open") (state-get "args.open") "")))
+    (state-set "tree.prefixes.open"
+      (if (string.contains (str-concat "," opens ",") ",prefixes,") 1 0))
+    ;; No cvcpkg client in this Python: say how to get one, in place of the installer.
+    (set cl (try (pkg-client) (catch (e) (dict "ok" #f "version" "" "message" (err-text e)))))
+    (state-set "px.client" (if (= (field cl "ok") #t) (str-concat "cvcpkg " (text (field cl "version"))) ""))
+    (if (!= (field cl "ok") #t) (state-set "px.status" (text (field cl "message"))))
+    (state-set "px.info" (str-concat (if (= (field cl "ok") #t) (str-concat (state-get "px.client") "  ·  ") "")
+                                     "Type a prefix (a directory's full path) and Open."))
+    (set rec (try (pkg-recent) (catch (e) (list))))
+    (state-set "px.recent_opts" (string.join rec "\n"))
+    (if (> (length rec) 0) (begin (state-set "px.path" (nth rec 0)) (state-set "req.open" "1"))))
+
+on_tick: |
+  (begin
+    (if (= (state-get "req.recent") "1")
+        (begin (state-set "req.recent" "0") (state-set "px.path" (text (state-get "px.recent"))) (state-set "req.open" "1")))
+    (if (= (state-get "req.open") "1")
+        (begin
+          (state-set "req.open" "0")
+          (state-set-tree "px.plan" (list))
+          (state-set "px.plan_count" 0)
+          (state-set "px.plan_info" "")
+          (load-prefix)
+          (finished)))
+
+    (if (= (state-get "req.plan") "1")
+        (begin
+          (state-set "req.plan" "0")
+          (state-set "px.busy" "1")
+          (state-set "px.status" "Planning: asking the registry's catalog...")
+          (set res (wait-for (pkg-plan-async (path) (words (state-get "px.add")) (server) "release" "shared")
+                             "pkg-plan.progress"))
+          (set d (nth res 0))
+          (if (= d nil)
+              (state-set "px.status" (nth res 1))
+              (begin
+                (state-set-tree "px.plan"
+                  (collections.map (field d "packages")
+                    (lambda (r) (dict "name" (text (field r "name")) "version" (text (field r "version"))
+                                      "size" (size-text (field r "size")) "action" (text (field r "action"))))))
+                (state-set "px.plan_count" (length (field d "packages")))
+                (state-set "px.plan_info"
+                  (str-concat (length (field d "packages")) " package(s) for " (text (field d "platform")) "/"
+                              (text (field d "arch")) ", " (size-text (field d "download")) " to download"))
+                (state-set "px.status" "")))
+          (state-set "px.busy" "0")
+          (finished)))
+
+    (if (= (state-get "req.install") "1")
+        (begin
+          (state-set "req.install" "0")
+          (state-set "px.busy" "1")
+          (state-set "px.status" "Installing...")
+          (set res (wait-for (pkg-install-async (path) (words (state-get "px.add")) (server) "release" "shared")
+                             "pkg-install.progress"))
+          (set d (nth res 0))
+          (if (= d nil)
+              (state-set "px.status" (str-concat "Install failed: " (nth res 1)))
+              (state-set "px.status"
+                (str-concat (if (= (field d "cancelled") #t) "Stopped: installed " "Installed ")
+                            (length (field d "installed")) " of " (text (field d "of")) " package(s).")))
+          (state-set-tree "px.plan" (list))
+          (state-set "px.plan_count" 0)
+          (state-set "px.plan_info" "")
+          (state-set "px.busy" "0")
+          (set keep (text (state-get "px.status")))
+          (load-prefix)
+          (state-set "px.status" keep)
+          (finished)))
+
+    ;; Remove (req.remove), or Remove with dependents (req.cascade): flags read "1", as
+    ;; idle-wait wakes on.
+    (if (or (= (state-get "req.remove") "1") (= (state-get "req.cascade") "1"))
+        (begin
+          (set cascade (= (state-get "req.cascade") "1"))
+          (state-set "req.remove" "0")
+          (state-set "req.cascade" "0")
+          (set names (ticked))
+          (if (= (length names) 0)
+              (begin (state-set "px.status" "Tick the packages to remove.") (finished))
+              (begin
+                (state-set "px.busy" "1")
+                (state-set "px.status" "Removing...")
+                (set res (wait-for (pkg-remove-async (path) names cascade) "pkg-remove.progress"))
+                (set d (nth res 0))
+                (set msg (if (= d nil) (nth res 1)
+                             (str-concat "Removed " (string.join (field d "removed") ", ") " ("
+                                         (text (field d "files")) " files"
+                                         (if (> (length (field d "failed")) 0)
+                                             (str-concat "; " (length (field d "failed")) " couldn't be removed") "")
+                                         ").")))
+                (state-set "px.busy" "0")
+                (load-prefix)
+                (state-set "px.status" msg)
+                (finished)))))
+
+    (idle-wait 3600 (list "req.open" "req.plan" "req.install" "req.remove" "req.cascade" "req.recent")))
+
+# Its menu, one menu of the host's bar (ARIADNE.md §5.25).
+menubar:
+  - menu_item: Prefixes
+    bind: tree.prefixes.open
+
+windows:
+  - window: Prefixes
+    id: prefixes
+    pos: [16, 24]
+    size: [800, 440]
+    closable: true
+    children:
+      - type: group
+        layout: { kind: horizontal }
+        children:
+          - type: input_text
+            label: "Prefix"
+            bind: px.path
+            on: (state-set "req.open" "1")
+          - type: button
+            label: "Open"
+            on: (state-set "req.open" "1")
+            enabled_when: (!= (state-get "px.busy") "1")
+      - type: combo
+        label: "Used before"
+        bind: px.recent
+        options: (string.split (state-get "px.recent_opts") "\n")
+        on: (state-set "req.recent" "1")
+        visible_when: (!= (state-get "px.recent_opts") "")
+      - text: ""
+        bind: px.info
+        color: [0.6, 0.6, 0.6]
+      - text: ""
+        bind: px.status
+        color: [0.95, 0.72, 0.3]
+        visible_when: (!= (state-get "px.status") "")
+      - text: ""
+        bind: px.progress
+        visible_when: (!= (state-get "px.progress") "")
+      - separator
+      # Installed: a tick box a row, then Remove.
+      - type: group
+        repeat: (state-get "px.count")
+        children:
+          - type: group
+            layout: { kind: grid, col_widths: [32, 280, 200, 96] }
+            children:
+              - type: checkbox
+                label: ""
+                bind: px.rows.{i}.sel
+                enabled_when: (and (!= (state-get "px.host") "1") (!= (state-get "px.client") ""))
+              - text: ""
+                bind: px.rows.{i}.name
+              - text: ""
+                bind: px.rows.{i}.version
+              - text: ""
+                bind: px.rows.{i}.size
+      - type: group
+        layout: { kind: horizontal }
+        visible_when: (and (> (int (state-get "px.count")) 0) (!= (state-get "px.host") "1")
+                           (!= (state-get "px.client") ""))
+        children:
+          - type: button
+            label: "Remove"
+            on: (state-set "req.remove" "1")
+            enabled_when: (!= (state-get "px.busy") "1")
+          - type: button
+            label: "Remove with dependents"
+            on: (state-set "req.cascade" "1")
+            enabled_when: (!= (state-get "px.busy") "1")
+      - separator
+      # Add: name packages, Plan, then Install the plan.
+      - type: group
+        layout: { kind: horizontal }
+        visible_when: (and (!= (state-get "px.host") "1") (!= (state-get "px.client") ""))
+        children:
+          - type: input_text
+            label: "Add"
+            bind: px.add
+            on: (state-set "req.plan" "1")
+          - type: button
+            label: "Plan"
+            on: (state-set "req.plan" "1")
+            enabled_when: (and (!= (state-get "px.busy") "1") (!= (string.trim (state-get "px.add")) ""))
+      - text: ""
+        bind: px.plan_info
+        visible_when: (!= (state-get "px.plan_info") "")
+      - type: group
+        repeat: (state-get "px.plan_count")
+        children:
+          - type: group
+            layout: { kind: grid, col_widths: [280, 200, 96, 200] }
+            children:
+              - text: ""
+                bind: px.plan.{i}.name
+              - text: ""
+                bind: px.plan.{i}.version
+              - text: ""
+                bind: px.plan.{i}.size
+              - text: ""
+                bind: px.plan.{i}.action
+                color: [0.6, 0.6, 0.6]
+      - type: group
+        layout: { kind: horizontal }
+        visible_when: (> (int (state-get "px.plan_count")) 0)
+        children:
+          - type: button
+            label: "Install"
+            on: (state-set "req.install" "1")
+            enabled_when: (!= (state-get "px.busy") "1")
+          - type: button
+            label: "Cancel"
+            on: (state-set "req.cancel" "1")
+            enabled_when: (= (state-get "px.busy") "1")

@@ -18,6 +18,8 @@
 #  4. tests/contract.py against it: the fields and types cypkg reads.
 #  5. `ari test` on tests/integration/modules/, each module mounted alone.
 #  6. `ari snapshot` frames, compared with tests/integration/expected/.
+#  7. With ARIX (an arix), `arix test` on tests/integration/prefixes/: the Prefixes window installs
+#     and removes the published packages in a temporary prefix.
 #
 # ARI names the ari to run, as for tests/run.sh.
 set -eu
@@ -134,3 +136,22 @@ printf '%s\n' "$cases" | while IFS='|' read -r name flags; do
     echo "FAIL $name"; diff -u "$expected" "$tmp/frame" || true; exit 1
   fi
 done
+
+# 7. the Prefixes window, in a scripting host: cvcpkg's own installer, in the host's Python,
+#    installs seed.py's packages into a temporary prefix and removes them. The cvcpkg it imports
+#    is the venv's (PYTHONPATH); its config and cache are the scratch ones, so it opens no prefix
+#    used before.
+if [ -n "${ARIX:-}" ]; then
+  purelib=$("$venv/bin/python" -I -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+  hostprefix=$(CDPATH= cd -- "$(dirname -- "$ARIX")/.." && pwd -P)
+  copy=$here/integration/prefixes/.prefixes_test.$$.ari
+  sed -e "s#@SERVER@#$server#" -e "s#@PREFIX@#$tmp/prefix#" -e "s#@HOSTPREFIX@#$hostprefix#" \
+    "$here/integration/prefixes/prefixes_test.ari" >"$copy"
+  copies="$copies $copy"
+  mkdir -p "$tmp/config" "$tmp/cache"
+  # The timeout covers the document, all 10 tests: about 30 s, but over 120 s on a busy machine.
+  PYTHONPATH=$purelib XDG_CONFIG_HOME=$tmp/config CVCPKG_CACHE=$tmp/cache \
+    "$ARIX" test --timeout 300 --net-allow "$server" "$copy"
+else
+  echo "skip the Prefixes window: ARIX names an arix to run it"
+fi
