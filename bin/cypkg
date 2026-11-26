@@ -15,7 +15,8 @@ usage: cypkg [--server URL] [--tvision] [document flags...]
                  sign in with the cvctok_ API token in environment variable VAR (default:
                  CYPKG_TOKEN, when it's set). ari keeps the token for this run; the documents
                  never see it, and it goes to the registry's origin only
-  --open LIST    windows to open at start, comma-separated: builders, builds, activity, account
+  --open LIST    windows to open at start, comma-separated: builders, builds, activity, account,
+                 and prefixes with a scripting host
   --no-remember  don't keep a browser sign-in (Account > Sign in with a browser) for the next run.
                  By default ari keeps it in ~/.config/cvc/credentials/cypkg (0600), as
                  `cvcpkg login` keeps its session
@@ -23,7 +24,9 @@ usage: cypkg [--server URL] [--tvision] [document flags...]
   --package NAME open NAME at start
   --page N       rows per page (default 10)
 
-CYPKG_ARI names the ari to run; otherwise the one beside this script, then PATH.
+CYPKG_ARI names the ari to run; otherwise the one beside this script, then PATH. With a
+scripting host (CYPKG_ARI=/path/to/arix or ariglx) it adds the Prefixes window: install and
+remove packages in any prefix, with cvcpkg's own installer in the host's Python.
 EOF
 }
 
@@ -51,6 +54,11 @@ ari=${CYPKG_ARI:-}
 if [ -z "$ari" ]; then
   if [ -x "$here/ari" ]; then ari=$here/ari; else ari=ari; fi
 fi
+# A scripting host (arix, ariglx) runs mainx.ari: the same app plus the Prefixes window, which
+# installs and removes packages with cvcpkg's own installer in the host's Python.
+case $(basename -- "$ari") in
+  arix|arix.exe|ariglx|ariglx.exe) doc=$here/../share/cypkg/mainx.ari ;;
+esac
 
 server=${server%/}
 origin=$(printf '%s\n' "$server" | sed -E 's#^([A-Za-z][A-Za-z0-9+.-]*://[^/?#]+).*#\1#')

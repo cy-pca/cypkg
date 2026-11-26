@@ -13,5 +13,9 @@ install -m 0644 "${CVC_SOURCE_DIR}/bin/cypkg.cmd" "${CVC_INSTALL_DIR}/bin/cypkg.
 for f in "${CVC_SOURCE_DIR}"/share/cypkg/*.ari; do
   install -m 0644 "$f" "${SHARE}/"
 done
+# The Prefixes window's bridge (mainx.ari, in a scripting host). cvcpkg's client itself comes from
+# the host's Python (tools/stage-python.sh for now; a cvcpkg-cp312 package later), not from here.
+install -d "${SHARE}/python"
+install -m 0644 "${CVC_SOURCE_DIR}/share/cypkg/python/pkg_bridge.py" "${SHARE}/python/"
 install -m 0644 "${CVC_SOURCE_DIR}/LICENSE" "${CVC_SOURCE_DIR}/README.md" "${DOC}/"
 echo "cvcpkg: installed cypkg's documents -> ${SHARE}, launchers -> ${CVC_INSTALL_DIR}/bin"

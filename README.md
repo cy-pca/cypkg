@@ -93,8 +93,10 @@ Auth tokens are held by the host, never by the documents, so they can't leak
 into state that Ariadne replicates or logs. In the browser the session lasts
 only as long as the page.
 
-cypkg doesn't install anything. Where the web pages show install commands, it
-shows the same `cvcpkg install` lines to copy.
+In the stock `ari` host cypkg doesn't install anything: where the web pages
+show install commands, it shows the same `cvcpkg install` lines to copy. In a
+scripting host (`arix`, `ariglx`) it adds the Prefixes window, which installs
+and removes packages with cvcpkg's own installer ([below](#prefixes)).
 
 ## Layout
 
@@ -110,7 +112,11 @@ share/cypkg/      the documents:
                     lib.ari      the logic, as functions the modules import
                     net.ari      requests and the live feed, which the modules import
                     views.ari    the views, as units the modules include
+                    mainx.ari    main.ari for a scripting host: the same app plus prefixes.ari
+                    prefixes.ari the Prefixes window, its own component (it needs Python)
+                    python/pkg_bridge.py  the Prefixes window's calls into cvcpkg's library
 bin/              the launchers: cypkg (sh) and cypkg.cmd
+tools/            site.sh (the browser page), stage-python.sh (cvcpkg's client, for a checkout)
 tests/            snapshot tests and a fixture registry
 recipes/cypkg/    the cvcpkg recipe: documents and launchers, one noarch build
 docs/ROADMAP.md   milestones and the libcvc and cvcpkg features each one needs
@@ -201,6 +207,52 @@ the component (Windows > Applications brings it back). F10 opens the menu bar fr
   - Sign out ends the session on the server too.
   - Pairing needs `sha256-hex` and `random-token` (transfix/libcvc#911).
 
+## Prefixes
+
+With a scripting host, cypkg has a **Prefixes** menu too: what a cvcpkg prefix holds, and
+installing and removing packages there.
+
+```bash
+cvcpkg install arix cypkg --prefix ~/opt/cypkg
+tools/stage-python.sh ~/opt/cypkg/bin/python3.12     # from a checkout; see cvcpkg's client below
+CYPKG_ARI=~/opt/cypkg/bin/arix bin/cypkg --open prefixes
+```
+
+`arix` is Linux x86_64 only for now (`ariglx` too); Windows, macOS and the rest follow with
+transfix/libcvc#1554.
+
+- **Any prefix:** type its path, or pick one used before, and Open. A directory with no lockfile
+  is empty, and an install there makes the prefix.
+- **Installed:** a row per package (version, size) with a box to tick. **Remove** takes the
+  ticked ones, and is refused while other packages need them; **Remove with dependents** takes
+  those too. Files another package still ships stay.
+- **Add:** name packages (spaces or commas). **Plan** shows what installing them brings, with
+  their dependencies: versions, sizes, install or upgrade, and the download. **Install** installs
+  the plan a package at a time with progress; **Cancel** stops after the package it is on.
+- **Never the prefix cypkg runs from:** replacing the libraries the host has loaded would crash
+  it. That prefix shows, read-only.
+
+It is cvcpkg's own installer, not a copy: `share/cypkg/python/pkg_bridge.py` runs in the host's
+embedded Python (ARIADNE.md §9.6) and drives cvcpkg's library, the same steps as `cvcpkg install`
+and `cvcpkg uninstall` (the catalog, the resolver, each bundle's sha256, the lockfile, the CMake
+config and the activation scripts). So a prefix cypkg changes is one the cvcpkg CLI reads, and the
+other way round. The long calls run on the host's pool, awaited from the window's tick, so the
+window keeps drawing through an install of many minutes.
+
+- **cvcpkg's client:** the window imports `cvcpkg` from the host's Python. Without it, the window
+  says so and offers no installer.
+  - From a checkout, `tools/stage-python.sh` stages a pinned cvcpkg release (with PyYAML and
+    click) in `share/cypkg/python/site`, using the `python3.12` beside `arix`.
+  - For an installed cypkg, the plan is a `cvcpkg-cp312` package. That package isn't published
+    yet. It would put the client in the host's own site-packages, beside pycvc, as `click-cp312`
+    and `pyyaml-cp312` do.
+- **Why its own component:** the stock hosts have no Python, and warn on any document with a
+  `python:` block. So `main.ari` (stock hosts) leaves `prefixes.ari` out, and `mainx.ari` loads it
+  beside `cypkg.ari`. `bin/cypkg` runs `mainx.ari` when `CYPKG_ARI` is `arix` or `ariglx`.
+- **Loading it elsewhere:** only the top document's `python:` block runs (a `load:`ed module's
+  doesn't yet, ARIADNE.md §11). So a document that loads `prefixes.ari` carries the same block, as
+  `mainx.ari` does.
+
 ## Running from a checkout
 
 `CYPKG_ARI` names the `ari` to run: the cvcpkg package, 3.7.6 or newer
@@ -227,14 +279,14 @@ the `ari` to run.
 
 | Layer | Script | What it catches |
 |---|---|---|
-| 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units |
+| 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units. `prefixes.ari` and `mainx.ari` are checked with `ARIX` (an `arix`), and skipped without it |
 | 2a. units | `tests/unit.sh` | Each view in `views.ari`, included in a test document over hand-seeded state, with no network: cut names, wide glyphs, empty results, hidden pagers, one view at a time |
 | 2b. functions | `tests/lib.sh` | 16 `ari test` tests of `lib.ari`'s functions (`tests/lib/lib_test.ari`): values in, values out, no network or state |
 | 2c. modules | `tests/modules.sh` | 17 `ari test` tests in `tests/modules/`, each document mounting one module alone against the fixture registry through the holes `main.ari` grants (9 search, 8 package). Each test sets the module's state the way its view does, waits for its `seq` counter to count a finished request, and asserts on what its view reads |
 | 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
 | 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, Ctrl-C |
 | 3c. browser | `tests/browser.mjs` | The wasm page in headless Chrome, served with the fixture API from one origin under a strict CSP. Real keys over DevTools, through the same steps as 3b; it reads the terminal's text. Runs when `ARI_WEB` and `CHROME` are set |
-| 3d. integration | `tests/integration.sh` | cypkg against a real registry instead of the fixture: cy-pca/cvcpkg's own `cvcpkg-server`, installed into a venv (pinned to a commit), run on SQLite in a temp dir, with no database server. It packs the recipes in `tests/integration/recipes/` with `cvcpkg pack`, publishes them with `cvcpkg publish` and the publish API (14 builds of 3 packages; one has 12 builds across platforms, arches and link modes, one has no description, license, homepage or tags), then runs the contract check against it, 14 `ari test` module tests (`tests/integration/modules/`) and 9 snapshots (`tests/integration/expected/`). It asserts what the real server does: an unknown package is 200 with no builds, and `package_count` counts every match only with `facets=true`. Skipped when cvcpkg can't be installed |
+| 3d. integration | `tests/integration.sh` | cypkg against a real registry instead of the fixture: cy-pca/cvcpkg's own `cvcpkg-server`, installed into a venv (pinned to a commit), run on SQLite in a temp dir, with no database server. It packs the recipes in `tests/integration/recipes/` with `cvcpkg pack`, publishes them with `cvcpkg publish` and the publish API (14 builds of 3 packages; one has 12 builds across platforms, arches and link modes, one has no description, license, homepage or tags), then runs the contract check against it, 14 `ari test` module tests (`tests/integration/modules/`) and 9 snapshots (`tests/integration/expected/`). It asserts what the real server does: an unknown package is 200 with no builds, and `package_count` counts every match only with `facets=true`. With `ARIX`, 10 `arix test` tests of the Prefixes window (`tests/integration/prefixes/`) then plan, install and remove the published packages in a temporary prefix with cvcpkg's own installer. Skipped when cvcpkg can't be installed |
 | 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
 
 The fixture registry (`tests/registry/fixture_registry.py`, Python stdlib
@@ -285,6 +337,8 @@ How the pieces fit:
   (`cvcpkg install ari`), as a person would, and checks it has what cypkg
   uses (json-parse, `ari test`, functions:, the ws-* verbs, sha256-hex): 3.7.6
   is the first release with them all.
+- It installs the `arix` package too (`ARIX`), for the Prefixes window's check and integration
+  tests.
 - The browser job installs the single-threaded `arigl-web` package the same
   way, assembles the site from its page and runs `tests/browser.mjs` in the
   runner's Chrome.

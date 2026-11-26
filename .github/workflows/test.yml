@@ -66,6 +66,18 @@ jobs:
           "$ari" test "$RUNNER_TEMP/f.ari" >/dev/null \
             || { echo "::error::this ari has no functions: (transfix/libcvc#900)"; exit 1; }
 
+      # arix, the scripting host (ari with an embedded Python), for the Prefixes window: layer 1
+      # checks prefixes.ari and mainx.ari with it, and the integration layer's last step installs
+      # and removes packages with it. Its own prefix: it brings python312, pycvc and numpy.
+      - name: Install arix (cvcpkg)
+        run: |
+          set -euo pipefail
+          prefix="$RUNNER_TEMP/arix"
+          cvcpkg install arix --prefix "$prefix" --config release --link shared \
+            --no-fallback-to-source
+          "$prefix/bin/arix" python -c 'import sys; print("arix python", sys.version.split()[0])'
+          echo "ARIX=$prefix/bin/arix" >>"$GITHUB_ENV"
+
       # tmux drives the interactive layer. cvcpkg packages it for arm64 only so far, so x86_64
       # runners fall back to apt.
       - name: Install tmux
