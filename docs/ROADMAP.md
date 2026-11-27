@@ -94,8 +94,11 @@ transfix/libcvc#710.
 - **M5, ship:** publish the cvcpkg recipe for every platform `ari` is
   packaged for. cvcpkg.org serves `/apps/cypkg/`. CI runs an end-to-end
   smoke test against a local registry.
-- **M6, maybe:** the same documents in `arigl`, if they need nothing
-  terminal-only.
+- **M6:** the same documents in `arigl`. They need nothing terminal-only and
+  run as they are: the browser site offers `arigl` beside the two terminals
+  (`arigl-web` 4.0.9), its main window filling the view (`size: 100%`), and
+  CI checks that it starts and searches. Left: an `arigl` walk in CI, and
+  sizes for the other windows that suit a desktop as well as a terminal.
 
 ## M0 status
 

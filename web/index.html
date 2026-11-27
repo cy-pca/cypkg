@@ -1,0 +1,71 @@
+<!doctype html>
+<!--
+  cypkg's landing page in the browser build (tools/site.sh copies it to index.html). It links the
+  three clients the arigl-web package ships, beside it in the same directory and on the same
+  ariadne.config.json, so each runs main.ari against the same registry:
+    arigl.html        arigl (Dear ImGui), the package's index.html renamed
+    ari.html          ari's FTXUI backend in xterm.js
+    ari_tvision.html  ari's tvision desktop in xterm.js
+  Nothing is inline and nothing loads from another origin: the page passes the registry's strict
+  Content-Security-Policy (script-src 'self' 'wasm-unsafe-eval'; style-src 'self').
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>cypkg</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>cypkg</h1>
+    <p class="lede">A client for <a href="https://cvcpkg.org">cvcpkg</a> registries: search
+      packages, read their builds and recipes, and watch the builders live. It is written as
+      <a href="https://github.com/transfix/libcvc/blob/master/docs/ARIADNE.md">Ariadne</a>
+      documents, so the same app runs in each of these. Pick one.</p>
+  </header>
+
+  <ul class="clients">
+    <li>
+      <a class="client" href="arigl.html">
+        <span class="kind">Graphical</span>
+        <span class="name">arigl</span>
+        <span class="what">Windows you drag, resize and click, drawn with Dear ImGui on
+          WebGL. Mouse first.</span>
+        <span class="size">about 16 MB to download</span>
+      </a>
+    </li>
+    <li>
+      <a class="client" href="ari.html">
+        <span class="kind">Terminal</span>
+        <span class="name">ari · FTXUI</span>
+        <span class="what">The terminal app, in an xterm.js terminal. Keyboard first: Tab
+          between fields, Enter, F10 for the menu.</span>
+        <span class="size">about 9 MB to download</span>
+      </a>
+    </li>
+    <li>
+      <a class="client" href="ari_tvision.html">
+        <span class="kind">Terminal</span>
+        <span class="name">ari · tvision</span>
+        <span class="what">The same app on a Turbo Vision desktop: overlapping windows you
+          drag by their titles, F6 for the next one.</span>
+        <span class="size">about 9 MB to download</span>
+      </a>
+    </li>
+  </ul>
+
+  <footer>
+    <p>Each one runs WebAssembly with JSPI: Chrome or Edge 137, Firefox 153 or Safari 27, or
+      later.</p>
+    <p>In your own terminal: <code>cvcpkg install cypkg</code>, then <code>cypkg</code>.
+      Source: <a href="https://github.com/cy-pca/cypkg">cy-pca/cypkg</a>.</p>
+    <p>The runners are <a href="https://github.com/transfix/libcvc">libcvc</a>'s, under the
+      <a href="LICENSE.txt">LGPL-2.1</a>, with <a href="THIRD_PARTY_NOTICES.txt">third-party
+      notices</a>.</p>
+  </footer>
+</main>
+</body>
+</html>

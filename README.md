@@ -6,12 +6,13 @@ written as
 documents. It is an alternative to the registry's web pages: you can search
 packages, read recipes, watch builders and build logs live, and manage tokens,
 orgs and the registry. The same documents run natively in a terminal and in
-the browser on xterm.js.
+the browser, where https://cy-pca.github.io/cypkg/ offers them graphically
+(`arigl`) or in a terminal (FTXUI or tvision on xterm.js).
 
 > **Status: M0 in progress.** Search and package pages work in both terminal
-> backends and in the browser. They need `ari` 3.7.6 or newer (the first
-> release with what they use), and in the browser the `arigl-web` package's
-> page, 3.7.8 or newer. No registry serves `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> backends, in `arigl` and in the browser. They need `ari` 3.7.6 or newer (the first
+> release with what they use), and in the browser the `arigl-web` package,
+> 4.0.9 or newer. No registry serves `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -37,19 +38,25 @@ The `cypkg` package depends on `ari`. It installs:
 
 **The terminal is the primary target.** Every feature has to work, and be
 tested, in `ari` with both backends. CI renders frames with `ari snapshot`.
-Running in `arigl` (ImGui) is a possible later extra, not a goal; see M6 in
-the roadmap.
+The same documents run in `arigl` (Dear ImGui) too, which the browser build
+offers; CI checks there only that the app starts and searches (M6 in the
+roadmap).
 
-**In the browser**, the same documents run in ari's xterm.js page, the FTXUI
-backend built for wasm (transfix/libcvc#887). The single-threaded `arigl-web`
-package ships it, in `share/arigl-web/`. A registry serves both at
-`https://<registry>/apps/cypkg/`. Because that is the registry's own origin,
-it needs no CORS.
+**In the browser**, the single-threaded `arigl-web` package (4.0.9 or newer)
+ships three clients in `share/arigl-web/`, and the site offers all three
+from a landing page:
+
+- `arigl.html`: `arigl`, Dear ImGui on WebGL (the package's `index.html`).
+- `ari.html`: ari's FTXUI backend in an xterm.js terminal (transfix/libcvc#887).
+- `ari_tvision.html`: ari's tvision desktop in the same terminal.
+
+A registry serves the site at `https://<registry>/apps/cypkg/`. Because that
+is the registry's own origin, it needs no CORS.
 
 - `tools/site.sh ARI_WEB OUT` assembles that directory from the package's
-  page files and `share/cypkg/`.
-- `web/ariadne.config.json` pins the document to `main.ari` and turns the
-  network on for the page's own origin only (`--net`).
+  page files, `share/cypkg/` and the landing page, `web/index.html`.
+- `web/ariadne.config.json`, which all three pages read, pins the document to
+  `main.ari` and turns the network on for the page's own origin only (`--net`).
 - The config also passes `--server {origin}`, so cypkg browses the registry
   that serves it.
 - Host flags come only from that file, never from the URL.
@@ -62,10 +69,12 @@ started by hand on `main` (which moves the page to the newest `arigl-web`).
 - That build uses `web/ariadne.config.pages.json`, which browses
   https://cvcpkg.org: `--net-allow https://cvcpkg.org` and
   `--server https://cvcpkg.org`.
-- That's another origin, so cvcpkg.org must allow `https://cy-pca.github.io`
-  with CORS (`CVCPKG_CORS_ORIGINS`). Until it does, the page loads and says
-  "search failed: ... (network or CORS)". Checked locally from a plain static
-  server: CORS is the only thing in the way.
+- That's another origin, so cvcpkg.org allows `https://cy-pca.github.io`
+  with CORS (`CVCPKG_CORS_ORIGINS`). Without that, the page loads and says
+  "search failed: ... (network or CORS)".
+- The site also carries the package's `LICENSE` and `THIRD_PARTY_NOTICES.md`
+  (as `.txt`, so a browser shows them), which the landing page links: the
+  clients are libcvc's LGPL-2.1 builds.
 
 To try it, serve a site with the fixture registry and open
 `http://127.0.0.1:8766/apps/cypkg/`:
@@ -116,7 +125,8 @@ share/cypkg/      the documents:
                     prefixes.ari the Prefixes window, its own component (it needs Python)
                     python/pkg_bridge.py  the Prefixes window's calls into cvcpkg's library
 bin/              the launchers: cypkg (sh) and cypkg.cmd
-tools/            site.sh (the browser page), stage-python.sh (cvcpkg's client, for a checkout)
+tools/            site.sh (the browser site), stage-python.sh (cvcpkg's client, for a checkout)
+web/              the browser site's landing page (index.html, index.css) and page configs
 tests/            snapshot tests and a fixture registry
 recipes/cypkg/    the cvcpkg recipe: documents and launchers, one noarch build
 docs/ROADMAP.md   milestones and the libcvc and cvcpkg features each one needs
@@ -340,8 +350,9 @@ How the pieces fit:
 - It installs the `arix` package too (`ARIX`), for the Prefixes window's check and integration
   tests.
 - The browser job installs the single-threaded `arigl-web` package the same
-  way, assembles the site from its page and runs `tests/browser.mjs` in the
-  runner's Chrome.
+  way, assembles the site from its pages and runs `tests/browser.mjs` in the
+  runner's Chrome: the landing page's links, arigl's start and first search,
+  tvision's first search, then the whole walk on FTXUI.
 - `tests/run.sh` runs the integration layer too, installing cvcpkg-server from
   cy-pca/cvcpkg. In CI a failed install fails the job instead of skipping it.
 - A daily job runs the contract check against cvcpkg.org; `workflow_dispatch`
@@ -350,4 +361,5 @@ How the pieces fit:
 ## License
 
 MIT. See [LICENSE](LICENSE). The Ariadne hosts and libcvc are LGPL-2.1, and
-are installed separately through cvcpkg.
+are installed separately through cvcpkg. The browser site carries the
+`arigl-web` package's builds of them unchanged, with its license and notices.
