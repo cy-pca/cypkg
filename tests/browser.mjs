@@ -2,12 +2,14 @@
 //
 //   node tests/browser.mjs --site DIR --chrome PATH [--shots DIR]
 //
-// DIR is tools/site.sh's output (DIR/apps/cypkg/: ari's xterm.js page plus cypkg's documents).
-// tests/registry/fixture_registry.py serves it and the fixture API from one origin, with a strict
-// Content-Security-Policy, as a registry would serve /apps/cypkg/. Chrome is driven over the
-// DevTools protocol (Node 22's fetch and WebSocket; no other dependency). Each step sends real keys
-// to the terminal and waits for ari's screen text (window.ariadneWeb.text(), from
-// transfix/libcvc#887's page) to show what the step should. Exit status 0 when every step passes.
+// DIR is tools/site.sh's output (DIR/apps/cypkg/: the landing page, the arigl, FTXUI and tvision
+// clients, and cypkg's documents). tests/registry/fixture_registry.py serves it and the fixture API
+// from one origin, with a strict Content-Security-Policy, as a registry would serve /apps/cypkg/.
+// Chrome is driven over the DevTools protocol (Node 22's fetch and WebSocket; no other dependency).
+// The landing page must link the three clients. arigl must run main.ari without a warning and
+// search the registry. On the terminal pages each step sends real keys and waits for ari's screen
+// text (window.ariadneWeb.text(), from transfix/libcvc#887's page) to show what the step should:
+// tvision's first search, then the whole walk on FTXUI. Exit status 0 when every step passes.
 // --shots writes a screenshot of each failed step.
 
 import {spawn} from 'node:child_process';
@@ -85,14 +87,22 @@ await send('Page.enable');
 await send('Page.addScriptToEvaluateOnNewDocument', {
   source: 'window.__csp = []; document.addEventListener("securitypolicyviolation", ' +
           'e => window.__csp.push(e.effectiveDirective + " " + (e.blockedURI || "inline")));'});
-const started = Date.now();
-await send('Page.navigate', {url: `${ORIGIN}/apps/cypkg/`});
+// go(file): open a page of the site; the first step after it reports how long the page took.
+let started = 0, fresh = false;
+const go = async file => {
+  started = Date.now();
+  fresh = true;
+  await send('Page.navigate', {url: `${ORIGIN}/apps/cypkg/${file}`});
+};
 
+// The page's state: ari's and arigl's pages both publish window.ariadneWeb (state, what the host
+// printed); ari's also has the terminal's text, and arigl's the document's warnings.
 const page = async () => {
   const s = await evaluate(
       'JSON.stringify(window.ariadneWeb ? {state: ariadneWeb.state, log: ariadneWeb.log,' +
-      ' text: ariadneWeb.text ? ariadneWeb.text() : "", csp: window.__csp || []} : null)');
-  return (s && JSON.parse(s)) || {state: 'none', log: [], text: '', csp: []};
+      ' text: ariadneWeb.text ? ariadneWeb.text() : "", warnings: ariadneWeb.warnings || [],' +
+      ' csp: window.__csp || []} : null)');
+  return (s && JSON.parse(s)) || {state: 'none', log: [], text: '', warnings: [], csp: []};
 };
 // Keys go to xterm.js's input, as typing would.
 const KEYS = {Tab: 9, Enter: 13, F10: 121, ArrowRight: 39, ArrowDown: 40};
@@ -110,8 +120,19 @@ const type = async text => {
 };
 
 let failed = 0, n = 0;
-// step(name, check): wait until check(screen text) holds; fail on a load failure, a document
-// warning or a CSP violation on the way.
+const passed = name => {
+  console.log(`ok   ${name}` + (fresh ? ` (${Date.now() - started} ms from navigation)` : ''));
+  fresh = false;
+};
+const shot = async () => {
+  if (!SHOTS) return;
+  fs.mkdirSync(SHOTS, {recursive: true});
+  const m = await send('Page.captureScreenshot', {format: 'png'});
+  if (m.result) fs.writeFileSync(path.join(SHOTS, `${n}.png`), Buffer.from(m.result.data, 'base64'));
+};
+// step(name, check): wait until check(page state) holds; fail on a load failure, a document
+// warning or a CSP violation on the way. A check given a function of the screen text gets the
+// terminal's text; one marked .state gets the whole state.
 async function step(name, check) {
   n++;
   const until = Date.now() + STEP_MS;
@@ -119,30 +140,71 @@ async function step(name, check) {
   for (;;) {
     v = await page();
     const bad = v.state === 'failed' ? 'the page failed' :
-                v.log.find(l => /warning|error|does not provide/i.test(l)) ? 'the document warned' :
+                v.log.find(l => /warning|error|does not provide/i.test(l)) ||
+                    v.warnings.length ? 'the document warned' :
                 v.csp.length ? 'a CSP violation: ' + v.csp.join(', ') : '';
-    if (!bad && check(v.text)) {
-      console.log(`ok   ${name}` + (n === 1 ? ` (${Date.now() - started} ms from navigation)` : ''));
+    if (!bad && await (check.state ? check(v) : check(v.text))) {
+      passed(name);
       return;
     }
     if (bad || Date.now() > until) {
       console.log(`FAIL ${name}${bad ? ': ' + bad : ': timed out'}`);
       console.log('     state: ' + v.state);
       console.log('     log:\n' + v.log.map(l => '       ' + l).join('\n'));
+      if (v.warnings.length) console.log('     warnings:\n' + v.warnings.map(l => '       ' + l).join('\n'));
       console.log('     screen:\n' + v.text.split('\n').map(l => '       ' + l).join('\n'));
-      if (SHOTS) {
-        fs.mkdirSync(SHOTS, {recursive: true});
-        const m = await send('Page.captureScreenshot', {format: 'png'});
-        if (m.result) fs.writeFileSync(path.join(SHOTS, `${n}.png`), Buffer.from(m.result.data, 'base64'));
-      }
+      await shot();
       failed++;
       return;
     }
     await new Promise(r => setTimeout(r, 250));
   }
 }
+const onState = f => Object.assign(f, {state: true});
 
 const has = s => t => t.includes(s);
+
+// The landing page: a link to each client, a page beside it that the server has.
+const CLIENTS = ['arigl.html', 'ari.html', 'ari_tvision.html'];
+await go('');
+n++;
+for (const until = Date.now() + STEP_MS; ;) {
+  const s = await evaluate('JSON.stringify({ready: document.readyState, csp: window.__csp || [],' +
+                           ' links: [...document.querySelectorAll("a.client")]' +
+                           '.map(a => a.getAttribute("href"))})');
+  const v = s ? JSON.parse(s) : {ready: '', csp: [], links: []};
+  const statuses = v.ready === 'complete' ? await Promise.all(
+      CLIENTS.map(f => fetch(`${ORIGIN}/apps/cypkg/${f}`).then(r => r.status))) : [];
+  const ok = JSON.stringify(v.links) === JSON.stringify(CLIENTS) && statuses.every(s => s === 200);
+  if (ok && !v.csp.length) { passed('the landing page links the three clients'); break; }
+  if (v.csp.length || Date.now() > until) {
+    console.log('FAIL the landing page links the three clients: ' +
+                (v.csp.length ? 'a CSP violation: ' + v.csp.join(', ') :
+                 `links ${JSON.stringify(v.links)}, statuses ${JSON.stringify(statuses)}`));
+    await shot();
+    failed++;
+    break;
+  }
+  await new Promise(r => setTimeout(r, 250));
+}
+
+// arigl (Dear ImGui on a canvas): it has no screen text to read, so the check is that the document
+// runs without a warning and searches the registry.
+const searched = async () => {
+  const r = await (await fetch(`${ORIGIN}/_requests`)).json();
+  return r.requests.some(q => q.path === '/v1/search');
+};
+await fetch(`${ORIGIN}/_requests?reset`);
+await go('arigl.html');
+await step('arigl runs main.ari, which searches the registry',
+           onState(async v => v.state === 'running' && await searched()));
+
+// tvision: the same search, on the tvision desktop.
+await go('ari_tvision.html');
+await step('tvision runs main.ari and searches every build', has('builds 1-10 of 196, 10 packages'));
+
+// FTXUI, the default terminal: the whole walk.
+await go('ari.html');
 await step('the page runs main.ari and searches every build', has('builds 1-10 of 196, 10 packages'));
 await step('... against the registry that serves it', has(`registry: ${ORIGIN}`));
 await key('Tab'); await type('zstd'); await key('Enter');

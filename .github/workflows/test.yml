@@ -9,8 +9,9 @@ name: test
 # #900), the ws-* verbs (#923) and sha256-hex/random-token (#911); ari 3.7.6 is the first release
 # with them all, and "Check the ari" stops an older one.
 #
-# The browser job serves ari's single-threaded wasm page from the arigl-web package (3.7.8 is the
-# first release with it), as a site installs it: cvcpkg.org's page, not one built here.
+# The browser job serves the single-threaded arigl-web package's three clients (arigl, and ari's
+# FTXUI and tvision pages; 4.0.9 or newer) behind cypkg's landing page, as a site installs them:
+# cvcpkg.org's pages, not ones built here.
 
 on:
   push:
@@ -106,8 +107,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ari's wasm page is the single-threaded arigl-web package, as a site installs it: its
-      # share/arigl-web/ has ari.html, ari.js, ari.wasm, ari-web.* and xterm/. The install also
+      # The three clients are the single-threaded arigl-web package, as a site installs it: its
+      # share/arigl-web/ has arigl's page (index.html, arigl.*), ari's (ari.html, ari.*,
+      # ari_tvision.*, ari-web.*) and xterm/ (tools/site.sh lists them). The install also
       # lays down the static wasm libraries the page was linked from (the bundle lists them as its
       # deps), which the site doesn't use.
       - name: Install cvcpkg and arigl-web (cvcpkg)
@@ -124,7 +126,7 @@ jobs:
       - name: Assemble the site
         run: |
           tools/site.sh "$ARI_WEB" site
-          du -sh site/apps/cypkg site/apps/cypkg/ari.wasm
+          du -sh site/apps/cypkg site/apps/cypkg/*.wasm
 
       # Node 22 for its built-in WebSocket; the runner image has Chrome.
       - uses: actions/setup-node@v4
