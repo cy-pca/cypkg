@@ -23,4 +23,10 @@ for doc in "$here"/../share/cypkg/*.ari "$here"/unit/*.ari; do
   if out=$("$host" check --net "$doc" 2>&1) && [ -z "$out" ]; then echo "ok   $name"
   else echo "FAIL $name"; printf '%s\n' "$out"; fail=1; fi
 done
+# state-get gives text (or nil), and (str x) of text quotes it: (str (state-get k)) is "\"1\""
+# where "1" was meant. A card's Details sent /v1/builders/"1" that way, which cvcpkg.org refuses
+# (422). Use the text itself; (str ...) is for numbers.
+if hits=$(grep -n '(str (state-get' "$here"/../share/cypkg/*.ari); then
+  echo "FAIL (str (state-get ...)) quotes the text it gives:"; printf '%s\n' "$hits"; fail=1
+else echo "ok   no (str (state-get ...)) in share/cypkg"; fi
 exit $fail

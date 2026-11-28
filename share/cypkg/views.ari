@@ -208,14 +208,15 @@ units:
       # A card each: name, status, platform and version (coloured by status: online green, busy
       # amber, offline grey), then its jobs and its host's CPU, memory and disk, then its last
       # heartbeat, org and labels. Details opens the Builder window on it; outside a terminal, a
-      # click anywhere on the card does too.
+      # click anywhere on the card does too. They hand on the id as state-get gives it, text:
+      # (str ...) of text quotes it, and /v1/builders/"1" is a 422.
       - type: group
         repeat: (state-get "builders.count")
         children:
           - type: group
             id: builder{i}
             layout: { kind: grid, col_widths: ["100%"], borders: { show: outer } }
-            on_click: (if (has? "ui.group_click") (state-set "req.open" (str (state-get "builders.res.builders.{i}.id"))))
+            on_click: (if (has? "ui.group_click") (state-set "req.open" (state-get "builders.res.builders.{i}.id")))
             hover: highlight
             children:
               - type: group
@@ -223,7 +224,7 @@ units:
                 children:
                   - type: button
                     label: "Details"
-                    on: (state-set "req.open" (str (state-get "builders.res.builders.{i}.id")))
+                    on: (state-set "req.open" (state-get "builders.res.builders.{i}.id"))
                   - text: ""
                     bind: builders.res.builders.{i}.head
                     color: [0.45, 0.8, 0.55]
@@ -349,7 +350,7 @@ units:
           - text: ""
             bind: activity.status
           - type: button
-            label: '(string.join (list "Show" (str (state-get "activity.new")) "new") " ")'
+            label: '(string.join (list "Show" (state-get "activity.new") "new") " ")'
             visible_when: (> (int (state-get "activity.new")) 0)
             on: |
               (begin

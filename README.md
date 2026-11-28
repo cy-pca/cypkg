@@ -289,12 +289,12 @@ the `ari` to run.
 
 | Layer | Script | What it catches |
 |---|---|---|
-| 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units. `prefixes.ari` and `mainx.ari` are checked with `ARIX` (an `arix`), and skipped without it |
+| 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units, and any `(str (state-get ...))` (it quotes the text). `prefixes.ari` and `mainx.ari` are checked with `ARIX` (an `arix`), and skipped without it |
 | 2a. units | `tests/unit.sh` | Each view in `views.ari`, included in a test document over hand-seeded state, with no network: cut names, wide glyphs, empty results, hidden pagers, one view at a time |
 | 2b. functions | `tests/lib.sh` | 16 `ari test` tests of `lib.ari`'s functions (`tests/lib/lib_test.ari`): values in, values out, no network or state |
 | 2c. modules | `tests/modules.sh` | 17 `ari test` tests in `tests/modules/`, each document mounting one module alone against the fixture registry through the holes `main.ari` grants (9 search, 8 package). Each test sets the module's state the way its view does, waits for its `seq` counter to count a finished request, and asserts on what its view reads |
 | 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
-| 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, Ctrl-C |
+| 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, the menu's Builders, a card's Details, Ctrl-C |
 | 3c. browser | `tests/browser.mjs` | The wasm page in headless Chrome, served with the fixture API from one origin under a strict CSP. Real keys over DevTools, through the same steps as 3b; it reads the terminal's text. Runs when `ARI_WEB` and `CHROME` are set |
 | 3d. integration | `tests/integration.sh` | cypkg against a real registry instead of the fixture: cy-pca/cvcpkg's own `cvcpkg-server`, installed into a venv (pinned to a commit), run on SQLite in a temp dir, with no database server. It packs the recipes in `tests/integration/recipes/` with `cvcpkg pack`, publishes them with `cvcpkg publish` and the publish API (14 builds of 3 packages; one has 12 builds across platforms, arches and link modes, one has no description, license, homepage or tags), then runs the contract check against it, 14 `ari test` module tests (`tests/integration/modules/`) and 9 snapshots (`tests/integration/expected/`). It asserts what the real server does: an unknown package is 200 with no builds, and `package_count` counts every match only with `facets=true`. With `ARIX`, 10 `arix test` tests of the Prefixes window (`tests/integration/prefixes/`) then plan, install and remove the published packages in a temporary prefix with cvcpkg's own installer. Skipped when cvcpkg can't be installed |
 | 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
@@ -303,7 +303,9 @@ The fixture registry (`tests/registry/fixture_registry.py`, Python stdlib
 only) serves 193 real builds of 7 packages, captured from cvcpkg.org with
 `tests/registry/capture.py`. It also serves three synthetic edge-case packages
 (`edge.json`) and faults chosen by name (`fault-500`, `fault-badjson`,
-`fault-shape`, `fault-empty`).
+`fault-shape`, `fault-empty`). It checks the integer parameters (`builder_id`,
+`limit`, `offset`) as cvcpkg's FastAPI routes do, with their bounds, and
+answers a bad one 422 with the same detail.
 
 ```bash
 ARI=/path/to/ari tests/run.sh
