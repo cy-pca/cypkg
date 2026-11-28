@@ -96,8 +96,8 @@ transfix/libcvc#710.
   smoke test against a local registry.
 - **M6:** the same documents in `arigl`. They need nothing terminal-only and
   run as they are: the browser site offers `arigl` beside the two terminals
-  (`arigl-web` 4.0.9), its main window filling the view (`size: 100%`), and
-  CI checks that it starts and searches. Left: an `arigl` walk in CI, and
+  (`arigl-web` 4.0.9), and CI checks that it starts and searches. The main
+  window has no size: it fits what it shows, in every host. Left: an `arigl` walk in CI, and
   sizes for the other windows that suit a desktop as well as a terminal.
 
 ## M0 status

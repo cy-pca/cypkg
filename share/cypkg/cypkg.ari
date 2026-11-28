@@ -169,9 +169,9 @@ windows:
   - window: cypkg
     id: main
     pos: [0, 0]
-    # The whole view in every host: arigl's canvas as much as a terminal (whose snapshot frames,
-    # 100 x 30 with the menu bar, it fills just as the 800 x 464 px it used to have did).
-    size: ["100%", "100%"]
+    # No size: the window fits what it shows, in every host (ARIADNE.md §5.8), and grows and
+    # shrinks with it: a page of results, a short page, a package's builds. What doesn't fit the
+    # view scrolls.
     children:
       - text: "registry"
         bind: cfg.server
