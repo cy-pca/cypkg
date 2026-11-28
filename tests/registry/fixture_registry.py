@@ -6,7 +6,8 @@ It serves the read endpoints cypkg uses, from catalog.json (see capture.py),
 the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
 
 - GET /v1/search: q, platform, arch, build_type, link, tag, limit, offset,
-  facets. Rows are builds, newest first within a name.
+  facets, sort. Rows are builds, newest first within a name; sort (cy-pca/cvcpkg#652) orders
+  every match by one key before limit and offset page it, as the server does (see SORT_KEYS).
 - GET /v1/packages/{name}: every build of one package (none for an unknown name).
 - GET /v1/builders, /v1/builders/{id}, /v1/builds (status, builder_id, limit, offset),
   /v1/activity (kind, name, limit, offset): rows captured
@@ -25,13 +26,16 @@ path and the query), limit and offset, with each route's bounds. A value that is
 ("1.5", "", "\"1\"") or is out of bounds is answered 422 with the detail cvcpkg.org sends, where
 a lenient stand-in would have answered 404, clamped it, or ignored it.
 
-For tests: GET /_requests lists the /v1 requests served so far (path, q, offset, facets), and
+For tests: GET /_requests lists the /v1 requests served so far (path, q, offset, facets, and
+sort: null when none was sent), and
 /_requests?reset=1 clears the list. GET /_live?msg=JSON publishes a live message (builder,
 builders, builder_removed, builds, activity or resync) to the feeds subscribed to its topic and
 applies it to what the REST endpoints serve; /_live?close=CODE closes every feed with CODE;
 /_live?off=1 (or 0) makes new feeds close with 4004, as a server without live updates does; /_live
 alone counts the open feeds. A query or package name starting "slow:" is answered after a
-second, as if for the rest of the name, so a test can watch a request in flight.
+second, as if for the rest of the name, so a test can watch a request in flight. A query
+starting "nosort:" is answered as a registry from before sort= answers it: the sort is ignored
+(unchecked, as FastAPI ignores a parameter a route doesn't declare) and not echoed.
 
 With --port 0 it picks a free port and writes it to --port-file. With --site DIR it also serves
 the files under DIR (tools/site.sh's output: /apps/cypkg/...), so the browser build and the API
@@ -45,6 +49,7 @@ import struct
 import threading
 import time
 import collections
+import datetime
 import http.server
 import json
 import mimetypes
@@ -92,11 +97,27 @@ REQUESTS_LOCK = threading.Lock()
 
 
 class Refused(Exception):
-    """A value cvcpkg's server refuses (FastAPI's validation): answered 422, {"detail": [err]}."""
+    """Values cvcpkg's server refuses (FastAPI's validation): answered 422, {"detail": errs},
+    every refused parameter's error, in the order the route declares them."""
 
-    def __init__(self, err):
-        super().__init__(err["msg"])
-        self.err = err
+    def __init__(self, *errs):
+        super().__init__(errs[0]["msg"])
+        self.errs = list(errs)
+
+
+def validated(*checks):
+    """Each check's value, as a route's parameters are parsed: every check runs, and when any is
+    refused, one Refused carries all their errors, as FastAPI's 422 does."""
+    out, errs = [], []
+    for check in checks:
+        try:
+            out.append(check())
+        except Refused as e:
+            out.append(None)
+            errs.extend(e.errs)
+    if errs:
+        raise Refused(*errs)
+    return out
 
 
 def int_value(where, name, raw, ge=None, le=None):
@@ -136,12 +157,141 @@ def slow(name):
     return name
 
 
+# ── /v1/search?sort=, as cy-pca/cvcpkg#652's src/cvcpkg/server/search_sort.py does it ──
+
+# The keys each group sorts by. This stand-in serves build rows only (it has no group=package
+# summaries), but checks a sort against the group it is asked for, as the server does.
+SORT_KEYS = {
+    "build": ("name", "version", "platform", "arch", "build_type", "link", "size", "published",
+              "org"),
+    "package": ("name", "org", "version", "builds", "size"),
+}
+ALL_SORT_KEYS = tuple(dict.fromkeys(SORT_KEYS["build"] + SORT_KEYS["package"]))
+
+
+def allowed_keys(group):
+    return f"group={group} sorts by {', '.join(SORT_KEYS[group])}"
+
+
+def parse_sort(raw):
+    """(key, descending) for a sort parameter, or None for the default order (empty or blank).
+    A key neither group has is the 422 the parameter's validator gives (pydantic's
+    AfterValidator): its message starts "Value error, " and its ctx.error is {}."""
+    s = (raw or "").strip()
+    if not s:
+        return None
+    desc = s.startswith("-")
+    key = s[1:] if desc else s
+    if key not in ALL_SORT_KEYS:
+        raise Refused({"type": "value_error", "loc": ["query", "sort"],
+                       "msg": f"Value error, unknown sort key {s!r}: {allowed_keys('build')}; "
+                              f"{allowed_keys('package')}; a leading '-' sorts descending",
+                       "input": raw, "ctx": {"error": {}}})
+    return key, desc
+
+
+def check_sort_group(order, group, raw):
+    """The route's own check, once its parameters have passed: a key the group lacks (builds for
+    build rows) is a 422 of the same shape, with no "Value error, " and no ctx."""
+    if order is not None and order[0] not in SORT_KEYS[group]:
+        raise Refused({"type": "value_error", "loc": ["query", "sort"],
+                       "msg": f"group={group} cannot sort by {order[0]!r}: {allowed_keys(group)}; "
+                              "a leading '-' sorts descending",
+                       "input": raw})
+
+
+_CVC_RE = re.compile(r"\+cvc\.(\d+)$")
+_VER_RE = re.compile(r"^(?P<major>\d+)(?:\.(?P<minor>\d+))?(?:\.(?P<patch>\d+))?"
+                     r"(?:-(?P<pre>[0-9A-Za-z.-]+))?(?:\+(?P<build>[0-9A-Za-z.-]+))?$")
+
+
+def _ident_key(tok):
+    return (0, int(tok), "") if tok.isdigit() else (1, 0, tok)
+
+
+def version_sort_key(version):
+    """cvcpkg.semver.version_sort_key: SemVer precedence (1.10 after 1.9, a pre-release before
+    its release), then the +cvc.N revision, then the string itself. A version that isn't SemVer
+    (10.4p1) sorts before every one that is, and among them its digit runs compare as numbers."""
+    raw = (version or "").strip()
+    m = _CVC_RE.search(raw)
+    rev, head = (int(m.group(1)), raw[:m.start()]) if m else (0, raw)
+    v = _VER_RE.match(raw)
+    if not v:
+        return (0, tuple(_ident_key(t) for t in re.split(r"(\d+)", head) if t), rev, raw)
+    pre = v.group("pre") or ""
+    return (1, (int(v.group("major")), int(v.group("minor") or 0), int(v.group("patch") or 0),
+                not pre, tuple(_ident_key(t) for t in pre.split(".")) if pre else ()), rev, raw)
+
+
+def text_key(value):
+    """A text column's order: case-insensitively, then exactly (SQL's lower(c), c)."""
+    s = "" if value is None else str(value)
+    return (s.lower(), s)
+
+
+EPOCH = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+
+
+def published_key(value):
+    """published_at in UTC; missing or unreadable is the epoch."""
+    if not isinstance(value, str):
+        return EPOCH
+    t = value.strip()
+    if t.endswith(("Z", "z")):
+        t = t[:-1] + "+00:00"
+    try:
+        d = datetime.datetime.fromisoformat(t)
+    except ValueError:
+        return EPOCH
+    return d.replace(tzinfo=datetime.timezone.utc) if d.tzinfo is None else d.astimezone(
+        datetime.timezone.utc)
+
+
+def int_key(value):
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+# What each build-row key orders a row by.
+ROW_SORT = {
+    "name": lambda p: text_key(p.get("name")),
+    "version": lambda p: version_sort_key(str(p.get("version") or "")),
+    "platform": lambda p: text_key(p.get("platform")),
+    "arch": lambda p: text_key(p.get("arch")),
+    "build_type": lambda p: text_key(p.get("build_type")),
+    "link": lambda p: text_key(p.get("link")),
+    "size": lambda p: int_key(p.get("size_bytes")),
+    "published": lambda p: published_key(p.get("published_at")),
+    "org": lambda p: text_key(p.get("org")),
+}
+
+
 def search(qs):
     if qs.get("q", [""])[0].startswith("slow:"):
         qs = dict(qs, q=[slow(qs["q"][0])])
+    # A registry from before sort=: the route has no such parameter, so it is neither checked
+    # nor applied, and the reply has no "sort".
+    before_sort = qs.get("q", [""])[0].startswith("nosort:")
+    if before_sort:
+        qs = {k: v for k, v in qs.items() if k != "sort"}
+        qs["q"] = [qs["q"][0][len("nosort:"):]]
     one = lambda k: qs.get(k, [""])[0]
     if one("q") in FAULTS:
         return FAULTS[one("q")]
+    # The parameters, checked as the route declares them (sent more than once, the last
+    # counts); then the route's own check of the sort against the group.
+    limit, offset, group, order = validated(
+        lambda: query_int(qs, "limit", 50, ge=0, le=200),
+        lambda: query_int(qs, "offset", 0, ge=0),
+        lambda: group_value(qs),
+        lambda: parse_sort(qs["sort"][-1]) if "sort" in qs else None)
+    check_sort_group(order, group, qs["sort"][-1] if "sort" in qs else "")
+    if group != "build":
+        # The server pages package summaries then; this stand-in has none to serve.
+        return 501, {"detail": "the fixture registry serves group=build only"}
     q = one("q").lower()
     rows = [
         p for p in CATALOG
@@ -152,8 +302,13 @@ def search(qs):
         and (not one("tag") or one("tag") in (p.get("tags") or "").split(","))
     ]
     rows = ordered(rows)
-    limit = query_int(qs, "limit", 50, ge=0, le=200)
-    offset = query_int(qs, "offset", 0, ge=0)
+    # Facets are counted apart from the sort, over the default order (a bucket's place among
+    # equal counts follows it), so they don't change with the sort.
+    matched = rows
+    # The whole result, before it is paged. sorted() is stable both ways, so rows that tie keep
+    # the default order whichever way the key runs, and paging never repeats or skips a row.
+    if order is not None:
+        rows = sorted(rows, key=ROW_SORT[order[0]], reverse=order[1])
     page = rows[offset:offset + limit]
     reply = {
         "total": len(rows),
@@ -165,13 +320,26 @@ def search(qs):
         "offset": offset,
         "query": one("q"),
     }
+    if not before_sort:
+        reply["group"] = group
+        reply["sort"] = "" if order is None else ("-" if order[1] else "") + order[0]
     if one("facets") != "false":
         reply["facets"] = {
             facet: [{"value": v, "count": n}
-                    for v, n in collections.Counter(p[key] for p in rows).most_common()]
+                    for v, n in collections.Counter(p[key] for p in matched).most_common()]
             for facet, key in FACETS.items()
         }
     return 200, reply
+
+
+def group_value(qs):
+    """The group parameter: build (the default) or package, else the 422 its pattern gives."""
+    g = qs["group"][-1] if "group" in qs else "build"
+    if g not in SORT_KEYS:
+        raise Refused({"type": "string_pattern_mismatch", "loc": ["query", "group"],
+                       "msg": "String should match pattern '^(build|package)$'", "input": g,
+                       "ctx": {"pattern": "^(build|package)$"}})
+    return g
 
 
 def builders():
@@ -448,11 +616,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
             with REQUESTS_LOCK:
                 REQUESTS.append({"path": u.path, "q": q.get("q", [""])[0],
                                  "offset": q.get("offset", [""])[0],
-                                 "facets": q.get("facets", [""])[0]})
+                                 "facets": q.get("facets", [""])[0],
+                                 "sort": q["sort"][-1] if "sort" in q else None})
         try:
             status, body = self.route(u)
         except Refused as e:
-            status, body = 422, {"detail": [e.err]}
+            status, body = 422, {"detail": e.errs}
         data = (body if isinstance(body, str) else json.dumps(body, ensure_ascii=False)).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
