@@ -14,7 +14,7 @@
 
 meta:
   name: cypkg-activity
-  min_libcvc: 4.0.10
+  min_libcvc: 4.0.11
 
 needs: [args, shown, auth]
 

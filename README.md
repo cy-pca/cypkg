@@ -43,7 +43,7 @@ The same documents run in `arigl` (Dear ImGui) too, which the browser build
 offers; CI checks there only that the app starts and searches (M6 in the
 roadmap).
 
-**In the browser**, the single-threaded `arigl-web` package (4.0.9 or newer)
+**In the browser**, the single-threaded `arigl-web` package (4.0.11 or newer)
 ships three clients in `share/arigl-web/`, and the site offers all three
 from a landing page:
 
@@ -144,7 +144,7 @@ root:
 cvcpkg build cypkg --local --platform any --prefix ./prefix
 ```
 
-It needs `ari` 3.7.6 or later. `.github/workflows/publish.yml`, started by hand on
+It needs `ari` 4.0.11 or later. `.github/workflows/publish.yml`, started by hand on
 main, packs it and publishes it to cvcpkg.org under the cy-pca organisation.
 
 ## One component
@@ -391,8 +391,9 @@ How the pieces fit:
 
 - The test job installs the `ari` package from cvcpkg.org
   (`cvcpkg install ari`), as a person would, and checks it has what cypkg
-  uses (json-parse, `ari test`, functions:, the ws-* verbs, sha256-hex): 3.7.6
-  is the first release with them all.
+  uses (json-parse, `ari test`, functions:, the ws-* verbs, sha256-hex,
+  `collections.sort-by` with `type: table`): 4.0.11 is the first release with
+  them all.
 - It installs the `arix` package too (`ARIX`), for the Prefixes window's check and integration
   tests.
 - The browser job installs the single-threaded `arigl-web` package the same

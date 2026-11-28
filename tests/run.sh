@@ -30,7 +30,7 @@ layer "2b. functions: ari test on lib.ari's functions" "$here/lib.sh"
 layer "2c. modules: ari test on each module, mounted alone" "$here/modules.sh"
 layer "3a. whole document: snapshots against the fixture registry" "$here/snapshot.sh"
 layer "3b. whole document: real keys in tmux, FTXUI and tvision" "$here/interactive.sh"
-# The browser build, when ARI_WEB (share/arigl-web/ of the arigl-web package, 4.0.9 or newer: the
+# The browser build, when ARI_WEB (share/arigl-web/ of the arigl-web package, 4.0.11 or newer: the
 # arigl, FTXUI and tvision pages) and CHROME are set; CI's browser job runs it.
 if [ -n "${ARI_WEB:-}" ] && [ -n "${CHROME:-}" ]; then
   site=$(mktemp -d)

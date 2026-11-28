@@ -6,12 +6,13 @@ name: test
 #
 # The test job runs the ari package from cvcpkg.org, as a person installs it: cypkg targets a
 # stock, packaged ari. It needs json-parse (transfix/libcvc#883), `ari test` and functions: (#896,
-# #900), the ws-* verbs (#923) and sha256-hex/random-token (#911); ari 3.7.6 is the first release
-# with them all, and "Check the ari" stops an older one.
+# #900), the ws-* verbs (#923), sha256-hex/random-token (#911), and type: table with
+# collections.sort-by (#1614); ari 4.0.11 is the first release with them all, and "Check the ari"
+# stops an older one.
 #
 # The browser job serves the single-threaded arigl-web package's three clients (arigl, and ari's
-# FTXUI and tvision pages; 4.0.9 or newer) behind cypkg's landing page, as a site installs them:
-# cvcpkg.org's pages, not ones built here.
+# FTXUI and tvision pages; 4.0.11 or newer, for type: table) behind cypkg's landing page, as a
+# site installs them: cvcpkg.org's pages, not ones built here.
 
 on:
   push:
@@ -60,6 +61,8 @@ jobs:
           fns=$("$ari" info --functions | tr ' ,' '\n\n')
           grep -qx json-parse <<<"$fns" \
             || { echo "::error::this ari has no json-parse (transfix/libcvc#883)"; exit 1; }
+          grep -qx collections.sort-by <<<"$fns" \
+            || { echo "::error::this ari has no type: table or collections.sort-by (transfix/libcvc#1614, ari 4.0.11)"; exit 1; }
           help=$("$ari" --help 2>&1 || true)
           grep -q 'ari test' <<<"$help" \
             || { echo "::error::this ari has no 'ari test' (transfix/libcvc#896)"; exit 1; }

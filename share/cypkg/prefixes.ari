@@ -31,7 +31,7 @@ meta:
   name: Prefixes
   version: 0.2.0
   description: cvcpkg prefixes, with cvcpkg's own installer
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.11
 
 requires:
   - python

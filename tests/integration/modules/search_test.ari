@@ -7,7 +7,7 @@
 
 meta:
   name: cypkg-search-integration-test
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.11
 
 requires: [net]
 

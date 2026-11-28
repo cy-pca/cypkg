@@ -21,8 +21,9 @@ recipe:
 #
 # Published to cvcpkg.org under the cy-pca organisation by .github/workflows/publish.yml, started
 # by hand on main: bump upstream_version (or cvc_revision for a packaging-only change), merge, run
-# it. ari 3.7.6 is the first release with what cypkg needs (json-parse, transfix/libcvc#883;
-# functions:, #900; module on_tick, #904); an older one stops at main.ari's requires:.
+# it. ari 4.0.11 is the first release with what cypkg needs (json-parse, transfix/libcvc#883;
+# functions:, #900; module on_tick, #904; type: table and collections.sort-by, #1614); an older
+# one stops at main.ari's min_libcvc.
 source:
   # This repository: recipes/cypkg/../.. is its root.
   type: vendored
@@ -34,7 +35,7 @@ depends:
   build: []
   runtime:
     - name: ari
-      version: ">=3.7.6"
+      version: ">=4.0.11"
   host_tools: []
 
 build:

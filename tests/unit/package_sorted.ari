@@ -7,7 +7,7 @@
 
 meta:
   name: unit-package_sorted
-  min_libcvc: 4.0.10
+  min_libcvc: 4.0.11
 
 import: ../../share/cypkg/views.ari
 
