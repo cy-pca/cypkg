@@ -173,16 +173,35 @@ tests:
               (state-get "includes.d.bd.info.builder.0"))
       (assert (string.starts-with (state-get "includes.d.bd.info.host.0") "cpu ")
               (state-get "includes.d.bd.info.host.0"))
-      (assert (string.starts-with (state-get "includes.d.bd.recent_head") "Recent jobs (")
-              (state-get "includes.d.bd.recent_head")))
+      ;; The fixture's three jobs on builder 1: the registry read builder_id (one it can't read
+      ;; is a 422, and the lists stay empty).
+      (assert (= (wait-for "includes.d.bd.recent_head" "Recent jobs (3)") "Recent jobs (3)")
+              (state-get "includes.d.bd.recent_head"))
+      (assert (= (state-get "includes.d.bd.active_head") "Active jobs (0)")
+              (state-get "includes.d.bd.active_head")))
 
   a card's Details opens the Builder window on it: |
     (begin
-      (state-set "includes.b.req.open" "2")
-      (assert (= (wait-for "pick.builder" "2") "2") "pick")
+      (assert (= (wait-for "includes.b.builders.res.builders.1.name" "star-01") "star-01") "no cards")
+      ;; As the card's Details does (views.ari): the card's id, as state-get gives it.
+      (state-set "includes.b.req.open" (state-get "includes.b.builders.res.builders.1.id"))
+      (assert (= (wait-for "pick.builder" "2") "2") (state-get "pick.builder"))
       (assert (= (wait-for "includes.d.bd.id" "2") "2") "the Builder window didn't follow")
       (assert (= (state-get "includes.d.bd.info.title") "star-01  ·  online")
-              (state-get "includes.d.bd.info.title")))
+              (state-get "includes.d.bd.info.title"))
+      (assert (= (state-get "includes.d.bd.base") "") (state-get "includes.d.bd.base"))
+      (assert (= (wait-for "includes.d.bd.recent_head" "Recent jobs (1)") "Recent jobs (1)")
+              (state-get "includes.d.bd.recent_head")))
+
+  an id the registry can't read fails as cvcpkg.org does: |
+    (begin
+      ;; (str ...) of the id, as the card's Details once did: the text quoted, which cvcpkg.org's
+      ;; /v1/builders/{builder_id} (an int) refuses with a 422, and so does the fixture.
+      (state-set "pick.builder" (str "3"))
+      (assert (= (wait-for "includes.d.bd.base" "failed: HTTP 422") "failed: HTTP 422")
+              (state-get "includes.d.bd.base"))
+      (state-set "pick.builder" "2")
+      (assert (= (wait-for "includes.d.bd.base" "") "") (state-get "includes.d.bd.base")))
 
   the windows follow the live feed: |
     (begin

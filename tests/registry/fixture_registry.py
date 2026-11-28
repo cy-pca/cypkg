@@ -20,6 +20,11 @@ the way cy-pca/cvcpkg's src/cvcpkg/server/app.py does:
   ready (and the builders snapshot for that topic), then whatever /_live publishes.
 - GET /healthz.
 
+Its integer parameters are checked as the server's FastAPI routes check theirs: builder_id (in the
+path and the query), limit and offset, with each route's bounds. A value that isn't an integer
+("1.5", "", "\"1\"") or is out of bounds is answered 422 with the detail cvcpkg.org sends, where
+a lenient stand-in would have answered 404, clamped it, or ignored it.
+
 For tests: GET /_requests lists the /v1 requests served so far (path, q, offset, facets), and
 /_requests?reset=1 clears the list. GET /_live?msg=JSON publishes a live message (builder,
 builders, builder_removed, builds, activity or resync) to the feeds subscribed to its topic and
@@ -44,6 +49,7 @@ import http.server
 import json
 import mimetypes
 import pathlib
+import re
 import urllib.parse
 
 SITE = None  # --site: a directory of static files, or None
@@ -85,6 +91,43 @@ REQUESTS = []
 REQUESTS_LOCK = threading.Lock()
 
 
+class Refused(Exception):
+    """A value cvcpkg's server refuses (FastAPI's validation): answered 422, {"detail": [err]}."""
+
+    def __init__(self, err):
+        super().__init__(err["msg"])
+        self.err = err
+
+
+def int_value(where, name, raw, ge=None, le=None):
+    """`raw`, a path or query value, as an int, as FastAPI parses an int parameter (pydantic, lax):
+    "1", " 1", "+1", "01" and "1.0" are 1. Anything else ("", "1.5", "star-00", "\"1\""), or a
+    value outside [ge, le], raises Refused with the error cvcpkg.org sends."""
+    t = raw.strip()
+    m = re.fullmatch(r"([+-]?[0-9_]+)\.0*", t)
+    try:
+        n = int(m.group(1) if m else t)
+    except ValueError:
+        raise Refused({"type": "int_parsing", "loc": [where, name],
+                       "msg": "Input should be a valid integer, unable to parse string as an integer",
+                       "input": raw}) from None
+    if ge is not None and n < ge:
+        raise Refused({"type": "greater_than_equal", "loc": [where, name],
+                       "msg": f"Input should be greater than or equal to {ge}", "input": raw,
+                       "ctx": {"ge": ge}})
+    if le is not None and n > le:
+        raise Refused({"type": "less_than_equal", "loc": [where, name],
+                       "msg": f"Input should be less than or equal to {le}", "input": raw,
+                       "ctx": {"le": le}})
+    return n
+
+
+def query_int(qs, name, default, ge=None, le=None):
+    """Query parameter `name` of `qs` (parse_qs, blanks kept) as int_value parses it, or `default`
+    when it isn't sent. Sent more than once, the last counts, as in FastAPI."""
+    return int_value("query", name, qs[name][-1], ge, le) if name in qs else default
+
+
 def slow(name):
     """The name without a "slow:" prefix, after a second's wait when it had one."""
     if name.startswith("slow:"):
@@ -109,8 +152,8 @@ def search(qs):
         and (not one("tag") or one("tag") in (p.get("tags") or "").split(","))
     ]
     rows = ordered(rows)
-    limit = max(0, min(200, int(one("limit") or 50)))
-    offset = max(0, int(one("offset") or 0))
+    limit = query_int(qs, "limit", 50, ge=0, le=200)
+    offset = query_int(qs, "offset", 0, ge=0)
     page = rows[offset:offset + limit]
     reply = {
         "total": len(rows),
@@ -136,24 +179,26 @@ def builders():
 
 
 def builder(bid):
-    b = next((x for x in FLEET["builders"] if str(x["id"]) == bid), None)
-    return (200, b) if b else (404, {"detail": "builder not found"})
+    n = int_value("path", "builder_id", bid)
+    b = next((x for x in FLEET["builders"] if x["id"] == n), None)
+    return (200, b) if b else (404, {"detail": f"builder {n} not found"})
 
 
 def builds(qs):
     one = lambda k: qs.get(k, [""])[0]
+    bid = query_int(qs, "builder_id", None)
+    limit = query_int(qs, "limit", 100, ge=1, le=1000)
+    offset = query_int(qs, "offset", 0, ge=0)
     rows = [j for j in FLEET["builds"] if not one("status") or j["status"] == one("status")]
-    if one("builder_id"):
-        rows = [j for j in rows if str(j.get("builder_id")) == one("builder_id")]
-    limit = max(1, min(1000, int(one("limit") or 100)))
-    offset = max(0, int(one("offset") or 0))
+    if bid is not None:
+        rows = [j for j in rows if j.get("builder_id") == bid]
     return 200, {"total": len(rows), "jobs": rows[offset:offset + limit]}
 
 
 def activity(qs):
     one = lambda k: qs.get(k, [""])[0]
-    limit = max(1, int(one("limit") or 50))
-    offset = max(0, int(one("offset") or 0))
+    limit = query_int(qs, "limit", 50, ge=1, le=200)
+    offset = query_int(qs, "offset", 0, ge=0)
     rows = [e for e in FLEET["activity"]
             if (not one("kind") or e["kind"] == one("kind"))
             and (not one("name") or one("name").lower() in e["name"].lower())]
@@ -399,26 +444,41 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(data)
                 return
         if u.path.startswith("/v1/"):
-            q = urllib.parse.parse_qs(u.query)
+            q = urllib.parse.parse_qs(u.query, keep_blank_values=True)
             with REQUESTS_LOCK:
                 REQUESTS.append({"path": u.path, "q": q.get("q", [""])[0],
                                  "offset": q.get("offset", [""])[0],
                                  "facets": q.get("facets", [""])[0]})
+        try:
+            status, body = self.route(u)
+        except Refused as e:
+            status, body = 422, {"detail": [e.err]}
+        data = (body if isinstance(body, str) else json.dumps(body, ensure_ascii=False)).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def route(self, u):
+        """The (status, body) of GET `u` (urlsplit): a /v1 endpoint, or one of the test hooks."""
+        # Blank values kept: FastAPI refuses builder_id= where it wants an int.
+        qs = lambda: urllib.parse.parse_qs(u.query, keep_blank_values=True)
         if u.path == "/_requests":
             with REQUESTS_LOCK:
                 status, body = 200, {"requests": list(REQUESTS)}
                 if "reset" in urllib.parse.parse_qs(u.query):
                     REQUESTS.clear()
         elif u.path == "/v1/search":
-            status, body = search(urllib.parse.parse_qs(u.query))
+            status, body = search(qs())
         elif u.path == "/v1/builders":
             status, body = builders()
         elif u.path.startswith("/v1/builders/"):
-            status, body = builder(u.path[len("/v1/builders/"):])
+            status, body = builder(urllib.parse.unquote(u.path[len("/v1/builders/"):]))
         elif u.path == "/v1/builds":
-            status, body = builds(urllib.parse.parse_qs(u.query))
+            status, body = builds(qs())
         elif u.path == "/v1/activity":
-            status, body = activity(urllib.parse.parse_qs(u.query))
+            status, body = activity(qs())
         elif u.path == "/v1/auth/whoami":
             status, body = whoami(self.headers.get("Authorization", ""))
         elif u.path == "/_approve":
@@ -431,12 +491,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             status, body = 200, {"status": "ok"}
         else:
             status, body = 404, {"detail": "Not Found"}
-        data = (body if isinstance(body, str) else json.dumps(body, ensure_ascii=False)).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+        return status, body
 
     def do_POST(self):
         u = urllib.parse.urlsplit(self.path)

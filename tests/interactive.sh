@@ -78,6 +78,17 @@ for backend in "$@"; do
     wait_for "the registry's menu > Builders opens the builders window" '14 online, 0 busy, 6 offline'
     wait_for "... and it lists the fleet, a card each" 'star-00 +online +linux/x86_64'
     wait_for "... and follows the live feed" 'offline · live'
+    # The first card's Details opens the Builder window on star-00. Its id goes to
+    # /v1/builders/1 and /v1/builds?builder_id=1 as the registry reads it; quoted ("1"), both are
+    # a 422, as on cvcpkg.org. Focus stays in the main window after the menu: FTXUI's Tab crosses
+    # its ten stops, then the card, then its Details. tvision's goes Refresh, the card, Details.
+    tabs=12
+    if [ "$backend" = tvision ]; then tabs=3; fi
+    i=0
+    while [ $i -lt $tabs ]; do keys Tab; i=$((i + 1)); done
+    keys Enter
+    wait_for "a card's Details opens the Builder window on it" 'star-00  ·  online'
+    wait_for "... with the builder's jobs" 'Recent jobs \(3\)'
     keys C-c
     n=0
     while [ ! -s "$tmp/exit" ]; do
