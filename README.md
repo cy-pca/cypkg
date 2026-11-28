@@ -10,9 +10,10 @@ the browser, where https://cy-pca.github.io/cypkg/ offers them graphically
 (`arigl`) or in a terminal (FTXUI or tvision on xterm.js).
 
 > **Status: M0 in progress.** Search and package pages work in both terminal
-> backends, in `arigl` and in the browser. They need `ari` 3.7.6 or newer (the first
-> release with what they use), and in the browser the `arigl-web` package,
-> 4.0.9 or newer. No registry serves `/apps/cypkg/` yet. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> backends, in `arigl` and in the browser. They need `ari` 4.0.11 or newer (the first
+> release with Ariadne's `type: table`, transfix/libcvc#1614), and in the browser the
+> `arigl-web` package, 4.0.11 or newer. No registry serves `/apps/cypkg/` yet. See
+> [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## How it runs
 
@@ -174,15 +175,50 @@ the component (Windows > Applications brings it back). F10 opens the menu bar fr
 
 | Window | Shows | Refreshes |
 |---|---|---|
-| Search | The search and package pages | On request; Next and Prev come from pages already fetched |
+| Search | The search and package pages: build rows in tables whose headers sort (the search on the registry, a package's builds in cypkg) and whose columns resize | On request; a page already fetched (Next, Prev, a sort seen before) comes from a cache, with no request |
 | Builders | The fleet, a card each, as the web app's: name, status, platform, version; jobs and CPU, memory and disk meters; last heartbeat, org, labels. **Details** (or a click on the card, outside a terminal) opens the Builder window | Live: each builder as it changes; "12 s ago" ages between messages |
 | Builder | One builder: id, version, jobs, heartbeat, org, namespaces, affinity, who registered it; its host (cores, load, memory, disk, OS, Python, uptimes); labels, cross-platform targets and flags; its active and recent jobs | Live: redrawn when the builder changes; its jobs reload when one of them changes |
-| Builds | Build jobs, newest first, by status, a page at a time | Live: jobs on the page change in place; a new one reloads the first page |
-| Activity | What was published, yanked, unyanked, deleted and nuked, as the web app's page: when, the package, the platform and link, the org, who and why, a publish's size. Filter by kind and name, Pause, page back | Live: a new event goes in at the top; paused, filtered or on an older page, they're counted ("Show 3 new") |
+| Builds | Build jobs, newest first, by status, a page at a time, in a table whose columns resize (they don't sort: below) | Live: jobs on the page change in place; a new one reloads the first page |
+| Activity | What was published, yanked, unyanked, deleted and nuked, as the web app's page: when, the package, the platform and link, the org, who and why, a publish's size, in a table whose columns resize (they don't sort: below). Filter by kind and name, Pause, page back | Live: a new event goes in at the top; paused, filtered or on an older page, they're counted ("Show 3 new") |
 | Account | Who the registry says you are; sign in (a browser pairing, or OpenID Connect) and out | When opened |
 
 - **Modules:** each window is its own module (`share/cypkg/<window>.ari`). A
   closed window's module doesn't start until the window is first opened.
+- **Tables:** the search results, a package's builds, the Builds window and the
+  Activity window are Ariadne tables (`type: table`, transfix/libcvc#1614): a
+  header row over rows of cells in one grid.
+  - **Resizing:** drag a seam between two columns, on the header or any row,
+    and that column resizes in every row. The widths are kept under the
+    table's id (`tree.<id>.columns`). A cell is cut at its column's edge, so a
+    widened column shows more of a long name.
+  - **Sorting:** a click on a header with a sort sorts by it, ascending, and a
+    second click descending; the header shows which (`▲` / `▼`, or `^` / `v`).
+    In a terminal the sortable headers are Tab stops, and Enter or Space sorts.
+  - **The search sorts on the registry:** a header sends `sort=name`,
+    `sort=-size` and so on to `/v1/search` (cy-pca/cvcpkg#652), which orders
+    every match before it pages them, and the table goes back to the first
+    page. Its columns sort by name, version, platform, link and size; versions
+    in version order (1.10 after 1.9). A sort is the same search: it keeps the
+    package count and asks for no facets; only the query and the filters make
+    a new one. A registry from before `sort=` ignores it: the header then shows
+    no sort, and the status line says the registry can't sort.
+  - **A package's builds sort in cypkg:** the package page holds every build,
+    so a header sorts them all (`collections.sort-by`: versions with their
+    digit runs as numbers, sizes by their bytes, dates by their timestamps)
+    and then pages them. No request is made, and the sort stays as other
+    packages open.
+  - **The Builds and Activity windows don't sort:** their rows come from
+    `/v1/builds` and `/v1/activity` a page at a time, and neither route has a
+    sort parameter, so a header could only sort the page on screen. Their
+    columns resize.
+- **The search's page cache:** a search on cvcpkg.org takes seconds, so every
+  page the search fetches (and the next page, prefetched in the background) is
+  kept, under its query and filters, its sort and its offset. It holds 16
+  pages; a page older than 5 minutes is fetched again, and a new page replaces
+  the one shown least recently. So paging back, or a header clicked back to a
+  sort already seen, shows at once with no request. A click while the next
+  page is still being prefetched doesn't wait for it, unless it is Next. With
+  `--progress off` (the browser build) there is no prefetch.
 - **Progress:** each window draws a progress bar at its bottom while a request
   is in flight.
 - **Live updates:** while open, the Builders, Builds and Activity windows
@@ -265,7 +301,7 @@ window keeps drawing through an install of many minutes.
 
 ## Running from a checkout
 
-`CYPKG_ARI` names the `ari` to run: the cvcpkg package, 3.7.6 or newer
+`CYPKG_ARI` names the `ari` to run: the cvcpkg package, 4.0.11 or newer
 (`cvcpkg install ari --prefix P`, then `CYPKG_ARI=P/bin/ari`).
 
 ```bash
@@ -273,8 +309,11 @@ CYPKG_ARI=/path/to/ari bin/cypkg --q zlib
 CYPKG_ARI=/path/to/ari bin/cypkg --tvision --package zstd
 ```
 
-Document flags: `--q`, `--platform`, `--arch`, `--link`, `--offset`,
-`--package`, `--pkg-offset`, `--page`, `--open` (windows to open at start,
+Document flags: `--q`, `--platform`, `--arch`, `--link`, `--offset`, `--sort` (the
+search's sort at start: a column, `name`, `version`, `platform`, `link` or `size`, or another
+key `/v1/search` takes, `-` first for descending), `--package`, `--pkg-offset`,
+`--pkg-sort` (a package's builds: `version`, `platform`, `build`, `size` or `published`),
+`--page`, `--open` (windows to open at start,
 e.g. `--open builders,activity`) and `--builder ID` (open that builder's window). `--now`
 pins the clock for "12 s ago" (the snapshot tests pass it). `--progress off` waits for replies without
 a progress bar, for a browser `ari` without libcvc's async fetch
@@ -290,11 +329,11 @@ the `ari` to run.
 | Layer | Script | What it catches |
 |---|---|---|
 | 1. static | `tests/check.sh` | `ari check` on every document: YAML errors, functions the host lacks, bad `args:`, unknown units, and any `(str (state-get ...))` (it quotes the text). `prefixes.ari` and `mainx.ari` are checked with `ARIX` (an `arix`), and skipped without it |
-| 2a. units | `tests/unit.sh` | Each view in `views.ari`, included in a test document over hand-seeded state, with no network: cut names, wide glyphs, empty results, hidden pagers, one view at a time |
-| 2b. functions | `tests/lib.sh` | 16 `ari test` tests of `lib.ari`'s functions (`tests/lib/lib_test.ari`): values in, values out, no network or state |
-| 2c. modules | `tests/modules.sh` | 17 `ari test` tests in `tests/modules/`, each document mounting one module alone against the fixture registry through the holes `main.ari` grants (9 search, 8 package). Each test sets the module's state the way its view does, waits for its `seq` counter to count a finished request, and asserts on what its view reads |
-| 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
-| 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Open, Next, Back, the menu's Builders, a card's Details, Ctrl-C |
+| 2a. units | `tests/unit.sh` | Each view in `views.ari`, included in a test document over hand-seeded state, with no network: names cut at their column, wide glyphs, empty results, hidden pagers, a sorted header's arrow, one view at a time |
+| 2b. functions | `tests/lib.sh` | 38 `ari test` tests of `lib.ari`'s functions (`tests/lib/lib_test.ari`): values in, values out, no network or state. Among them the sort (`sort=` sent only when set, the echo, a refused key), the page cache's choices (a page's key, its 5 minutes, the least recently shown evicted) and a package's builds sorted naturally and stably |
+| 2c. modules | `tests/modules.sh` | 60 `ari test` tests in `tests/modules/`, each document mounting one module alone against the fixture registry through the holes `main.ari` grants (24 search, 11 package, 16 for the fleet windows, 6 pairing, 3 account). Each test sets the module's state the way its view does, waits for its `seq` counter to count a finished request, and asserts on what its view reads. The search's tests check with the fixture's request log that a header sorts every match on the server, that a sort seen before or a page already fetched makes no request, that the cache keeps 16 pages and drops the least recently shown and any older than 5 minutes, and that a refused or ignored sort says so; the package's, that a header sorts all of a package's builds with no request |
+| 3a. whole document | `tests/snapshot.sh` | `main.ari` against the fixture registry, from start-up flags: filters, paging edges, sorts (`--sort`, `--pkg-sort`, a key the registry refuses, a registry that ignores it), nulls, Unicode, and faults (HTTP 500, bad JSON, the wrong shape, connection refused) |
+| 3b. whole document | `tests/interactive.sh` | Real keys in a tmux pane, on FTXUI and tvision: typing, Enter, a filter, Enter on a sortable header (twice: both ways, the rows checked in order), Open, a package's header, Next, Back, the menu's Builders, a card's Details, Ctrl-C |
 | 3c. browser | `tests/browser.mjs` | The wasm page in headless Chrome, served with the fixture API from one origin under a strict CSP. Real keys over DevTools, through the same steps as 3b; it reads the terminal's text. Runs when `ARI_WEB` and `CHROME` are set |
 | 3d. integration | `tests/integration.sh` | cypkg against a real registry instead of the fixture: cy-pca/cvcpkg's own `cvcpkg-server`, installed into a venv (pinned to a commit), run on SQLite in a temp dir, with no database server. It packs the recipes in `tests/integration/recipes/` with `cvcpkg pack`, publishes them with `cvcpkg publish` and the publish API (14 builds of 3 packages; one has 12 builds across platforms, arches and link modes, one has no description, license, homepage or tags), then runs the contract check against it, 14 `ari test` module tests (`tests/integration/modules/`) and 9 snapshots (`tests/integration/expected/`). It asserts what the real server does: an unknown package is 200 with no builds, and `package_count` counts every match only with `facets=true`. With `ARIX`, 10 `arix test` tests of the Prefixes window (`tests/integration/prefixes/`) then plan, install and remove the published packages in a temporary prefix with cvcpkg's own installer. Skipped when cvcpkg can't be installed |
 | 4. contract | `tests/contract.py` | The live registry still sends every field cypkg reads, with the types it expects, and the fixture matches it. Needs the network, so it runs only with `tests/run.sh --live` |
@@ -305,7 +344,12 @@ only) serves 193 real builds of 7 packages, captured from cvcpkg.org with
 (`edge.json`) and faults chosen by name (`fault-500`, `fault-badjson`,
 `fault-shape`, `fault-empty`). It checks the integer parameters (`builder_id`,
 `limit`, `offset`) as cvcpkg's FastAPI routes do, with their bounds, and
-answers a bad one 422 with the same detail.
+answers a bad one 422 with the same detail. It sorts `/v1/search` as
+cy-pca/cvcpkg#652 does: every match by one key before the page is cut, ties in
+its default order both ways, versions by cvcpkg's version order, the sort
+echoed in the reply, and the same 422s for an unknown key or one the group
+lacks. A query starting `nosort:` is answered as a registry from before
+`sort=` would: the sort ignored and not echoed.
 
 ```bash
 ARI=/path/to/ari tests/run.sh

@@ -42,6 +42,7 @@ work on cvcpkg is tracked as C-items in
 | L17 | `(sha256-hex x)` and `(random-token n)` (OS CSPRNG) builtins, for device pairing's verifier | transfix/libcvc#911 open; cypkg pairs with it | M2 (pairing) |
 | L18 | `has?` inside a `load:`ed module (today a NameError), so a module can guard an optional host function itself. cypkg asks in `main.ari` and passes the answers through an `auth` hole | transfix/libcvc#912 open | none (worked around) |
 | L19 | Requests in the single-threaded browser `ari` that never resume (about 1 run in 3, before and after #914) | reported to the L4 session | M0 (browser) |
+| L20 | A table: a header row over rows of cells in one grid (`type: table`), where a click on a header sorts by its column (ascending, then descending) and the columns' seams drag in every row, with the widths kept; and `collections.sort-by`, a stable, natural sort of rows by a field. Part of L5: it neither scrolls nor virtualizes its rows | transfix/libcvc#1614 open, for 4.0.11; cypkg's four tables use it | M0 |
 
 `ari` itself is already packaged. The xterm.js page has been live since
 transfix/libcvc#710.
@@ -55,6 +56,8 @@ transfix/libcvc#710.
 | C2 | Check that every action the web pages do through cookie forms also has a Bearer JSON endpoint. Tokens, org members and admin stats do (`/v1/tokens`, `/v1/orgs/{slug}/members`, `/v1/admin/*`). Add the ones that don't | M3 |
 | C3 | The `cypkg` recipe. It lives in this repo (`recipes/cypkg/`), as libcvc's do, and builds; `.github/workflows/publish.yml` publishes it under cy-pca (`ari >=3.7.6`) | M5 |
 | C4 | One package's dependencies and dependents. `/v1/deps` returns the whole catalog's graph (1.75 MB on cvcpkg.org), which is too much to fetch for one package page. For now the package page shows nothing for dependencies | M1 |
+| C6 | `/v1/search?sort=<key>` (or `-<key>`): every match ordered by one key before it is paged, versions in version order, the sort echoed in the reply, a 422 for a key it lacks. The search table's headers send it | cy-pca/cvcpkg#652 open; M0 |
+| C7 | A sort on `/v1/builds` and `/v1/activity`. They page newest first with no sort parameter, so the Builds and Activity windows' headers don't sort (a header could only sort the page on screen) | later |
 
 ## Milestones
 
@@ -108,9 +111,14 @@ Done, and checked with an `ari` built from libcvc master (#888 merged) plus #883
   `package.ari`. Each owns its state and requests, with views from
   `views.ari` and logic from `lib.ari`. **Search:** a query and the platform, arch and link
   filters, paged 10 rows at a time, sent with `facets=true` so that the
-  package count covers every match. **Package page:** description, latest
+  package count covers every match. The results are a table (L20) whose
+  headers sort every match on the registry (C6), and the pages fetched are
+  cached (16 pages, 5 minutes each), so paging back or a sort seen before
+  makes no request. **Package page:** description, latest
   version, license, homepage, tags, the `cvcpkg install` line, and its builds
-  a page at a time. Results are build rows, as on the web page.
+  a page at a time, in a table that sorts them all in cypkg. Results are build
+  rows, as on the web page. The Builds and Activity windows' tables resize but
+  don't sort (C7).
 - `bin/cypkg` and `bin/cypkg.cmd`. Each allows only the registry's origin
   (`--net-allow`). `cypkg.cmd` has not been run on Windows.
 - The test layers in the README's Tests section, all passing:
@@ -157,3 +165,10 @@ To do for M0:
   - Left: C5, and later a registry serving it (C1).
 - **Wrapped text (L5).** Until it lands, long descriptions are cut at 89
   characters.
+- **Tables (L20, C6).** The tables need transfix/libcvc#1614, in `ari`
+  4.0.11, and the search's sort needs cy-pca/cvcpkg#652 on the registry; a
+  registry without it ignores the sort, which the search then says. When
+  4.0.11 is out: regenerate the frames with the packaged `ari` (and
+  `package_unicode`'s, which this box's `ari.exe` can't render), and point
+  `tests/integration.sh`'s `CVCPKG_REF` at a cvcpkg commit with #652 and
+  regenerate its frames on Linux.
