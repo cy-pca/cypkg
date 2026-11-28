@@ -2,9 +2,13 @@
 #
 # One package's details and its builds, a page at a time. Its on_tick opens the package nav.open names, and pages its builds.
 #
+# The builds table sorts here: the module holds every build of the package (pkg.rows, as JSON), so
+# a header sorts them all with collections.sort-by (pkg.sort: "", "size", "-size") and then pages
+# them. The sort stays as packages are opened.
+#
 # A module: main.ari mounts it with load:. It owns its state (its chroot is includes.<as> in the
 # parent) and reaches the parent only through the holes main.ari grants:
-#   args   read-only: the command line (server, page, and the start-up search)
+#   args   read-only: the command line (server, page, the start-up search, and pkg-sort)
 #   view   which view shows: "search" or "package"
 #   nav    nav.open, the package to open, and nav.start, its first build
 # It imports its own view (views.ari) and logic (lib.ari). A hidden mount doesn't run until it is
@@ -12,7 +16,7 @@
 
 meta:
   name: cypkg-package
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 needs: [args, view, nav, auth]
 
@@ -21,6 +25,8 @@ import: [views.ari, lib.ari, net.ari]
 init: |
   (begin
     (state-set "pkg.name" "")
+    (state-set "pkg.rows" "[]")
+    (state-set "pkg.sort" (text (state-get "args.pkg-sort")))
     (state-set "pkg.offset" 0)
     (state-set "pkg.count" 0)
     (state-set "pkg.total" 0)
@@ -50,7 +56,8 @@ on_tick: |
           (set rows (reply-rows (reply-object r)))
           (if (if (is-list rows) (> (length rows) 0) #f)
               (begin
-                (state-set-tree "pkg.all" rows)
+                ;; Every build as a table row, kept whole for the page step to sort and page.
+                (state-set "pkg.rows" (json-encode (collections.map rows package-row)))
                 (set p (nth rows 0))
                 (state-set "pkg.desc" (cut (text (field p "description")) 92))
                 (state-set "pkg.version" (text (field p "version")))
@@ -64,7 +71,7 @@ on_tick: |
                 (state-set "pkg.status" (package-failure r rows name))
                 (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1))))))
 
-    ;; One page of the open package's builds, from the reply already held.
+    ;; One page of the open package's builds, from the reply already held, in the table's sort.
     (if (= (state-get "req.pkgpage") "1")
         (begin
           (state-set "req.pkgpage" "0")
@@ -73,15 +80,8 @@ on_tick: |
           (set off (nth b 0))
           (set end (nth b 1))
           (state-set "pkg.offset" off)
-          (set at (lambda (i k) (text (state-get (str-concat "pkg.all." i "." k)))))
-          (set rows (list))
-          (set i off)
-          (while (< i end)
-            (set rows (append rows (build-row (at i "version") (at i "platform") (at i "arch")
-                                              (at i "build_type") (at i "link") (at i "size_bytes")
-                                              (at i "published_at"))))
-            (set i (+ i 1)))
-          (state-set-tree "pkg.page" rows)
+          (set all (sort-rows (json-parse (state-get "pkg.rows")) (text (state-get "pkg.sort"))))
+          (state-set-tree "pkg.page" (slice all off end))
           (state-set "pkg.count" (- end off))
           (state-set "pkg.status" (str-concat "builds " (+ off 1) "-" end " of " total))
           (state-set "pkg.seq" (+ (int (state-get "pkg.seq")) 1)))))

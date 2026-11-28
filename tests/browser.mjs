@@ -209,12 +209,20 @@ await step('the page runs main.ari and searches every build', has('builds 1-10 o
 await step('... against the registry that serves it', has(`registry: ${ORIGIN}`));
 await key('Tab'); await type('zstd'); await key('Enter');
 await step('typing a query and Enter searches', t => /builds 1-10 of 25, 1 package(?!s)/.test(t));
-for (let i = 0; i < 4; i++) await key('Tab');
+// The results' sortable headers are Tab stops after the filters (Platform, Arch, Link, then name,
+// version, platform, link and size). Enter on one sorts every match by it, on the server.
+for (let i = 0; i < 8; i++) await key('Tab');
 await key('Enter');
+await step('Enter on a sortable header sorts every match, smallest first',
+           t => /size (▲|\^)/.test(t) &&
+                /(295 KB[\s\S]*){6}301 KB[\s\S]*301 KB[\s\S]*322 KB[\s\S]*364 KB/.test(t));
+await key('Tab'); await key('Enter');
 await step('Open starts the package module', has('package: zstd'));
 await step('... which loads the package', t => t.includes('install: cvcpkg install zstd') &&
                                                t.includes('builds 1-10 of 25'));
-await key('Tab'); await key('Tab'); await key('Enter');
+// Back, then the builds' five sortable headers, then Next.
+for (let i = 0; i < 7; i++) await key('Tab');
+await key('Enter');
 await step('Next pages its builds', has('builds 11-20 of 25'));
 await key('Tab'); await key('Enter');
 await step('Back returns to the search', t => t.includes('Search: [zstd]') &&

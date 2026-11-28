@@ -5,16 +5,80 @@
 # includes.s.*, the way its view does, waits for its search.seq to
 # count one more finished request, and asserts on what its view reads. tests/modules.sh puts the
 # fixture's URL in place of @SERVER@ and runs `ari test`. Fixture numbers: 196 builds of 10
-# packages; zstd has 25 builds, 5 of them linux.
+# packages; zstd has 25 builds, 5 of them linux; zlib matches 51 builds of 2 packages.
+#
+# The sort and the page cache: a header click writes includes.s.search.sort and runs the table's
+# on: (offset 0, req.search "1"), as these tests do. The fixture's /_requests says what was asked,
+# with which sort, so a test can tell a page from the cache (no request) from one fetched.
 
 meta:
   name: cypkg-search-test
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 requires: [net]
 
 # lib.ari's functions (text and the like) for the tests' own programs.
 import: ../../share/cypkg/lib.ari
+
+functions: |
+  ;; Ask for the search the view would (req.search "1"), and wait (up to 10 s) for it to finish.
+  (defun search-now ()
+    (set n (int (state-get "includes.s.search.seq")))
+    (state-set "includes.s.req.search" "1")
+    (set i 0)
+    (while (if (<= (int (state-get "includes.s.search.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1))))
+
+  ;; A header click: the sort, then the table's on:.
+  (defun click-sort (srt)
+    (state-set "includes.s.search.sort" srt)
+    (state-set "includes.s.search.offset" 0)
+    (search-now))
+
+  ;; Forget the requests the fixture has seen.
+  (defun reset-asked () (http-get (str-concat (state-get "args.server") "/_requests?reset=1")))
+
+  ;; The /v1/search requests since the last reset for q, at offset off, sent with sort srt (nil:
+  ;; none sent).
+  (defun asked (q off srt)
+    (set d (reply-object (http-get (str-concat (state-get "args.server") "/_requests"))))
+    (set n 0)
+    (for r (field d "requests")
+      (if (= (field r "path") "/v1/search")
+          (if (= (field r "q") q)
+              (if (= (field r "offset") (str off)) (if (= (field r "sort") srt) (set n (+ n 1)))))))
+    n)
+
+  ;; The first /v1/search request since the last reset for q at offset off, or nil.
+  (defun request-for (q off)
+    (set d (reply-object (http-get (str-concat (state-get "args.server") "/_requests"))))
+    (set hit nil)
+    (for r (field d "requests")
+      (if (= hit nil)
+          (if (= (field r "path") "/v1/search")
+              (if (= (field r "q") q) (if (= (field r "offset") (str off)) (set hit r))))))
+    hit)
+
+  ;; The cache slot holding the page of q (no filters), sort srt, offset off, or -1.
+  (defun slot-of (q srt off)
+    (set k (cache-key (search-key q "all" "all" "all") srt off))
+    (set at -1)
+    (set n 0)
+    (while (< n 16)
+      (if (= (text (state-get (str-concat "includes.s.search.cache." n ".key"))) k) (set at n))
+      (set n (+ n 1)))
+    at)
+
+  ;; Whether row i's size is at least (desc #t) or at most (#f) row i+1's, for every row shown.
+  (defun sizes-in-order (desc)
+    (set ok #t)
+    (set i 0)
+    (set n (- (int (state-get "includes.s.search.count")) 1))
+    (while (< i n)
+      (set a (int (state-get (str-concat "includes.s.search.res.packages." i ".size_bytes"))))
+      (set b (int (state-get (str-concat "includes.s.search.res.packages." (+ i 1) ".size_bytes"))))
+      (if (if desc (< a b) (> a b)) (set ok #f))
+      (set i (+ i 1)))
+    ok)
 
 args:
   server: {type: string, default: "@SERVER@"}
@@ -71,11 +135,10 @@ tests:
       (set count (lambda ()
         (let ((r (http-get (str-concat (state-get "args.server") "/_requests"))))
           (length (get-attr (json-parse (get-attr r "body")) "requests")))))
-      ;; The module prefetches page 2 right after showing page 1.
+      ;; The module prefetches page 2 into its cache right after showing page 1.
       (set i 0)
-      (while (if (!= (text (state-get "includes.s.search.next.offset")) "10") (< i 500) #f)
-        (sleep 0.02) (set i (+ i 1)))
-      (assert (= (text (state-get "includes.s.search.next.offset")) "10") "page 2 was never prefetched")
+      (while (if (= (slot-of "zstd" "" 10) -1) (< i 250) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (!= (slot-of "zstd" "" 10) -1) "page 2 was never prefetched")
       (set before (count))
       (set n (int (state-get "includes.s.search.seq")))
       (state-set "includes.s.search.offset" 10)
@@ -141,6 +204,142 @@ tests:
       (assert (= (state-get "includes.s.search.status") "builds 11-20 of 25, 1 package")
               (state-get "includes.s.search.status"))
       (assert (= (count) before) "Prev made a request"))
+
+  a header sorts every match on the server, from the first page: |
+    (begin
+      (state-set "includes.s.search.offset" 10)
+      (search-now)
+      (reset-asked)
+      (click-sort "-size")
+      (assert (= (state-get "includes.s.search.offset") "0"))
+      (assert (= (asked "zstd" 0 "-size") 1) "the first page, sorted by the server")
+      (assert (= (state-get "includes.s.search.total") "25") "the same matches")
+      ;; A sort is the same search: no facets, and the package count it had.
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 25, 1 package")
+              (state-get "includes.s.search.status"))
+      (assert (sizes-in-order #t) "the biggest first"))
+
+  the other direction is a page of its own: |
+    (begin
+      (reset-asked)
+      (click-sort "size")
+      (assert (= (asked "zstd" 0 "size") 1))
+      (assert (sizes-in-order #f) "the smallest first"))
+
+  a sort seen before shows at once, with no request: |
+    (begin
+      (reset-asked)
+      (click-sort "-size")
+      (assert (= (asked "zstd" 0 "-size") 0) "toggled back: the page came from the cache")
+      (assert (sizes-in-order #t))
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 25, 1 package"))
+      (reset-asked)
+      (click-sort "size")
+      (assert (= (asked "zstd" 0 "size") 0) "and again")
+      (assert (sizes-in-order #f)))
+
+  paging a sorted search keeps the sort: |
+    (begin
+      (click-sort "-size")
+      (set i 0)
+      (while (if (= (slot-of "zstd" "-size" 10) -1) (< i 250) #f) (sleep 0.02) (set i (+ i 1)))
+      (assert (!= (slot-of "zstd" "-size" 10) -1) "page 2 of the sort was prefetched")
+      (set smallest (int (state-get "includes.s.search.res.packages.9.size_bytes")))
+      (reset-asked)
+      (state-set "includes.s.search.offset" 10)
+      (search-now)
+      (assert (= (asked "zstd" 10 "-size") 0) "Next came from the cache")
+      (assert (= (state-get "includes.s.search.status") "builds 11-20 of 25, 1 package"))
+      (assert (<= (int (state-get "includes.s.search.res.packages.0.size_bytes")) smallest)
+              "page 2 goes on down from page 1"))
+
+  a new query keeps the sort, and asks for facets again: |
+    (begin
+      (reset-asked)
+      (state-set "includes.s.search.q" "zlib")
+      (state-set "includes.s.search.offset" 0)
+      (search-now)
+      (set sent (request-for "zlib" 0))
+      (assert (!= sent nil) "no request for zlib's first page")
+      (assert (= (field sent "sort") "-size") (json-encode sent))
+      (assert (= (field sent "facets") "true") "a new query is a new search")
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 51, 2 packages")
+              (state-get "includes.s.search.status"))
+      (assert (sizes-in-order #t))
+      ;; Back to zstd: its first page, so sorted, is cached, with its package count.
+      (reset-asked)
+      (state-set "includes.s.search.q" "zstd")
+      (search-now)
+      (assert (= (asked "zstd" 0 "-size") 0) "from the cache")
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 25, 1 package")
+              (state-get "includes.s.search.status")))
+
+  a sort the registry doesn't have is a status: |
+    (begin
+      (click-sort "-bogus")
+      (assert (= (state-get "includes.s.search.count") "0"))
+      (assert (= (state-get "includes.s.search.status") "search failed: the registry can't sort by -bogus")
+              (state-get "includes.s.search.status")))
+
+  a registry from before sort= shows its own order, and says so: |
+    (begin
+      (state-set "includes.s.search.q" "nosort:zstd")
+      (click-sort "-size")
+      (assert (= (state-get "includes.s.search.total") "25"))
+      (assert (= (text (state-get "includes.s.search.sort")) "") "the header shows no sort")
+      (assert (string.ends-with (state-get "includes.s.search.status")
+                                "(this registry can't sort by -size)")
+              (state-get "includes.s.search.status")))
+
+  # Every build, by name: page 1, then 17 more pages (and their prefetches), 18 pages new to the
+  # cache. Page 1, shown least recently, is the one that goes. (Three tests, for a test's steps.)
+  the cache fills, a page at a time: |
+    (begin
+      (state-set "includes.s.search.q" "")
+      (click-sort "name")
+      (assert (= (state-get "includes.s.search.total") "196"))
+      (for off (list 10 20 30 40 50 60 70 80)
+        (state-set "includes.s.search.offset" off)
+        (search-now))
+      (assert (= (state-get "includes.s.search.status") "builds 81-90 of 196, 10 packages")
+              (state-get "includes.s.search.status")))
+
+  the cache stays full: |
+    (begin
+      (for off (list 90 100 110 120 130 140 150 160 170)
+        (state-set "includes.s.search.offset" off)
+        (search-now))
+      (assert (= (state-get "includes.s.search.status") "builds 171-180 of 196, 10 packages")
+              (state-get "includes.s.search.status")))
+
+  the cache keeps the 16 pages shown last: |
+    (begin
+      (assert (not (state-exists "includes.s.search.cache.16.key")) "16 slots, no more")
+      (set full 0)
+      (for n (collections.range 0 16)
+        (if (!= (text (state-get (str-concat "includes.s.search.cache." n ".key"))) "") (set full (+ full 1))))
+      (assert (= full 16) (str full))
+      (assert (= (slot-of "" "name" 0) -1) "the least recently shown page went")
+      (assert (!= (slot-of "" "name" 170) -1) "the last one shown stays")
+      (reset-asked)
+      (click-sort "name")
+      (assert (= (asked "" 0 "name") 1) "so it is fetched again"))
+
+  a page older than 5 minutes is fetched again: |
+    (begin
+      (set at (slot-of "" "name" 0))
+      (assert (!= at -1))
+      (state-set (str-concat "includes.s.search.cache." at ".at") (- (time-now) 301))
+      (reset-asked)
+      (search-now)
+      (assert (= (asked "" 0 "name") 1) "expired: asked again")
+      (reset-asked)
+      (search-now)
+      (assert (= (asked "" 0 "name") 0) "then cached again")
+      ;; Back to zstd, unsorted, for the tests after.
+      (state-set "includes.s.search.q" "zstd")
+      (click-sort "")
+      (assert (= (state-get "includes.s.search.status") "builds 1-10 of 25, 1 package")))
 
   # A pick in a filter's combo does what its on: does (views.ari): from the first row, search again.
   # tests/interactive.sh picks one with the keyboard in both terminal backends.

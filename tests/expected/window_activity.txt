@@ -6,23 +6,23 @@
 │Kind: < all >Name: [][ Pause ][ Refresh ]                                                         │
 │events 1-10 of 30                                                                                 │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
-│when      event   package                   platform                   org   by             size  │
-│17 min agoyank    libglvnd 1.7.0+cvc.1      netbsd/x86_64 shared       —     admin-2026-...       │
-│27 min agoyank    libglvnd 1.7.0+cvc.2      netbsd/x86_64 shared       —     admin-2026-...       │
-│29 min agopublish libglvnd 1.7.0+cvc.3      netbsd/x86_64 shared       —     builders-20... 746 KB│
-│32 min agopublish libdrm 2.4.134+cvc.1      netbsd/x86_64 shared       —     builders-20... 745 KB│
-│1 h ago   publish libxcb 1.17.0+cvc.4       netbsd/x86_64 shared       —     builders-20... 744 KB│
-│1 h ago   publish python311 3.11.13+cvc.13  netbsd/x86_64 shared       —     builders-20... 743 KB│
-│1 h ago   publish mesa 25.3.6+cvc.1         freebsd/x86_64 shared      —     builders-20... 742 KB│
-│1 h ago   publish openssl 3.4.1+cvc.11      netbsd/x86_64 shared       —     builders-20... 741 KB│
-│1 h ago   publish libxcb 1.17.0+cvc.4       freebsd/x86_64 shared      —     builders-20... 740 KB│
-│1 h ago   publish libglvnd 1.7.0+cvc.3      freebsd/x86_64 shared      —     builders-20... 739 KB│
+│when       event    package                    platform               org    by            size   │
+│17 min ago yank     libglvnd 1.7.0+cvc.1       netbsd/x86_64 shared   —      admin-2026-09        │
+│27 min ago yank     libglvnd 1.7.0+cvc.2       netbsd/x86_64 shared   —      admin-2026-09        │
+│29 min ago publish  libglvnd 1.7.0+cvc.3       netbsd/x86_64 shared   —      builders-2026 746 KB │
+│32 min ago publish  libdrm 2.4.134+cvc.1       netbsd/x86_64 shared   —      builders-2026 745 KB │
+│1 h ago    publish  libxcb 1.17.0+cvc.4        netbsd/x86_64 shared   —      builders-2026 744 KB │
+│1 h ago    publish  python311 3.11.13+cvc.13   netbsd/x86_64 shared   —      builders-2026 743 KB │
+│1 h ago    publish  mesa 25.3.6+cvc.1          freebsd/x86_64 shared  —      builders-2026 742 KB │
+│1 h ago    publish  openssl 3.4.1+cvc.11       netbsd/x86_64 shared   —      builders-2026 741 KB │
+│1 h ago    publish  libxcb 1.17.0+cvc.4        freebsd/x86_64 shared  —      builders-2026 740 KB │
+│1 h ago    publish  libglvnd 1.7.0+cvc.3       freebsd/x86_64 shared  —      builders-2026 739 KB │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
 │[ < Newer ][ Older > ]                                                                            │
 │                                                                                                  │
 │                                                                                                  │
 │                                                                                                  │
-│─────────────────────────────────────────────────────────────────────────────────────────────────╴│
+│                                                                                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
 

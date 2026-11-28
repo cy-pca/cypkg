@@ -11,7 +11,7 @@ meta:
   name: cypkg
   version: 0.2.0
   description: A cvcpkg registry client, with prefixes (scripting hosts)
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 requires:
   - net
@@ -28,6 +28,8 @@ args:
   link: {type: string, default: all, help: "Only shared or static builds (all, shared, static)"}
   offset: {type: int, default: 0, help: The first search row to show}
   pkg-offset: {type: int, default: 0, help: The first build of the opened package to show}
+  sort: {type: string, default: "", help: "Sort the search at start by name, version, platform, link or size (the columns), or arch, build_type, published or org; -size for descending"}
+  pkg-sort: {type: string, default: "", help: "Sort a package's builds by version, platform, build, size or published; -size for descending"}
   page: {type: int, default: 10, help: Rows per page}
   open: {type: string, default: "", help: "Windows to open at start, comma-separated: builders, builds, activity, account, prefixes"}
   progress: {type: string, default: "on", help: "off: wait for replies without a progress bar (the browser build passes it)"}

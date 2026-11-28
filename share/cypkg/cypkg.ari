@@ -32,7 +32,7 @@ meta:
   name: cypkg
   version: 0.2.0
   description: A cvcpkg registry client
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 requires:
   - net
@@ -81,6 +81,8 @@ init: |
             "link" (arg "link" "all")
             "offset" (int (arg "offset" 0))
             "pkg-offset" (int (arg "pkg-offset" 0))
+            "sort" (as-text (arg "sort" ""))
+            "pkg-sort" (as-text (arg "pkg-sort" ""))
             "page" (int (arg "page" 10))
             "open" (arg "open" "")
             "progress" (arg "progress" "on")

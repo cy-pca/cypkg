@@ -1,0 +1,41 @@
+# search_sorted: results sorted by a column
+#
+# The results table sorted by size, descending (search.sort "-size"): its header shows the
+# direction, the rows are the server's order for it. The other headers show none.
+# A view unit test: it includes the unit from share/cypkg/views.ari over state seeded here, with no
+# network. tests/unit.sh renders it with ari snapshot and compares tests/unit/expected/.
+
+meta:
+  name: unit-search_sorted
+  min_libcvc: 4.0.10
+
+import: ../../share/cypkg/views.ari
+
+args:
+  page: {type: int, default: 10}
+
+init: |
+  (begin
+    (state-set "view" "search")
+    (state-set "search.q" "zlib")
+    (state-set "search.platform" "all")
+    (state-set "search.arch" "all")
+    (state-set "search.link" "all")
+    (state-set "search.sort" "-size")
+    (state-set "search.offset" 0)
+    (state-set "search.total" 3)
+    (state-set "search.status" "builds 1-3 of 3, 2 packages")
+    (state-set-tree "search.res" (dict "packages" (list
+      (dict "name" "assimp" "version" "6.0.5+cvc.2" "platform" "windows" "arch" "x86_64" "link" "shared" "size_bytes" 59182271)
+      (dict "name" "zlib" "version" "1.3.1+cvc.5" "platform" "windows" "arch" "x86_64" "link" "static" "size_bytes" 328900)
+      (dict "name" "zlib" "version" "1.3.1+cvc.5" "platform" "macos" "arch" "arm64" "link" "static" "size_bytes" 126100)
+    )))
+    (state-set "search.count" 3))
+
+windows:
+  - window: test
+    id: main
+    pos: [0, 0]
+    size: [800, 464]
+    children:
+      - include: search_view

@@ -30,10 +30,11 @@ server=http://127.0.0.1:$(cat "$tmp/port")
 screen() { tmux capture-pane -p -t "$session"; }
 keys() { tmux send-keys -t "$session" "$@"; sleep 0.25; }
 type_text() { tmux send-keys -t "$session" -l "$1"; sleep 0.25; }
-# wait_for STEP PATTERN: the screen matches the extended regex PATTERN within 10 s.
+# wait_for STEP PATTERN [rows]: the screen matches the extended regex PATTERN within 10 s. With
+# rows, the screen is one line (its rows joined by spaces), so PATTERN can say what order rows come in.
 wait_for() {
   n=0
-  until screen | grep -q -E -- "$2"; do
+  until if [ "${3:-}" = rows ]; then screen | tr '\n' ' '; else screen; fi | grep -q -E -- "$2"; do
     n=$((n + 1))
     if [ $n -ge 100 ]; then
       echo "FAIL $backend: $1: the screen never showed /$2/"; screen; return 1
@@ -57,10 +58,24 @@ for backend in "$@"; do
     keys Tab; keys Right
     wait_for "a platform filter searches again" 'Platform: < linux >'
     wait_for "... and shows only that platform" 'builds 1-5 of 5, 1 package([^s]|$)'
-    keys Tab; keys Tab; keys Tab; keys Enter
+    # The results' sortable headers are Tab stops after the filters: Arch, Link, then name,
+    # version, platform, link and size. Enter on one sorts every match by it, on the server
+    # (sort=), ascending and then descending; its header shows which (an arrow, or ^ and v).
+    keys Tab; keys Tab; keys Tab; keys Tab; keys Tab; keys Tab; keys Tab; keys Enter
+    wait_for "Enter on a sortable header sorts by it" 'size (▲|\^)'
+    wait_for "... on the server, the smallest first" '499 KB .*529 KB .*575 KB .*3005 KB .*3628 KB' rows
+    keys Enter
+    wait_for "... and Enter again the other way" 'size (▼|v)'
+    wait_for "... the biggest first" '3628 KB .*3005 KB .*575 KB .*529 KB .*499 KB' rows
+    keys Tab; keys Enter
     wait_for "Open shows the package" 'package: zstd'
     wait_for "... with its install line" 'install: cvcpkg install zstd'
     wait_for "... and its first builds" 'builds 1-10 of 25'
+    # The builds' headers follow Back: version, platform, build, size, published. The module
+    # holds every build, so it sorts them itself, all 25, and pages them.
+    keys Tab; keys Tab; keys Tab; keys Tab; keys Tab; keys Enter
+    wait_for "a header sorts the package's builds" 'size (▲|\^)'
+    wait_for "... every one of them: the smallest first" '(295 KB .*){6}301 KB .*301 KB .*322 KB .*364 KB' rows
     keys Tab; keys Tab; keys Enter
     wait_for "Next pages the builds" 'builds 11-20 of 25'
     keys Enter
@@ -68,6 +83,7 @@ for backend in "$@"; do
     keys Tab; keys Enter
     wait_for "Back returns to the search" 'Search: \[zstd\]'
     wait_for "... with its filters kept" 'builds 1-5 of 5, 1 package([^s]|$)'
+    wait_for "... and its sort" 'size (▼|v)'
     # F10 opens the menu bar: cypkg (Quit), then the component's menu, named by the registry's
     # host, with Search, Builders, Builds, Activity and Account. FTXUI opens it on Right, so one
     # Down reaches Builders. tvision opens it on the first Down with nothing selected; Search is
@@ -81,8 +97,9 @@ for backend in "$@"; do
     # The first card's Details opens the Builder window on star-00. Its id goes to
     # /v1/builders/1 and /v1/builds?builder_id=1 as the registry reads it; quoted ("1"), both are
     # a 422, as on cvcpkg.org. Focus stays in the main window after the menu: FTXUI's Tab crosses
-    # its ten stops, then the card, then its Details. tvision's goes Refresh, the card, Details.
-    tabs=12
+    # its fifteen stops (ten, and the results' five sortable headers), then the card, then its
+    # Details. tvision's goes Refresh, the card, Details.
+    tabs=17
     if [ "$backend" = tvision ]; then tabs=3; fi
     i=0
     while [ $i -lt $tabs ]; do keys Tab; i=$((i + 1)); done

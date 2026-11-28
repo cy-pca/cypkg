@@ -8,21 +8,28 @@
 # The contract. The views read:
 #   view                      "search" or "package"; each unit shows only for its own
 #   args.page                 rows per page
-#   search.q .platform .arch .link .offset .count .total .status
+#   search.q .platform .arch .link .sort .offset .count .total .status
 #   search.res.packages.{i}.name .version .platform .arch .link .size_bytes
-#   pkg.name .desc .version .license .homepage .tags .install .status .offset .count .total
-#   pkg.page.{i}.version .where .kind .size .date
+#   pkg.name .desc .version .license .homepage .tags .install .status .sort .offset .count .total
+#   pkg.page.{i}.version .platform .build .size_text .date
 #   search.bar, pkg.bar       a progress bar while a request is in flight ("" otherwise)
 # The views write:
 #   search.q .platform .arch .link .offset, and req.search "1" to ask for a search
+#   search.sort               the results table's sort ("", "size", "-size"), from a header click
 #   nav.open, and view "package", to open a package (the package module reads nav.open)
 #   pkg.offset, and req.pkgpage "1" to ask for another page of builds
+#   pkg.sort                  the builds table's sort, from a header click
 #   view                      "search", from Back
+#
+# The tables are type: table (ARIADNE.md, Tables in 5.3): a header row over rows of cells in one
+# grid, so a column's seam dragged on any row resizes it in every row, and the widths persist
+# under the table's id (tree.<id>.columns). A cell is cut at its column, so a widened column shows
+# more. A header with a sort: key sorts by it on a click: ascending, then descending.
 
 
 meta:
   name: cypkg-views
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 units:
   search_view:
@@ -54,38 +61,37 @@ units:
       - text: ""
         bind: search.status
       - separator
-      - type: group
-        layout: { kind: grid, col_widths: [64, 232, 144, 144, 64, 80] }
+      # The results. A header sorts every match, on the server (cvcpkg's sort=): its on: goes back
+      # to the first page and asks for the search, which a cached page answers at once. The
+      # platform column sorts by the platform (then the server's own order), not the arch.
+      - type: table
+        id: results
+        bind: search.sort
+        on: (begin (state-set "search.offset" 0) (state-set "req.search" "1"))
+        rows: (state-get "search.count")
         visible_when: (> (int (state-get "search.count")) 0)
-        children:
+        columns:
+          - { label: "", width: 64 }
+          - { label: name, width: 232, sort: name }
+          - { label: version, width: 144, sort: version }
+          - { label: platform, width: 144, sort: platform }
+          - { label: link, width: 64, sort: link }
+          - { label: size, width: 80, sort: size }
+        cells:
+          - type: button
+            label: "Open"
+            on: (begin (state-set "nav.open" (state-get "search.res.packages.{i}.name"))
+                       (state-set "view" "package"))
           - text: ""
-          - text: "name"
-          - text: "version"
-          - text: "platform"
-          - text: "link"
-          - text: "size"
-      - type: group
-        repeat: (state-get "search.count")
-        children:
-          - type: group
-            id: hit{i}
-            layout: { kind: grid, col_widths: [64, 232, 144, 144, 64, 80] }
-            children:
-              - type: button
-                label: "Open"
-                on: (begin (state-set "nav.open" (state-get "search.res.packages.{i}.name"))
-                           (state-set "view" "package"))
-              # Cut to the column (28 cells), or it runs into the next one.
-              - text: ""
-                bind: '(let ((n (state-get "search.res.packages.{i}.name"))) (if (> (string.length n) 28) (string.join (list (string.substring n 0 27) "…") "") n))'
-              - text: ""
-                bind: search.res.packages.{i}.version
-              - text: ""
-                bind: '(string.join (list (state-get "search.res.packages.{i}.platform") (state-get "search.res.packages.{i}.arch")) "/")'
-              - text: ""
-                bind: search.res.packages.{i}.link
-              - text: ""
-                bind: '(let ((b (state-get "search.res.packages.{i}.size_bytes"))) (if (= b "") "" (if (< (int b) 1024) (string.join (list b "B") " ") (string.join (list (str (int (/ (int b) 1024))) "KB") " "))))'
+            bind: search.res.packages.{i}.name
+          - text: ""
+            bind: search.res.packages.{i}.version
+          - text: ""
+            bind: '(string.join (list (state-get "search.res.packages.{i}.platform") (state-get "search.res.packages.{i}.arch")) "/")'
+          - text: ""
+            bind: search.res.packages.{i}.link
+          - text: ""
+            bind: '(let ((b (state-get "search.res.packages.{i}.size_bytes"))) (if (= b "") "" (if (< (int b) 1024) (string.join (list b "B") " ") (string.join (list (str (int (/ (int b) 1024))) "KB") " "))))'
       - separator
       - type: group
         layout: { kind: horizontal }
@@ -139,32 +145,31 @@ units:
       - separator
       - text: ""
         bind: pkg.status
-      - type: group
-        layout: { kind: grid, col_widths: [144, 176, 128, 104, 104] }
+      # The package's builds. The module holds them all, so a header sorts them here
+      # (collections.sort-by: 1.9 before 1.10, sizes by their bytes), then pages them.
+      - type: table
+        id: package_builds
+        bind: pkg.sort
+        on: (begin (state-set "pkg.offset" 0) (state-set "req.pkgpage" "1"))
+        rows: (state-get "pkg.count")
         visible_when: (> (int (state-get "pkg.count")) 0)
-        children:
-          - text: "version"
-          - text: "platform"
-          - text: "build"
-          - text: "size"
-          - text: "published"
-      - type: group
-        repeat: (state-get "pkg.count")
-        children:
-          - type: group
-            id: build{i}
-            layout: { kind: grid, col_widths: [144, 176, 128, 104, 104] }
-            children:
-              - text: ""
-                bind: pkg.page.{i}.version
-              - text: ""
-                bind: pkg.page.{i}.where
-              - text: ""
-                bind: pkg.page.{i}.kind
-              - text: ""
-                bind: pkg.page.{i}.size
-              - text: ""
-                bind: pkg.page.{i}.date
+        columns:
+          - { label: version, width: 144, sort: version }
+          - { label: platform, width: 176, sort: platform }
+          - { label: build, width: 128, sort: build }
+          - { label: size, width: 104, sort: size }
+          - { label: published, width: 104, sort: published }
+        cells:
+          - text: ""
+            bind: pkg.page.{i}.version
+          - text: ""
+            bind: pkg.page.{i}.platform
+          - text: ""
+            bind: pkg.page.{i}.build
+          - text: ""
+            bind: pkg.page.{i}.size_text
+          - text: ""
+            bind: pkg.page.{i}.date
       - separator
       - type: group
         layout: { kind: horizontal }
@@ -262,35 +267,32 @@ units:
           - text: ""
             bind: builds.status
       - separator
-      - type: group
-        layout: { kind: grid, col_widths: [56, 176, 136, 80, 48, 128] }
+      # The jobs: resizable columns, but no sort. /v1/builds pages them newest first and has no
+      # sort= (cvcpkg's app.py), so a header could only sort the page on screen.
+      - type: table
+        id: jobs
+        rows: (state-get "builds.count")
         visible_when: (> (int (state-get "builds.count")) 0)
-        children:
-          - text: "job"
-          - text: "recipe"
-          - text: "platform"
-          - text: "status"
-          - text: "on"
-          - text: "submitted"
-      - type: group
-        repeat: (state-get "builds.count")
-        children:
-          - type: group
-            id: build{i}
-            layout: { kind: grid, col_widths: [56, 176, 136, 80, 48, 128] }
-            children:
-              - text: ""
-                bind: builds.res.jobs.{i}.id
-              - text: ""
-                bind: '(let ((n (state-get "builds.res.jobs.{i}.recipe_name"))) (if (> (string.length n) 21) (string.join (list (string.substring n 0 20) "…") "") n))'
-              - text: ""
-                bind: '(string.join (list (state-get "builds.res.jobs.{i}.platform") (state-get "builds.res.jobs.{i}.arch")) "/")'
-              - text: ""
-                bind: builds.res.jobs.{i}.status
-              - text: ""
-                bind: builds.res.jobs.{i}.builder_id
-              - text: ""
-                bind: '(string.replace (string.substring (state-get "builds.res.jobs.{i}.submitted_at") 0 16) "T" " ")'
+        columns:
+          - { label: job, width: 56 }
+          - { label: recipe, width: 176 }
+          - { label: platform, width: 136 }
+          - { label: status, width: 80 }
+          - { label: "on", width: 48 }
+          - { label: submitted, width: 128 }
+        cells:
+          - text: ""
+            bind: builds.res.jobs.{i}.id
+          - text: ""
+            bind: builds.res.jobs.{i}.recipe_name
+          - text: ""
+            bind: '(string.join (list (state-get "builds.res.jobs.{i}.platform") (state-get "builds.res.jobs.{i}.arch")) "/")'
+          - text: ""
+            bind: builds.res.jobs.{i}.status
+          - text: ""
+            bind: builds.res.jobs.{i}.builder_id
+          - text: ""
+            bind: '(string.replace (string.substring (state-get "builds.res.jobs.{i}.submitted_at") 0 16) "T" " ")'
       - separator
       - type: group
         layout: { kind: horizontal }
@@ -358,38 +360,35 @@ units:
                 (state-set "activity.paused" "")
                 (state-set "req.refresh" "1"))
       - separator
-      - type: group
-        layout: { kind: grid, col_widths: [80, 64, 208, 216, 48, 120, 56] }
+      # The events: resizable columns, but no sort. /v1/activity pages them newest first and has
+      # no sort= (cvcpkg's app.py), and new ones go in at the top as they come.
+      - type: table
+        id: events
+        rows: (state-get "activity.count")
         visible_when: (> (int (state-get "activity.count")) 0)
-        children:
-          - text: "when"
-          - text: "event"
-          - text: "package"
-          - text: "platform"
-          - text: "org"
-          - text: "by"
-          - text: "size"
-      - type: group
-        repeat: (state-get "activity.count")
-        children:
-          - type: group
-            id: event{i}
-            layout: { kind: grid, col_widths: [80, 64, 208, 216, 48, 120, 56] }
-            children:
-              - text: ""
-                bind: activity.rows.{i}.when
-              - text: ""
-                bind: activity.rows.{i}.kind
-              - text: ""
-                bind: activity.rows.{i}.what
-              - text: ""
-                bind: activity.rows.{i}.where
-              - text: ""
-                bind: activity.rows.{i}.org
-              - text: ""
-                bind: activity.rows.{i}.who
-              - text: ""
-                bind: activity.rows.{i}.size
+        columns:
+          - { label: when, width: 80 }
+          - { label: event, width: 64 }
+          - { label: package, width: 208 }
+          - { label: platform, width: 176 }
+          - { label: org, width: 48 }
+          - { label: by, width: 104 }
+          - { label: size, width: 56 }
+        cells:
+          - text: ""
+            bind: activity.rows.{i}.when
+          - text: ""
+            bind: activity.rows.{i}.kind
+          - text: ""
+            bind: activity.rows.{i}.what
+          - text: ""
+            bind: activity.rows.{i}.where
+          - text: ""
+            bind: activity.rows.{i}.org
+          - text: ""
+            bind: activity.rows.{i}.who
+          - text: ""
+            bind: activity.rows.{i}.size
       - separator
       - type: group
         layout: { kind: horizontal }

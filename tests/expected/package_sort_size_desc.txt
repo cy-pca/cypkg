@@ -1,0 +1,30 @@
+ cypkg  registry         Windows
+╭ cypkg [↑][x]─────────────────────────────────────────────────────────────────────────╮
+│registry: http://registry                                                             │
+│[ < Back ]                                                                            │
+│package: zlib                                                                         │
+│zlib — a general-purpose lossless data compression library.                           │
+│latest: 1.3.1+cvc.5                                                                   │
+│license: Zlib                                                                         │
+│homepage: https://zlib.net/                                                           │
+│tags: wasi,utils,io,wasm                                                              │
+│install: cvcpkg install zlib                                                          │
+├──────────────────────────────────────────────────────────────────────────────────────┤
+│builds 1-10 of 25                                                                     │
+│version            platform               build            size ▼        published    │
+│1.3.1+cvc.3        windows/x86_64         debug static     478 KB        2026-08-21   │
+│1.3.1+cvc.3        linux/x86_64           debug shared     369 KB        2026-08-16   │
+│1.3.1+cvc.4        macos/arm64            debug shared     321 KB        2026-09-08   │
+│1.3.1+cvc.5        windows/x86_64         release static   321 KB        2026-10-17   │
+│1.3.1+cvc.1        windows/x86_64         release static   238 KB        2026-07-02   │
+│1.3.1+cvc.5        windows/x86_64         release shared   178 KB        2026-10-17   │
+│1.3.1+cvc.5        haiku/x86_64           release shared   161 KB        2026-09-23   │
+│1.3.1+cvc.5        linux/arm64            release shared   160 KB        2026-10-15   │
+│1.3.1+cvc.5        linux/x86_64           release shared   160 KB        2026-09-26   │
+│1.3.1+cvc.3        linux/x86_64           release static   159 KB        2026-08-19   │
+├──────────────────────────────────────────────────────────────────────────────────────┤
+│[ < Prev ][ Next > ]                                                                  │
+│                                                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────╯
+
+

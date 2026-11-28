@@ -7,7 +7,7 @@
 
 meta:
   name: cypkg-lib
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 functions: |
   ;; ── Replies. A reply is untrusted: a field may be missing or null. ──
@@ -59,14 +59,24 @@ functions: |
   ;; The query for one page of a search. facets is #t only for a new query or filters: it makes
   ;; the server count every match (seconds on cvcpkg.org, against a fraction of one without), and
   ;; it's the only way to get an honest package count; without it the count is page-local, so a
-  ;; page reuses the first page's.
-  (defun search-query (q platform arch link page offset facets)
-    (dict "q" q "platform" (filter-value platform) "arch" (filter-value arch)
-          "link" (filter-value link) "limit" page "offset" offset
-          "facets" (if facets "true" "false")))
+  ;; page reuses the first page's. sort is the results table's ("size", "-size"; cvcpkg's sort=,
+  ;; cy-pca/cvcpkg#652), which the server applies to every match before it pages them; "" sends
+  ;; none, for the server's own order (best match first).
+  (defun search-query (q platform arch link sort page offset facets)
+    (let ((d (dict "q" q "platform" (filter-value platform) "arch" (filter-value arch)
+                   "link" (filter-value link) "limit" page "offset" offset
+                   "facets" (if facets "true" "false"))))
+      (begin
+        (if (!= sort "") (set-attr d "sort" sort))
+        d)))
 
-  ;; What makes two searches the same search, paging aside.
+  ;; What makes two searches the same search, paging and sort aside: a change of it is a new
+  ;; search, which asks for facets. A sort or another page of the same search is not.
   (defun search-key (q platform arch link) (string.join (list q platform arch link) "|"))
+
+  ;; The sort a search reply d was sorted by: what the server echoes, or "" when it sends none (a
+  ;; registry from before sort= ignores the parameter and sends its own order).
+  (defun reply-sort (d) (text (field d "sort")))
 
   ;; A reply's body as text (a reply's body is bytes).
   (defun body-text (r)
@@ -92,11 +102,68 @@ functions: |
                     (if (= pc nil) ""
                         (str-concat ", " pc (if (= pc 1) " package" " packages"))))))
 
-  ;; The status line when a search reply r gave no rows.
-  (defun search-failure (r)
+  ;; The status line when a search reply r, asked with sort, gave no rows.
+  (defun search-failure (r sort)
     (if (= (get-attr r "status") 200)
         "search failed: the registry's reply was not a search result"
-        (str-concat "search failed: " (failure r))))
+        (if (sort-refused r)
+            (str-concat "search failed: the registry can't sort by " sort)
+            (str-concat "search failed: " (failure r)))))
+
+  ;; Whether reply r is a 422 refusing the sort (FastAPI's detail, loc ["query", "sort"]): a key
+  ;; the registry doesn't sort by.
+  (defun sort-refused (r)
+    (if (!= (get-attr r "status") 422) #f
+        (let ((d (reply-json r)))
+          (let ((ds (if (= d nil) nil (field d "detail"))))
+            (if (if (is-list ds) (> (length ds) 0) #f)
+                (let ((loc (field (nth ds 0) "loc")))
+                  (if (if (is-list loc) (= (length loc) 2) #f)
+                      (if (= (nth loc 0) "query") (= (nth loc 1) "sort") #f)
+                      #f))
+                #f)))))
+
+  ;; ── The search's page cache ──
+  ;;
+  ;; search.ari keeps the pages it has fetched in a fixed number of slots, so paging back, or a
+  ;; sort seen before, shows at once with no request (a search on cvcpkg.org takes seconds).
+  ;; These choose the slot. A slot is (dict "key" k "at" secs "use" n), every field present: the
+  ;; page's cache-key ("" for an empty slot), when it was fetched (seconds since the epoch), and
+  ;; when it was last shown (a count that only grows).
+
+  ;; The key a page is cached under: its search (search-key: the query and filters), its sort and
+  ;; its offset.
+  (defun cache-key (key sort off) (str-concat key "#" sort "#" off))
+
+  ;; Whether slot s holds a page fetched less than ttl seconds before now.
+  (defun cache-live (s now ttl)
+    (if (= (get-attr s "key") "") #f (< (- now (get-attr s "at")) ttl)))
+
+  ;; The slot of slots holding page k, fetched less than ttl seconds before now, or -1.
+  (defun cache-find (slots k now ttl)
+    (set at -1)
+    (set i 0)
+    (for s slots
+      (if (if (= at -1) (= (get-attr s "key") k) #f)
+          (if (cache-live s now ttl) (set at i)))
+      (set i (+ i 1)))
+    at)
+
+  ;; The slot page k goes in: the one holding it already, else the first empty or expired one,
+  ;; else the least recently shown.
+  (defun cache-slot (slots k now ttl)
+    (set held -1)
+    (set free -1)
+    (set lru -1)
+    (set least 0)
+    (set i 0)
+    (for s slots
+      (if (if (= held -1) (= (get-attr s "key") k) #f) (set held i))
+      (if (if (= free -1) (not (cache-live s now ttl)) #f) (set free i))
+      (if (if (= lru -1) #t (< (get-attr s "use") least))
+          (begin (set lru i) (set least (get-attr s "use"))))
+      (set i (+ i 1)))
+    (if (!= held -1) held (if (!= free -1) free lru)))
 
   ;; ── Package ──
 
@@ -124,13 +191,44 @@ functions: |
   ;; A timestamp's date: its first 10 characters.
   (defun date-text (ts) (if (> (string.length ts) 10) (string.substring ts 0 10) ts))
 
-  ;; One row of the builds table, from a build's fields as text.
+  ;; One row of a package's builds table, from a build's fields as text (size may be a number):
+  ;; what its cells show (version, platform, build, size_text, date), and what its columns sort
+  ;; by (version, platform and build as shown; size, the bytes, a number or nil when unknown;
+  ;; published, the timestamp).
   (defun build-row (version platform arch build-type link size published)
     (dict "version" version
-          "where" (str-concat platform "/" arch)
-          "kind" (str-concat build-type " " link)
-          "size" (size-text size)
+          "platform" (str-concat platform "/" arch)
+          "build" (str-concat build-type " " link)
+          "size" (if (= (text size) "") nil (int size))
+          "size_text" (size-text size)
+          "published" published
           "date" (date-text published)))
+
+  ;; build-row of a build as /v1/packages/{name} sends it (any field may be null).
+  (defun package-row (p)
+    (build-row (text (field p "version")) (text (field p "platform")) (text (field p "arch"))
+               (text (field p "build_type")) (text (field p "link")) (field p "size_bytes")
+               (text (field p "published_at"))))
+
+  ;; ── A table's sort, as a type: table keeps it: "" none, "key" ascending, "-key" descending ──
+
+  ;; The key a sort names ("size" for "-size"), and whether it runs descending.
+  (defun sort-field (s) (if (string.starts-with s "-") (string.substring s 1) s))
+  (defun sort-desc (s) (string.starts-with s "-"))
+
+  ;; rows (dicts) in the order sort s names: stable, and natural (collections.sort-by: numbers by
+  ;; value, "1.9" before "1.10", nil first ascending and last descending). "" keeps their order.
+  (defun sort-rows (rows s)
+    (if (= s "") rows (collections.sort-by rows (sort-field s) (sort-desc s))))
+
+  ;; The elements of xs from start up to end, as a new list.
+  (defun slice (xs start end)
+    (set out (list))
+    (set i start)
+    (while (< i end)
+      (set out (append out (nth xs i)))
+      (set i (+ i 1)))
+    out)
 
   ;; The page of a list of total rows to show from offset off, page rows at a time: (list
   ;; start end). An offset past the end goes back to the first page.
@@ -379,22 +477,21 @@ functions: |
   ;; An event (/v1/activity, or the feed's activity message) as a row, seen at `now`: when (how
   ;; long ago; at is the timestamp, for aging), what happened, to which package and version, for
   ;; which platform (with its link, and "debug" for a debug build), in which org, by whom and
-  ;; why, and how big (a publish's size).
+  ;; why, and how big (a publish's size). Whole: the window's table cuts each to its column, which
+  ;; the user can widen.
   (defun event-row (e now)
     (let ((bt (text (field e "build_type"))) (ln (text (field e "link"))))
       (dict "id" (field e "id") "at" (text (field e "created_at"))
             "when" (ago (field e "created_at") now)
             "kind" (text (field e "kind"))
-            "what" (cut (str-concat (text (field e "name")) " " (text (field e "version"))) 25)
-            "where" (cut (str-concat (where (field e "platform") (field e "arch"))
-                                     (if (= ln "") "" (str-concat " " ln))
-                                     (if (= bt "debug") " debug" ""))
-                         26)
-            "org" (cut (if (= (text (field e "org_slug")) "") "—" (text (field e "org_slug"))) 5)
-            "who" (cut (str-concat (text (field e "actor"))
-                                   (if (= (text (field e "detail")) "") ""
-                                       (str-concat " · " (text (field e "detail")))))
-                       14)
+            "what" (str-concat (text (field e "name")) " " (text (field e "version")))
+            "where" (str-concat (where (field e "platform") (field e "arch"))
+                                (if (= ln "") "" (str-concat " " ln))
+                                (if (= bt "debug") " debug" ""))
+            "org" (if (= (text (field e "org_slug")) "") "—" (text (field e "org_slug")))
+            "who" (str-concat (text (field e "actor"))
+                              (if (= (text (field e "detail")) "") ""
+                                  (str-concat " · " (text (field e "detail")))))
             "size" (if (= (text (field e "kind")) "publish") (size-text (field e "size_bytes")) ""))))
 
   ;; event-row of each of `rows`.

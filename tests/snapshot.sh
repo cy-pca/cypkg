@@ -34,6 +34,11 @@ search_fault_500|--q fault-500
 search_fault_badjson|--q fault-badjson
 search_fault_shape|--q fault-shape
 search_refused|--q zlib|http://127.0.0.1:1
+search_sort_size_desc|--q zlib --sort -size
+search_sort_version|--q zstd --sort version
+search_sort_page2|--q zlib --sort -size --offset 10
+search_sort_unknown|--q zlib --sort bogus
+search_sort_unsupported|--q nosort:zlib --sort -size
 package_zlib|--package zlib
 package_zlib_page2|--package zlib --pkg-offset 10
 package_last_page|--package zlib --pkg-offset 20
@@ -44,6 +49,8 @@ package_missing|--package no-such-package
 package_fault_500|--package fault-500
 package_fault_badjson|--package fault-badjson
 package_fault_shape|--package fault-shape
+package_sort_size_desc|--package zlib --pkg-sort -size
+package_sort_platform_page2|--package zlib --pkg-sort platform --pkg-offset 10
 window_builders|--open builders --live off --now 2026-10-30T21:06:00Z
 window_builder|--builder 1 --live off --now 2026-10-30T21:06:00Z
 window_builds|--open builds --live off

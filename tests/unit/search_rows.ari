@@ -1,6 +1,7 @@
 # search_rows: rows, long names and sizes
 #
-# Three rows: a name cut at its column, a size under 1 KB, and wide glyphs. Prev and Next both show.
+# Three rows: a name cut at its column (the table cuts it), a size under 1 KB, and wide glyphs. Prev
+# and Next both show.
 # A view unit test: it includes the unit from share/cypkg/views.ari over state seeded here, with no
 # network. tests/unit.sh renders it with ari snapshot and compares tests/unit/expected/.
 

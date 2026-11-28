@@ -22,7 +22,7 @@ STR, INT, LIST = str, int, list
 OPT_STR = (str, type(None))
 OPT_INT = (int, type(None))
 
-# What share/cypkg/main.ari and views.ari read (search.res.*, pkg.all.*).
+# What share/cypkg/main.ari and views.ari read (search.res.*, and the builds package.ari keeps).
 SEARCH = {"total": INT, "package_count": INT, "packages": LIST}
 SEARCH_ROW = {"name": STR, "version": STR, "platform": STR, "arch": STR, "link": STR,
               "size_bytes": INT}

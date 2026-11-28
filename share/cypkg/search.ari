@@ -1,22 +1,105 @@
 # search.ari: the search module.
 #
-# The query and filters, one page of build rows, and the pager. Its on_tick runs the searches.
+# The query and filters, one page of build rows in a sortable table, and the pager. Its on_tick
+# runs the searches.
 #
 # A module: main.ari mounts it with load:. It owns its state (its chroot is includes.<as> in the
 # parent) and reaches the parent only through the holes main.ari grants:
-#   args   read-only: the command line (server, page, and the start-up search)
+#   args   read-only: the command line (server, page, and the start-up search and sort)
 #   view   which view shows: "search" or "package"
 #   nav    nav.open, the package to open, and nav.start, its first build
 # It imports its own view (views.ari) and logic (lib.ari). A hidden mount doesn't run until it is
 # first shown; after that its on_tick keeps running.
+#
+# The sort. The results table keeps it at search.sort ("", "size", "-size"). A click on a header
+# sorts every match on the server (cvcpkg's sort=, cy-pca/cvcpkg#652), from the first page. A
+# sort is the same search: only the query and the filters make a new one, which asks for facets.
+#
+# The page cache. A search on cvcpkg.org takes seconds, so each page fetched (and the next one,
+# prefetched) is kept under its search, sort and offset (lib.ari's cache-key) in one of
+# (cache-size) slots: search.cache.<n>.key, .body (the reply's text), .pc (that search's package
+# count), .at (when it was fetched) and .use (when it was last shown). A page older than
+# (cache-ttl) seconds is fetched again. A new page takes its own key's slot, else an empty or
+# expired one, else the least recently shown. So paging back, or a sort seen before, shows at once.
 
 meta:
   name: cypkg-search
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 needs: [args, view, nav, auth]
 
 import: [views.ari, lib.ari, net.ari]
+
+functions: |
+  ;; The cache: 16 pages, each for 5 minutes.
+  (defun cache-size () 16)
+  (defun cache-ttl () 300)
+  (defun slot-key (n f) (str-concat "search.cache." n "." f))
+
+  ;; The slots, as lib.ari's cache functions take them.
+  (defun cache-slots ()
+    (set out (list))
+    (set n 0)
+    (while (< n (cache-size))
+      (set out (append out (dict "key" (text (state-get (slot-key n "key")))
+                                 "at" (float (text-or-0 (state-get (slot-key n "at"))))
+                                 "use" (int-or (state-get (slot-key n "use")) 0))))
+      (set n (+ n 1)))
+    out)
+
+  ;; Whether page k is cached, and not too old.
+  (defun cached? (k) (!= (cache-find (cache-slots) k (time-now) (cache-ttl)) -1))
+
+  ;; Page k from the cache, as (dict "body" text "pc" text), or nil. It counts as shown.
+  (defun cache-get (k)
+    (let ((n (cache-find (cache-slots) k (time-now) (cache-ttl))))
+      (if (= n -1) nil
+          (begin
+            (cache-touch n)
+            (dict "body" (state-get (slot-key n "body")) "pc" (text (state-get (slot-key n "pc"))))))))
+
+  ;; Keep page k: body, its reply's text, and pc, its search's package count ("" when unknown).
+  (defun cache-put (k body pc)
+    (let ((n (cache-slot (cache-slots) k (time-now) (cache-ttl))))
+      (begin
+        (state-set (slot-key n "key") k)
+        (state-set (slot-key n "body") body)
+        (state-set (slot-key n "pc") pc)
+        (state-set (slot-key n "at") (time-now))
+        (cache-touch n))))
+
+  (defun cache-touch (n)
+    (state-set "search.cache_use" (+ (int (state-get "search.cache_use")) 1))
+    (state-set (slot-key n "use") (int (state-get "search.cache_use"))))
+
+  ;; The page the view asks for now (its query, filters, sort and offset), as a cache key.
+  (defun asked-page ()
+    (cache-key (search-key (state-get "search.q") (state-get "search.platform")
+                           (state-get "search.arch") (state-get "search.link"))
+               (text (state-get "search.sort")) (int (state-get "search.offset"))))
+
+  ;; Wait for f, the prefetch of page k, in 50 ms slices: its reply, or nil. A search asked for
+  ;; meanwhile doesn't queue behind it. One for page k (Next) waits on, with the progress bar,
+  ;; and then finds the page cached; any other (a header, Prev, a new query) goes ahead, and this
+  ;; reply is dropped.
+  (defun prefetch-wait (f k)
+    (set got nil)
+    (set going #t)
+    (set waited 0)
+    (while going
+      (set got (try (await f 0.05) (catch (TimeoutError e) nil)))
+      (if (!= got nil)
+          (set going #f)
+          (if (= (state-get "req.search") "1")
+              (if (= (asked-page) k)
+                  (begin
+                    (set waited (+ waited 1))
+                    (state-set "search.busy" waited)
+                    (state-set "search.bar" (progress-bar waited 96)))
+                  (set going #f)))))
+    (state-set "search.busy" 0)
+    (state-set "search.bar" "")
+    got)
 
 init: |
   (begin
@@ -24,6 +107,7 @@ init: |
     (state-set "search.platform" (if (= (text (state-get "args.platform")) "") "all" (state-get "args.platform")))
     (state-set "search.arch" (if (= (text (state-get "args.arch")) "") "all" (state-get "args.arch")))
     (state-set "search.link" (if (= (text (state-get "args.link")) "") "all" (state-get "args.link")))
+    (state-set "search.sort" (text (state-get "args.sort")))
     (state-set "search.offset" (int-or (state-get "args.offset") 0))
     (state-set "search.count" 0)
     (state-set "search.total" 0)
@@ -33,8 +117,8 @@ init: |
     (state-set "search.pc" "")
     (state-set "search.busy" 0)
     (state-set "search.bar" "")
-    (state-set "search.next.key" "")
-    (state-set "search.prev.key" "")
+    (state-set "search.cache_use" 0)
+    (for n (collections.range 0 (cache-size)) (state-set (slot-key n "key") ""))
     (state-set "req.search" "1"))
 
 # search.seq counts the searches that have finished, so a test can wait for one.
@@ -42,80 +126,82 @@ on_tick: |
   (begin
     (set url (str-concat (state-get "args.server") "/v1/search"))
     (set page (int-or (state-get "args.page") 10))
-    ;; A page kept in slot (next or prev) for this search at offset off, as reply text, or nil.
-    (defun kept (slot off)
-      (if (if (= (state-get (str-concat "search." slot ".key")) key)
-              (= (int-or (state-get (str-concat "search." slot ".offset")) -1) off) #f)
-          (state-get (str-concat "search." slot ".body"))
-          nil))
-    (defun keep (slot off body)
-      (state-set (str-concat "search." slot ".key") key)
-      (state-set (str-concat "search." slot ".offset") off)
-      (state-set (str-concat "search." slot ".body") body))
 
     ;; A search: one page of rows. A new query or filter asks the server for facets (the honest
-    ;; package count); paging doesn't, and reuses that count. A page already fetched (the next
-    ;; one, prefetched, or the one just left) is parsed from its text with no request.
+    ;; package count); a sort or another page doesn't, and reuses that count. A page in the cache
+    ;; is parsed from its text, with no request.
     (if (= (state-get "req.search") "1")
         (begin
           (state-set "req.search" "0")
           ;; The search this request asks for, read once as it is taken: a tick can run over frames,
-          ;; and a query typed meanwhile must not be searched under the key from before it.
+          ;; and a query typed (or a header clicked) meanwhile must not be searched under the key
+          ;; from before it.
           (set q (state-get "search.q"))
           (set pf (state-get "search.platform"))
           (set ar (state-get "search.arch"))
           (set ln (state-get "search.link"))
+          (set sort (text (state-get "search.sort")))
           (set key (search-key q pf ar ln))
           (set off (int (state-get "search.offset")))
+          (set ck (cache-key key sort off))
           (set fresh (!= key (state-get "search.key")))
-          (set body (if fresh nil (kept "next" off)))
-          (if (= body nil) (set body (if fresh nil (kept "prev" off))))
-          (set r (if (= body nil)
+          (set hit (cache-get ck))
+          (set r (if (= hit nil)
                      (begin
                        (state-set "search.status" "searching...")
                        (fetch url (with-auth (dict "query"
-                                    (search-query q pf ar ln page off fresh)))
+                                    (search-query q pf ar ln sort page off fresh)))
                               "search"))
-                     (dict "status" 200 "body" body "error" "")))
+                     (dict "status" 200 "body" (field hit "body") "error" "")))
           (set d (reply-object r))
           (set rows (reply-rows d))
+          ;; The sort the next page is prefetched with: this one, unless the registry ignored it.
+          (set next-sort sort)
           (if (is-list rows)
               (begin
-                ;; The page being left stays at hand for Prev.
-                (if (if (not fresh) (!= (state-get "search.key") "") #f)
-                    (keep "prev" (int (state-get "search.shown")) (state-get "search.body")))
+                ;; The package count: the cached page's, a new search's facets, else the count
+                ;; this search already has (the same under any sort or page).
+                (set pc (if (!= hit nil) (field hit "pc")
+                            (if fresh (text (field d "package_count")) (text (state-get "search.pc")))))
+                (if (= hit nil) (cache-put ck (body-text r) pc))
                 (state-set-tree "search.res" d)
-                (state-set "search.body" (body-text r))
-                (state-set "search.shown" off)
                 (state-set "search.key" key)
-                (if fresh (state-set "search.pc" (text (field d "package_count"))))
+                (state-set "search.pc" pc)
                 (set n (length rows))
                 (set total (if (= (field d "total") nil) n (int (field d "total"))))
                 (state-set "search.count" n)
                 (state-set "search.total" total)
-                (state-set "search.status"
-                  (search-status off n total (if (= (state-get "search.pc") "") nil
-                                                 (int (state-get "search.pc"))))))
+                (set status (search-status off n total (if (= pc "") nil (int pc))))
+                ;; A registry from before sort= ignores it and sends its own order. The header then
+                ;; shows the order the rows are in (the sort echoed, "" with none), and the status
+                ;; says why.
+                (if (!= (reply-sort d) sort)
+                    (begin
+                      (set next-sort (reply-sort d))
+                      (state-set "search.sort" next-sort)
+                      (set status (str-concat status " (this registry can't sort by " sort ")"))))
+                (state-set "search.status" status))
               (begin
                 (state-set "search.key" "")
                 (state-set "search.count" 0)
                 (state-set "search.total" 0)
-                (state-set "search.status" (search-failure r))))
+                (state-set "search.status" (search-failure r sort))))
           (state-set "search.seq" (+ (int (state-get "search.seq")) 1))
 
-          ;; Prefetch the next page in the background, so Next is instant. A failure is left for
-          ;; the click to find.
+          ;; Prefetch the next page into the cache in the background, so Next is instant. A
+          ;; failure is left for the click to find.
           ;; Not with --progress off (the browser build), where an async request can hang.
+          (set nk (cache-key key next-sort (+ off page)))
           (if (if (is-list rows)
                   (if (< (+ off page) (int (state-get "search.total")))
-                      (!= (text (state-get "args.progress")) "off") #f) #f)
-              (if (= (kept "next" (+ off page)) nil)
-                  (begin
-                    (set nf (http-get-async url (dict "query"
-                              (search-query q pf ar ln page (+ off page) #f))))
-                    (set nr (await nf))
-                    (if (= (get-attr nr "status") 200)
-                        (keep "next" (+ off page) (body-text nr)))))))))
+                      (if (!= (text (state-get "args.progress")) "off") (not (cached? nk)) #f) #f) #f)
+              (begin
+                (set nr (prefetch-wait
+                          (http-get-async url (with-auth (dict "query"
+                            (search-query q pf ar ln next-sort page (+ off page) #f))))
+                          nk))
+                (if (if (!= nr nil) (is-list (reply-rows (reply-object nr))) #f)
+                    (cache-put nk (body-text nr) (text (state-get "search.pc")))))))))
 
 root:
   - include: search_view

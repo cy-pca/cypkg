@@ -21,6 +21,8 @@ usage: cypkg [--server URL] [--tvision] [document flags...]
                  By default ari keeps it in ~/.config/cvc/credentials/cypkg (0600), as
                  `cvcpkg login` keeps its session
   --q TEXT       search for TEXT at start
+  --sort KEY     sort the search by KEY at start: name, version, platform, link or size
+                 (the columns' headers), -size for descending
   --package NAME open NAME at start
   --page N       rows per page (default 10)
 

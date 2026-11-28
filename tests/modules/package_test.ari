@@ -6,12 +6,55 @@
 # count one more finished request, and asserts on what its view reads. tests/modules.sh puts the
 # fixture's URL in place of @SERVER@ and runs `ari test`. Fixture numbers: 196 builds of 10
 # packages; zstd has 25 builds, 5 of them linux.
+#
+# The builds table sorts in the module (pkg.sort), over every build it holds: a header click
+# writes pkg.sort and runs the table's on: (offset 0, req.pkgpage "1"), as these tests do.
 
 meta:
   name: cypkg-package-test
-  min_libcvc: 3.7.4
+  min_libcvc: 4.0.10
 
 requires: [net]
+
+import: ../../share/cypkg/lib.ari
+
+functions: |
+  ;; Ask for a page of builds (req.pkgpage "1"), and wait (up to 10 s) for it.
+  (defun page-now ()
+    (set n (int (state-get "includes.p.pkg.seq")))
+    (state-set "includes.p.req.pkgpage" "1")
+    (set i 0)
+    (while (if (<= (int (state-get "includes.p.pkg.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1))))
+
+  ;; A header click: the sort, then the table's on:.
+  (defun click-sort (srt)
+    (state-set "includes.p.pkg.sort" srt)
+    (state-set "includes.p.pkg.offset" 0)
+    (page-now))
+
+  ;; Open package name, and wait for its first page.
+  (defun open-package (name)
+    (set n (int (state-get "includes.p.pkg.seq")))
+    (state-set "nav.open" name)
+    (set i 0)
+    (while (if (<= (int (state-get "includes.p.pkg.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1))))
+
+  ;; Row i's field k on the page shown.
+  (defun cell (i k) (text (state-get (str-concat "includes.p.pkg.page." i "." k))))
+
+  ;; The biggest size_bytes of package name's builds, as the registry sends them.
+  (defun biggest (name)
+    (set most 0)
+    (for b (field (reply-object (http-get (str-concat (state-get "args.server") "/v1/packages/" name))) "packages")
+      (if (> (int-or (field b "size_bytes") 0) most) (set most (int (field b "size_bytes")))))
+    most)
+
+  ;; The /v1/packages requests the fixture has seen.
+  (defun package-requests ()
+    (set n 0)
+    (for r (field (reply-object (http-get (str-concat (state-get "args.server") "/_requests"))) "requests")
+      (if (string.starts-with (text (field r "path")) "/v1/packages/") (set n (+ n 1))))
+    n)
 
 args:
   server: {type: string, default: "@SERVER@"}
@@ -56,8 +99,8 @@ tests:
 
   a build row is formatted for the table: |
     (begin
-      (assert (string.contains (state-get "includes.p.pkg.page.0.where") "/") (state-get "includes.p.pkg.page.0.where"))
-      (assert (string.ends-with (state-get "includes.p.pkg.page.0.size") " KB") (state-get "includes.p.pkg.page.0.size"))
+      (assert (string.contains (state-get "includes.p.pkg.page.0.platform") "/") (state-get "includes.p.pkg.page.0.platform"))
+      (assert (string.ends-with (state-get "includes.p.pkg.page.0.size_text") " KB") (state-get "includes.p.pkg.page.0.size_text"))
       (assert (= (string.length (state-get "includes.p.pkg.page.0.date")) 10) (state-get "includes.p.pkg.page.0.date")))
 
   the last page of builds is partial: |
@@ -80,6 +123,46 @@ tests:
       (assert (= (state-get "includes.p.pkg.offset") "0") (state-get "includes.p.pkg.offset"))
       (assert (= (state-get "includes.p.pkg.status") "builds 1-10 of 25")))
 
+  a header sorts every build, not just the page, with no request: |
+    (begin
+      (http-get (str-concat (state-get "args.server") "/_requests?reset=1"))
+      (state-set "includes.p.pkg.offset" 10)
+      (page-now)
+      (click-sort "-size")
+      (assert (= (state-get "includes.p.pkg.offset") "0") "back to the first page")
+      (assert (= (state-get "includes.p.pkg.status") "builds 1-10 of 25") (state-get "includes.p.pkg.status"))
+      (assert (= (int (cell 0 "size")) (biggest "zstd")) "the biggest of all 25 builds first")
+      (assert (>= (int (cell 0 "size")) (int (cell 9 "size"))))
+      (set smallest (int (cell 9 "size")))
+      (state-set "includes.p.pkg.offset" 10)
+      (page-now)
+      (assert (<= (int (cell 0 "size")) smallest) "page 2 goes on down from page 1")
+      ;; The whole reply is held: sorting asked the registry nothing (biggest asked once).
+      (assert (= (package-requests) 1) (str (package-requests))))
+
+  the other direction, and versions in version order: |
+    (begin
+      (click-sort "size")
+      (assert (<= (int (cell 0 "size")) (int (cell 9 "size"))) "the smallest first")
+      (click-sort "version")
+      (assert (= (cell 0 "version") "1.5.7+cvc.1") (cell 0 "version"))
+      (click-sort "-version")
+      (assert (= (cell 0 "version") "1.5.7+cvc.5") (cell 0 "version"))
+      (click-sort "platform")
+      (assert (string.starts-with (cell 0 "platform") "freebsd/") (cell 0 "platform")))
+
+  the sort stays as another package opens: |
+    (begin
+      (click-sort "-size")
+      (open-package "zlib")
+      (assert (= (state-get "includes.p.pkg.name") "zlib"))
+      (assert (= (text (state-get "includes.p.pkg.sort")) "-size"))
+      (assert (= (int (cell 0 "size")) (biggest "zlib")) "zlib's biggest first")
+      ;; Back to the registry's order, and zstd, for the tests after.
+      (state-set "includes.p.pkg.sort" "")
+      (open-package "zstd")
+      (assert (= (state-get "includes.p.pkg.status") "builds 1-10 of 25")))
+
   null fields become empty text: |
     (begin
       (set n (int (state-get "includes.p.pkg.seq")))
@@ -88,7 +171,7 @@ tests:
       (while (if (<= (int (state-get "includes.p.pkg.seq")) n) (< i 500) #f) (sleep 0.02) (set i (+ i 1)))
       (assert (= (state-get "includes.p.pkg.license") "") (state-get "includes.p.pkg.license"))
       (assert (= (state-get "includes.p.pkg.desc") "") (state-get "includes.p.pkg.desc"))
-      (assert (= (state-get "includes.p.pkg.page.0.size") "") (state-get "includes.p.pkg.page.0.size"))
+      (assert (= (state-get "includes.p.pkg.page.0.size_text") "") (state-get "includes.p.pkg.page.0.size_text"))
       (assert (= (state-get "includes.p.pkg.page.0.date") "") (state-get "includes.p.pkg.page.0.date")))
 
   a long description is cut to the window: |
